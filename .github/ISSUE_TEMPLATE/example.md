@@ -1,7 +1,9 @@
 ---
-주차: Feature request
-주제: Suggest an idea for this project
-
+name: Feature request
+about: Suggest an idea for this project
+title: ''
+labels: ''
+assignees: ''
 ---
 
 ## 실습에 대한 설명
