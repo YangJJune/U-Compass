@@ -11,6 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.example.composenavigation.nested.NestedNavHost
 import com.example.composenavigation.simple.SimpleNavHost
 import com.example.composenavigation.ui.theme.ComposeNavigationTheme
 
@@ -21,7 +22,9 @@ class MainActivity : ComponentActivity() {
         setContent {
             ComposeNavigationTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    SimpleNavHost(innerPadding)
+//                    SimpleNavHost(innerPadding)
+                    NestedNavHost(innerPadding)
+
                 }
             }
         }
