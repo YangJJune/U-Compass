@@ -11,15 +11,15 @@ sealed class BottomNavItem(
     val title: String,
     val icon: ImageVector
 ) {
-    object Home : BottomNavItem(
-        route = "Scaffold",
-        title = "Scaffold",
+    object TopAppBar : BottomNavItem(
+        route = "TopAppBar",
+        title = "TopAppBar",
         icon = Icons.Default.Home
     )
 
-    object Favorite : BottomNavItem(
-        route = "favorite",
-        title = "즐겨찾기",
+    object BottomSheet : BottomNavItem(
+        route = "BottomSheet",
+        title = "BottomSheet",
         icon = Icons.Default.Favorite
     )
 

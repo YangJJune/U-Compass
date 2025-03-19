@@ -9,6 +9,8 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.ikseong.composecomponent.MyBottomSheetScaffold
+import com.ikseong.composecomponent.ui.theme.LargeTopAppBarExample
 
 @Composable
 fun MyNavHost(
@@ -17,14 +19,14 @@ fun MyNavHost(
 ) {
     NavHost(
         navController = navController,
-        startDestination = BottomNavItem.Home.route,
+        startDestination = BottomNavItem.TopAppBar.route,
         modifier = modifier
     ) {
-        composable(BottomNavItem.Home.route) {
-            HomeScreen()
+        composable(BottomNavItem.TopAppBar.route) {
+            LargeTopAppBarExample()
         }
-        composable(BottomNavItem.Favorite.route) {
-            FavoriteScreen()
+        composable(BottomNavItem.BottomSheet.route) {
+            MyBottomSheetScaffold()
         }
         composable(BottomNavItem.Profile.route) {
             ProfileScreen()
