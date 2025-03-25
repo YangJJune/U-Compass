@@ -15,7 +15,7 @@ fun MainNavHost(
     val navController = rememberNavController()
     NavHost(
         navController = navController,
-        startDestination = "home"
+        startDestination = Route.Home
     ) {
         composable<Route.Home> {
             HomeScreen(
@@ -25,6 +25,7 @@ fun MainNavHost(
         }
         composable<Route.AnimationVisibility> {
             AnimatedVisibilityScreen(
+                innerPadding = innerPadding,
                 navigateBack = navController::popBackStack
             )
         }
