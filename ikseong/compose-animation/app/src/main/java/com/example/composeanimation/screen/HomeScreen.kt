@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 fun HomeScreen(
     innerPadding: PaddingValues,
     navigateToAnimatedVisibility: () -> Unit = {},
+    navigateToAnimatedContent: () -> Unit = {}
 ) {
     Column(
         modifier = Modifier
@@ -28,6 +29,10 @@ fun HomeScreen(
         Button(onClick = navigateToAnimatedVisibility) {
             Text(text = "Animated Visibility")
         }
+        Button(onClick = navigateToAnimatedContent) {
+            Text(text = "Animated Content")
+        }
+
     }
 }
 

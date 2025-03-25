@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.composeanimation.screen.AnimatedContentScreen
 import com.example.composeanimation.screen.AnimatedVisibilityScreen
 import com.example.composeanimation.screen.HomeScreen
 
@@ -20,11 +21,18 @@ fun MainNavHost(
         composable<Route.Home> {
             HomeScreen(
                 innerPadding = innerPadding,
-                navigateToAnimatedVisibility = { navController.navigate(Route.AnimationVisibility) }
+                navigateToAnimatedVisibility = { navController.navigate(Route.AnimatedVisibility) },
+                navigateToAnimatedContent = { navController.navigate(Route.AnimatedContent) }
             )
         }
-        composable<Route.AnimationVisibility> {
+        composable<Route.AnimatedVisibility> {
             AnimatedVisibilityScreen(
+                innerPadding = innerPadding,
+                navigateBack = navController::popBackStack
+            )
+        }
+        composable<Route.AnimatedContent> {
+            AnimatedContentScreen(
                 innerPadding = innerPadding,
                 navigateBack = navController::popBackStack
             )
