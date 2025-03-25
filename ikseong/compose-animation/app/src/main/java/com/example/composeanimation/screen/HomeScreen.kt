@@ -17,7 +17,8 @@ import androidx.compose.ui.unit.dp
 fun HomeScreen(
     innerPadding: PaddingValues,
     navigateToAnimatedVisibility: () -> Unit = {},
-    navigateToAnimatedContent: () -> Unit = {}
+    navigateToAnimatedContent: () -> Unit = {},
+    navigateToCrossfade: () -> Unit = {}
 ) {
     Column(
         modifier = Modifier
@@ -31,6 +32,9 @@ fun HomeScreen(
         }
         Button(onClick = navigateToAnimatedContent) {
             Text(text = "Animated Content")
+        }
+        Button(onClick = navigateToCrossfade) {
+            Text(text = "Crossfade")
         }
 
     }
