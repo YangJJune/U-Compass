@@ -30,54 +30,42 @@ import androidx.compose.ui.unit.dp
 import com.example.composeanimation.component.ButtonComponents
 
 
+@Preview(showBackground = true, widthDp = 400, heightDp = 800)
 @Composable
-fun AnimatedContentScreen(
-    innerPadding: PaddingValues = PaddingValues(0.dp),
-    navigateBack: () -> Unit,
-) {
+fun AnimatedContentScreen() {
     var visible by remember { mutableStateOf(true) }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(innerPadding),
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Row {
-                var count by remember { mutableIntStateOf(0) }
-                Button(onClick = { count++ }) {
-                    Text("Add")
-                }
-                AnimatedContent(
-                    targetState = count,
-                    label = "animated content",
-                    transitionSpec = {
-                        if (targetState > initialState) {
-                            slideInVertically { height -> height } + fadeIn() togetherWith
-                                    slideOutVertically { height -> -height } + fadeOut()
-                        } else {
-                            slideInVertically { height -> -height } + fadeIn() togetherWith
-                                    slideOutVertically { height -> height } + fadeOut()
-                        }.using(
-                            SizeTransform(clip = false)
-                        )
-                    }
-                ) { targetCount ->
-                    // Make sure to use `targetCount`, not `count`.
-                    Text(text = "Count: $targetCount")
-                }
 
+        Row(
+            modifier = Modifier.align(Alignment.Center),
+        ) {
+            var count by remember { mutableIntStateOf(0) }
+            Button(onClick = { count++ }) {
+                Text("Add")
             }
+            AnimatedContent(
+                targetState = count,
+                label = "animated content",
+                transitionSpec = {
+                    if (targetState > initialState) {
+                        slideInVertically { height -> height } + fadeIn() togetherWith
+                                slideOutVertically { height -> -height } + fadeOut()
+                    } else {
+                        slideInVertically { height -> -height } + fadeIn() togetherWith
+                                slideOutVertically { height -> height } + fadeOut()
+                    }.using(
+                        SizeTransform(clip = false)
+                    )
+                }
+            ) { targetCount ->
+                Text(text = "Count: $targetCount")
+            }
+
         }
-        ButtonComponents(
-            modifier = Modifier.align(Alignment.BottomCenter),
-            event = {
-                visible = !visible
-            },
-            navigateBack = navigateBack
-        )
     }
 }
 
@@ -85,8 +73,26 @@ fun AnimatedContentScreen(
 @Preview(showBackground = true, widthDp = 400, heightDp = 800)
 @Composable
 private fun AnimatedContentPreview() {
-    AnimatedContentScreen(
-        navigateBack = {},
-    )
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+    ) {
+
+        Row(
+            modifier = Modifier.align(Alignment.Center),
+        ) {
+            var count by remember { mutableIntStateOf(0) }
+            Button(onClick = { count++ }) {
+                Text("Add")
+            }
+            AnimatedContent(
+                targetState = count,
+                label = "animated content"
+            ) { targetCount ->
+                // Make sure to use `targetCount`, not `count`.
+                Text(text = "Count: $targetCount")
+            }
+        }
+    }
 }
 
