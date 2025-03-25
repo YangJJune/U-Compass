@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.sp
 import com.example.composeanimation.component.ButtonComponents
 
 
+@Preview(showBackground = true, widthDp = 400, heightDp = 800)
 @Composable
 fun AnimatedContentScreen(
     innerPadding: PaddingValues,
@@ -70,7 +71,6 @@ fun AnimatedContentScreen(
             navigateBack = navigateBack
         )
     }
-
 }
 
 @Preview(showBackground = true, widthDp = 400, heightDp = 800)
