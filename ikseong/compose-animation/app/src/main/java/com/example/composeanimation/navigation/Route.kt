@@ -13,4 +13,8 @@ sealed class Route {
     data object Crossfade : Route()
     @Serializable
     data object AnimateContentSize : Route()
+    @Serializable
+    data object AnimateOffset : Route()
+    @Serializable
+    data object AnimatePadding : Route()
 }

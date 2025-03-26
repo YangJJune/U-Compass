@@ -10,6 +10,8 @@ import com.example.composeanimation.screen.composable.AnimatedContentScreen
 import com.example.composeanimation.screen.composable.AnimatedVisibilityScreen
 import com.example.composeanimation.screen.composable.CrossfadeScreen
 import com.example.composeanimation.screen.HomeScreen
+import com.example.composeanimation.screen.modifier.AnimateOffsetScreen
+import com.example.composeanimation.screen.modifier.AnimatePaddingScreen
 
 @Composable
 fun MainNavHost(
@@ -26,7 +28,9 @@ fun MainNavHost(
                 navigateToAnimatedVisibility = { navController.navigate(Route.AnimatedVisibility) },
                 navigateToAnimatedContent = { navController.navigate(Route.AnimatedContent) },
                 navigateToCrossfade = { navController.navigate(Route.Crossfade) },
-                navigateToAnimateContentSize = { navController.navigate(Route.AnimateContentSize) }
+                navigateToAnimateContentSize = { navController.navigate(Route.AnimateContentSize) },
+                navigateToAnimateOffset = { navController.navigate(Route.AnimateOffset) },
+                navigateToAnimatePadding = { navController.navigate(Route.AnimatePadding) },
             )
         }
         composable<Route.AnimatedVisibility> {
@@ -52,5 +56,18 @@ fun MainNavHost(
                 innerPadding = innerPadding,
                 navigateBack = navController::popBackStack
             )
-    }}
+        }
+        composable<Route.AnimateOffset> {
+            AnimateOffsetScreen(
+                innerPadding = innerPadding,
+                navigateBack = navController::popBackStack
+            )
+        }
+        composable<Route.AnimatePadding> {
+            AnimatePaddingScreen(
+                innerPadding = innerPadding,
+                navigateBack = navController::popBackStack
+            )
+        }
+    }
 }
