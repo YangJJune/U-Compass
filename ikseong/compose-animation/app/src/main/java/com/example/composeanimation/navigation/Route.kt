@@ -6,6 +6,8 @@ sealed class Route {
     @Serializable
     data object Home : Route()
     @Serializable
+    data object Navigate : Route()
+    @Serializable
     data object AnimatedVisibility : Route()
     @Serializable
     data object AnimatedContent : Route()

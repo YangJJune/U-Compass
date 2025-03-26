@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun HomeScreen(
     innerPadding: PaddingValues,
+    navigateToNavigate: () -> Unit = {},
     navigateToAnimatedVisibility: () -> Unit = {},
     navigateToAnimatedContent: () -> Unit = {},
     navigateToCrossfade: () -> Unit = {},
@@ -31,6 +32,9 @@ fun HomeScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
+        Button(onClick = navigateToNavigate) {
+            Text(text = "navigate")
+        }
         Button(onClick = navigateToAnimatedVisibility) {
             Text(text = "Animated Visibility")
         }

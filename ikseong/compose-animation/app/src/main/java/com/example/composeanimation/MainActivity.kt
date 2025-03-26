@@ -40,6 +40,10 @@ fun Greeting(name: String, modifier: Modifier = Modifier) {
 @Composable
 fun GreetingPreview() {
     ComposeAnimationTheme {
-        Greeting("Android")
+        ComposeAnimationTheme {
+            Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                MainNavHost(innerPadding)
+            }
+        }
     }
 }
