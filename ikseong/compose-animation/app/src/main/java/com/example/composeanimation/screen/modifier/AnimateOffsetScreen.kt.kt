@@ -1,4 +1,4 @@
-package com.example.composeanimation.screen
+package com.example.composeanimation.screen.modifier
 
 import androidx.compose.animation.core.animateIntOffsetAsState
 import androidx.compose.foundation.layout.Arrangement

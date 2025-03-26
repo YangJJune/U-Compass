@@ -5,10 +5,10 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.composeanimation.screen.AnimateContentSizeScreen
-import com.example.composeanimation.screen.AnimatedContentScreen
-import com.example.composeanimation.screen.AnimatedVisibilityScreen
-import com.example.composeanimation.screen.CrossfadeScreen
+import com.example.composeanimation.screen.modifier.AnimateContentSizeScreen
+import com.example.composeanimation.screen.composable.AnimatedContentScreen
+import com.example.composeanimation.screen.composable.AnimatedVisibilityScreen
+import com.example.composeanimation.screen.composable.CrossfadeScreen
 import com.example.composeanimation.screen.HomeScreen
 
 @Composable
