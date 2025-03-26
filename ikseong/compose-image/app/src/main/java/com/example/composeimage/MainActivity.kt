@@ -10,7 +10,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
+import coil3.ImageLoader
+import coil3.imageLoader
+import com.example.composeimage.navigation.MainNavHost
 import com.example.composeimage.ui.theme.ComposeImageTheme
 
 class MainActivity : ComponentActivity() {
@@ -20,28 +24,22 @@ class MainActivity : ComponentActivity() {
         setContent {
             ComposeImageTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
+                    MainNavHost(innerPadding = innerPadding, imageLoader = imageLoader)
                 }
             }
         }
     }
 }
 
+@Preview
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
+private fun MainPreview() {
     ComposeImageTheme {
-        Greeting("Android")
+        Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+            MainNavHost(
+                innerPadding = innerPadding,
+                imageLoader = ImageLoader(LocalContext.current)
+            )
+        }
     }
 }

@@ -24,7 +24,6 @@ class ImageViewModel : ViewModel() {
         viewModelScope.launch {
             repository.getImages().fold(
                 onSuccess = { response ->
-//                    _images.value = response.response.homeImgs.map { it.homeImgUrl }
                     val newList = response.response.homeImgs.map { it.homeImgUrl }
                     _images.value = newList
                 },
