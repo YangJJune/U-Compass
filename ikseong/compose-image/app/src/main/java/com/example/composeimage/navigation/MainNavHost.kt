@@ -12,6 +12,7 @@ import androidx.navigation.compose.rememberNavController
 import coil3.ImageLoader
 import coil3.request.ImageRequest
 import com.example.composeimage.screen.DefaultImageUrlScreen
+import com.example.composeimage.screen.ImageSliderScreen
 import com.example.composeimage.screen.ImageUrl.imageUrls
 import com.example.composeimage.screen.RemoteImageUrlScreen
 import com.example.composeimage.viewmodel.ImageViewModel
@@ -50,7 +51,14 @@ fun MainNavHost(
                 innerPadding = innerPadding,
                 imageLoader = imageLoader,
                 navigateToRemoteUrl = { navController.navigate(Route.DefaultUrl) },
+                navigateToImageSlider = { navController.navigate(Route.ImageSlider) },
                 viewModel = imageViewModel
+            )
+        }
+        composable<Route.ImageSlider> {
+            ImageSliderScreen(
+                innerPadding = innerPadding,
+                navigateBack = { navController.popBackStack() }
             )
         }
     }

@@ -7,4 +7,6 @@ sealed class Route {
     data object DefaultUrl : Route()
     @Serializable
     data object RemoteUrl : Route()
+    @Serializable
+    data object ImageSlider : Route()
 }

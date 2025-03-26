@@ -31,6 +31,7 @@ fun RemoteImageUrlScreen(
     innerPadding: PaddingValues,
     imageLoader: ImageLoader,
     navigateToRemoteUrl: () -> Unit = {},
+    navigateToImageSlider: () -> Unit = {},
     viewModel : ImageViewModel = viewModel()
 ) {
     val state = rememberLazyListState()
@@ -67,6 +68,11 @@ fun RemoteImageUrlScreen(
         item {
             Button(onClick = navigateToRemoteUrl) {
                 Text("Navigate to Default Url")
+            }
+        }
+        item {
+            Button(onClick = navigateToImageSlider) {
+                Text("Navigate to Image Slider")
             }
         }
     }
