@@ -18,7 +18,8 @@ fun HomeScreen(
     innerPadding: PaddingValues,
     navigateToAnimatedVisibility: () -> Unit = {},
     navigateToAnimatedContent: () -> Unit = {},
-    navigateToCrossfade: () -> Unit = {}
+    navigateToCrossfade: () -> Unit = {},
+    navigateToAnimateContentSize: () -> Unit = {}
 ) {
     Column(
         modifier = Modifier
@@ -35,6 +36,9 @@ fun HomeScreen(
         }
         Button(onClick = navigateToCrossfade) {
             Text(text = "Crossfade")
+        }
+        Button(onClick = navigateToAnimateContentSize) {
+            Text(text = "Animate Content Size")
         }
 
     }

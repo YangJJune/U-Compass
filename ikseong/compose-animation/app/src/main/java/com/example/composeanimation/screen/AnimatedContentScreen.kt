@@ -28,8 +28,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 import com.example.composeanimation.component.ButtonComponents
 
-
-@Preview(showBackground = true, widthDp = 400, heightDp = 800)
 @Composable
 fun AnimatedContentScreen(
     innerPadding: PaddingValues,

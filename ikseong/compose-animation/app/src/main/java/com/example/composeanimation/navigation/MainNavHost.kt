@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.composeanimation.screen.AnimateContentSizeScreen
 import com.example.composeanimation.screen.AnimatedContentScreen
 import com.example.composeanimation.screen.AnimatedVisibilityScreen
 import com.example.composeanimation.screen.CrossfadeScreen
@@ -24,7 +25,8 @@ fun MainNavHost(
                 innerPadding = innerPadding,
                 navigateToAnimatedVisibility = { navController.navigate(Route.AnimatedVisibility) },
                 navigateToAnimatedContent = { navController.navigate(Route.AnimatedContent) },
-                navigateToCrossfade = { navController.navigate(Route.Crossfade) }
+                navigateToCrossfade = { navController.navigate(Route.Crossfade) },
+                navigateToAnimateContentSize = { navController.navigate(Route.AnimateContentSize) }
             )
         }
         composable<Route.AnimatedVisibility> {
@@ -45,5 +47,10 @@ fun MainNavHost(
                 navigateBack = navController::popBackStack
             )
         }
-    }
+        composable<Route.AnimateContentSize> {
+            AnimateContentSizeScreen(
+                innerPadding = innerPadding,
+                navigateBack = navController::popBackStack
+            )
+    }}
 }
