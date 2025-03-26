@@ -23,7 +23,8 @@ fun HomeScreen(
     navigateToAnimateContentSize: () -> Unit = {},
     navigateToAnimateOffset: () -> Unit = {},
     navigateToAnimatePadding: () -> Unit = {},
-    navigateToTextAnimation: () -> Unit = {}
+    navigateToTextAnimation: () -> Unit = {},
+    navigateToSpring: () -> Unit = {},
 ) {
     Column(
         modifier = Modifier
@@ -55,6 +56,9 @@ fun HomeScreen(
         }
         Button(onClick = navigateToTextAnimation) {
             Text(text = "Text Animation")
+        }
+        Button(onClick = navigateToSpring) {
+            Text(text = "Spring")
         }
 
     }

@@ -21,5 +21,6 @@ sealed class Route {
     data object AnimatePadding : Route()
     @Serializable
     data object TextAnimation : Route()
-
+    @Serializable
+    data object Spring : Route()
 }

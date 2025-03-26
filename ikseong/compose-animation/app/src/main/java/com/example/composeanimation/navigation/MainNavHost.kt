@@ -18,6 +18,7 @@ import com.example.composeanimation.screen.composable.AnimatedContentScreen
 import com.example.composeanimation.screen.composable.AnimatedVisibilityScreen
 import com.example.composeanimation.screen.composable.CrossfadeScreen
 import com.example.composeanimation.screen.HomeScreen
+import com.example.composeanimation.screen.SpringScreen
 import com.example.composeanimation.screen.TextAnimationScreen
 import com.example.composeanimation.screen.modifier.AnimateOffsetScreen
 import com.example.composeanimation.screen.modifier.AnimatePaddingScreen
@@ -41,7 +42,8 @@ fun MainNavHost(
                 navigateToAnimateContentSize = { navController.navigate(Route.AnimateContentSize) },
                 navigateToAnimateOffset = { navController.navigate(Route.AnimateOffset) },
                 navigateToAnimatePadding = { navController.navigate(Route.AnimatePadding) },
-                navigateToTextAnimation = { navController.navigate(Route.TextAnimation) }
+                navigateToTextAnimation = { navController.navigate(Route.TextAnimation) },
+                navigateToSpring = { navController.navigate(Route.Spring) }
             )
         }
         composable<Route.Navigate>(
@@ -107,6 +109,12 @@ fun MainNavHost(
         }
         composable<Route.TextAnimation> {
             TextAnimationScreen(
+                innerPadding = innerPadding,
+                navigateBack = navController::popBackStack
+            )
+        }
+        composable<Route.Spring> {
+            SpringScreen(
                 innerPadding = innerPadding,
                 navigateBack = navController::popBackStack
             )
