@@ -17,4 +17,7 @@ sealed class Route {
     data object AnimateOffset : Route()
     @Serializable
     data object AnimatePadding : Route()
+    @Serializable
+    data object TextAnimation : Route()
+
 }

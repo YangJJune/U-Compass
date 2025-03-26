@@ -21,7 +21,8 @@ fun HomeScreen(
     navigateToCrossfade: () -> Unit = {},
     navigateToAnimateContentSize: () -> Unit = {},
     navigateToAnimateOffset: () -> Unit = {},
-    navigateToAnimatePadding: () -> Unit = {}
+    navigateToAnimatePadding: () -> Unit = {},
+    navigateToTextAnimation: () -> Unit = {}
 ) {
     Column(
         modifier = Modifier
@@ -47,6 +48,9 @@ fun HomeScreen(
         }
         Button(onClick = navigateToAnimatePadding) {
             Text(text = "Animate Padding")
+        }
+        Button(onClick = navigateToTextAnimation) {
+            Text(text = "Text Animation")
         }
 
     }
