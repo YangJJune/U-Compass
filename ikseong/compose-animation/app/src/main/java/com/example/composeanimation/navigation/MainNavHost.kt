@@ -8,8 +8,10 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -29,6 +31,7 @@ fun MainNavHost(
 ) {
     val navController = rememberNavController()
     NavHost(
+        modifier = Modifier.padding(innerPadding),
         navController = navController,
         startDestination = Route.Home
     ) {
