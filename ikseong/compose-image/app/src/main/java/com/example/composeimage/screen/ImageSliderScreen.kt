@@ -2,6 +2,7 @@ package com.example.composeimage.screen
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,9 +10,13 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.RangeSlider
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
@@ -58,12 +63,13 @@ fun ImageSliderScreen(
         )
     }
 
+    val scrollState = rememberScrollState()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(innerPadding),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Image(
             modifier = Modifier
@@ -89,63 +95,72 @@ fun ImageSliderScreen(
                 setToSaturation(saturation.floatValue)
             })
         )
-        Spacer(modifier = Modifier.size(16.dp))
-        RangeSlider(
-            text = "Radius: ${radius.value}",
-            value = radius.value.value,
-            valueRange = 0f..100f,
-            onValueChange = { value ->
-                radius.value = Dp(value)
-            }
-        )
-        RangeSlider(
-            text = "Border Stroke: ${borderStroke.value}",
-            value = borderStroke.value.value,
-            valueRange = 0f..10f,
-            onValueChange = { value ->
-                borderStroke.value = Dp(value)
-            }
-        )
-        RangeSlider(
-            text = "Aspect Ratio: ${aspectRatio.floatValue}",
-            value = aspectRatio.floatValue,
-            valueRange = 0f..100f,
-            onValueChange = { value ->
-                aspectRatio.floatValue = value
-            }
-        )
-        RangeSlider(
-            text = "Saturation: ${saturation.floatValue}",
-            value = saturation.floatValue,
-            valueRange = 0f..1f,
-            onValueChange = { value ->
-                saturation.floatValue = value
-            }
-        )
-        RangeSlider(
-            text = "Contrast: ${contrast.floatValue}",
-            value = contrast.floatValue,
-            valueRange = 0f..10f,
-            onValueChange = { value ->
-                contrast.floatValue = value
-            }
-        )
-        RangeSlider(
-            text = "Brightness: ${brightness.floatValue}",
-            value = brightness.floatValue,
-            valueRange = -255f..255f,
-            onValueChange = { value ->
-                brightness.floatValue = value
-            }
-        )
-        RangeSlider(
-            text = "Blur: ${blur.floatValue}",
-            value = blur.floatValue,
-            valueRange = 0f..25f,
-            onValueChange = { value ->
-                blur.floatValue = value
-            }
-        )
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .verticalScroll(state = scrollState),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+
+            Spacer(modifier = Modifier.size(16.dp))
+            RangeSlider(
+                text = "Radius: ${radius.value}",
+                value = radius.value.value,
+                valueRange = 0f..100f,
+                onValueChange = { value ->
+                    radius.value = Dp(value)
+                }
+            )
+            RangeSlider(
+                text = "Border Stroke: ${borderStroke.value}",
+                value = borderStroke.value.value,
+                valueRange = 0f..10f,
+                onValueChange = { value ->
+                    borderStroke.value = Dp(value)
+                }
+            )
+            RangeSlider(
+                text = "Aspect Ratio: ${aspectRatio.floatValue}",
+                value = aspectRatio.floatValue,
+                valueRange = 0f..100f,
+                onValueChange = { value ->
+                    aspectRatio.floatValue = value
+                }
+            )
+            RangeSlider(
+                text = "Saturation: ${saturation.floatValue}",
+                value = saturation.floatValue,
+                valueRange = 0f..1f,
+                onValueChange = { value ->
+                    saturation.floatValue = value
+                }
+            )
+            RangeSlider(
+                text = "Contrast: ${contrast.floatValue}",
+                value = contrast.floatValue,
+                valueRange = 0f..10f,
+                onValueChange = { value ->
+                    contrast.floatValue = value
+                }
+            )
+            RangeSlider(
+                text = "Brightness: ${brightness.floatValue}",
+                value = brightness.floatValue,
+                valueRange = -255f..255f,
+                onValueChange = { value ->
+                    brightness.floatValue = value
+                }
+            )
+            RangeSlider(
+                text = "Blur: ${blur.floatValue}",
+                value = blur.floatValue,
+                valueRange = 0f..25f,
+                onValueChange = { value ->
+                    blur.floatValue = value
+                }
+            )
+        }
     }
 }
 
