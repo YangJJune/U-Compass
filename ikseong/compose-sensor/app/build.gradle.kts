@@ -51,7 +51,6 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.navigation.compose)
-    implementation(libs.play.services.location)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -59,7 +58,7 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-    implementation(libs.play.services.location.ktx)
+    implementation(libs.play.services.location)
 
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
     implementation("com.google.accompanist:accompanist-permissions:0.37.0")
