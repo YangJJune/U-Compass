@@ -23,7 +23,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import com.google.accompanist.permissions.rememberPermissionState
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -36,13 +38,15 @@ fun LocationPermissionBox(
     // 위치 권한 목록 정의
     val locationPermissions = listOf(
         Manifest.permission.ACCESS_FINE_LOCATION,
-        Manifest.permission.ACCESS_COARSE_LOCATION
+        Manifest.permission.ACCESS_COARSE_LOCATION,
     )
 
     // 여러 권한을 한번에 처리하기 위한 상태 관리
     val multiplePermissionsState = rememberMultiplePermissionsState(
         permissions = locationPermissions
     )
+    val backgroundPermission = Manifest.permission.ACCESS_BACKGROUND_LOCATION
+    val backgroundPermissionState = rememberPermissionState(backgroundPermission)
 
     Column(
         modifier = modifier,
@@ -53,6 +57,19 @@ fun LocationPermissionBox(
             // 모든 권한이 허용된 경우
             multiplePermissionsState.allPermissionsGranted -> {
                 Text("위치 권한이 허용되었습니다!")
+                if (!backgroundPermissionState.status.isGranted) {
+
+                    Text("앱 설정에서 백그라운드 권한을 허용해주세요.")
+                    Button(onClick = {
+//                        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+//                            data = Uri.fromParts("package", context.packageName, null)
+//                        }
+//                        context.startActivity(intent)
+                        backgroundPermissionState.launchPermissionRequest()
+                    }) {
+                        Text("설정으로 이동")
+                    }
+                }
             }
             // 권한이 거부된 경우 사용자에게 이유 설명
             multiplePermissionsState.shouldShowRationale -> {
