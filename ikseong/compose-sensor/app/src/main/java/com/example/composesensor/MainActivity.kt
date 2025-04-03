@@ -19,7 +19,9 @@ class MainActivity : ComponentActivity() {
         setContent {
             ComposeSensorTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    MainNavHost(innerPadding)
+                    MainNavHost(
+                        innerPadding
+                    )
                 }
             }
         }
