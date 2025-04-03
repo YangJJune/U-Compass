@@ -22,7 +22,10 @@ fun MainNavHost(
         modifier = modifier
     ) {
         composable<Route.Home> {
-            HomeScreen(paddingValues = padding)
+            HomeScreen(
+                paddingValues = padding,
+                navigateToSensor = { navController.navigate(Route.Sensor) },
+            )
         }
         composable<Route.Sensor> {
             SensorRoute(padding = padding)

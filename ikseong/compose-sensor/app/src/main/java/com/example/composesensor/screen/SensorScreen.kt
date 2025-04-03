@@ -2,12 +2,16 @@ package com.example.composesensor.screen
 
 import android.hardware.Sensor
 import android.hardware.SensorManager
+import android.util.Log
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Card
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -38,14 +42,15 @@ fun SensorScreen(
     modifier: Modifier = Modifier,
     deviceSensors: List<Sensor> = listOf()
 ) {
-    Row(
-        modifier.fillMaxSize()
+    val lazyState = rememberLazyListState()
+    LazyColumn(
+        modifier = modifier.fillMaxSize(),
+        state = lazyState
     ) {
-        deviceSensors.forEach { sensor ->
+        items(deviceSensors.size) { index ->
             SensorText(
-                sensor = sensor,
+                sensor = deviceSensors[index],
                 modifier = Modifier
-                    .weight(1f)
                     .padding(16.dp)
             )
         }
