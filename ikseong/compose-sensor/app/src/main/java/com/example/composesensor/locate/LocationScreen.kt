@@ -14,6 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -60,6 +61,9 @@ fun LocationRoute(
         }
     }
 
+    var distanceMeters by remember { mutableFloatStateOf(0f) }
+    var initialBearing by remember { mutableFloatStateOf(0f) }    // -180~180도 범위의 초기 방위각
+
     currentLocation?.let { loc ->
         val targetLatitude = 37.5665
         val targetLongitude = 126.9780
@@ -69,8 +73,8 @@ fun LocationRoute(
             latitude = targetLatitude
             longitude = targetLongitude
         }
-        val distanceMeters = loc.distanceTo(targetLocation)       // 현재 위치와 목표 위치 간 거리 (미터)
-        val initialBearing = loc.bearingTo(targetLocation)       // -180~180도 범위의 초기 방위각
+        distanceMeters = loc.distanceTo(targetLocation)       // 현재 위치와 목표 위치 간 거리 (미터)
+        initialBearing = loc.bearingTo(targetLocation)       // -180~180도 범위의 초기 방위각
         val bearingToTarget =
             if (initialBearing < 0) initialBearing + 360 else initialBearing  // 0~360도 보정
 

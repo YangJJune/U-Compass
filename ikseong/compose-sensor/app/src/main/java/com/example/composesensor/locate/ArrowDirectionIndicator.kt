@@ -3,7 +3,7 @@ package com.example.composesensor.locate
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
@@ -20,7 +20,7 @@ fun ArrowDirectionIndicator(
     val rotationAngle = (bearingToTarget - azimuth + 360f) % 360f
 
     Image(
-        imageVector = Icons.Filled.PlayArrow,  // 화살표 아이콘 (기본이 위쪽을 가리키는 그림)
+        imageVector = Icons.Filled.KeyboardArrowUp,  // 화살표 아이콘 (기본이 위쪽을 가리키는 그림)
         contentDescription = "목표 방향 화살표",
         modifier = modifier
             .size(100.dp)
