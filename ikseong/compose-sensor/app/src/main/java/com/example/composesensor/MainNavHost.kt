@@ -6,6 +6,8 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.composesensor.screen.HomeScreen
+import com.example.composesensor.screen.SensorRoute
 
 @Composable
 fun MainNavHost(
@@ -16,11 +18,14 @@ fun MainNavHost(
 
     NavHost(
         navController = navController,
-        startDestination = "home",
+        startDestination = Route.Home,
         modifier = modifier
     ) {
         composable<Route.Home> {
-
+            HomeScreen(paddingValues = padding)
+        }
+        composable<Route.Sensor> {
+            SensorRoute(padding = padding)
         }
     }
 }
