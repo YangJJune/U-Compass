@@ -1,4 +1,4 @@
-package com.example.composesensor
+package com.example.composesensor.locate
 
 import android.Manifest
 import android.content.Intent

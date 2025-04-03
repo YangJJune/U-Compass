@@ -1,7 +1,16 @@
-package com.example.composesensor
+package com.example.composesensor.locate
 
 import android.Manifest
 import android.location.Location
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -9,7 +18,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
@@ -17,7 +29,9 @@ import com.google.android.gms.location.LocationServices
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun GetCurrentLocationDemo() {
+fun LocationRoute(
+    padding: PaddingValues
+) {
     val context = LocalContext.current
     // FusedLocationProviderClient 인스턴스 준비
     val fusedLocationClient = remember {
@@ -48,8 +62,6 @@ fun GetCurrentLocationDemo() {
     }
 
     currentLocation?.let { loc ->
-        Text(text = "현재 위치: ${loc.latitude}, ${loc.longitude}")
-        // 예시: 목표 지점의 위도/경도 (서울 광화문 근처 좌표)
         val targetLatitude = 37.5665
         val targetLongitude = 126.9780
 
@@ -67,5 +79,34 @@ fun GetCurrentLocationDemo() {
             text = "목표까지 거리: ${"%.0f".format(distanceMeters)}m, 방위각: ${"%.1f".format(bearingToTarget)}°"
         )
     }
+}
 
+@Composable
+fun LocationScreen(
+    padding: PaddingValues,
+    currentLocation: Location,
+    distanceMeters: Float,
+    bearingToTarget: Float,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(padding)
+    ) {
+        Text(text = "현재 위치: ${currentLocation.latitude}, ${currentLocation.longitude}")
+        Spacer(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(16.dp)
+                .background(Color.Gray)
+        )
+        Text(
+            text = "목표까지 거리: ${"%.0f".format(distanceMeters)}m, 방위각: ${"%.1f".format(bearingToTarget)}°"
+        )
+        ArrowDirectionIndicator(
+            modifier = Modifier
+                .padding(top = 20.dp),
+            bearingToTarget = bearingToTarget
+        )
+    }
 }
