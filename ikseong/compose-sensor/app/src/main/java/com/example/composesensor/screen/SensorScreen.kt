@@ -3,6 +3,7 @@ package com.example.composesensor.screen
 import android.hardware.Sensor
 import android.hardware.SensorManager
 import android.util.Log
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -59,16 +60,17 @@ fun SensorScreen(
 
 @Composable
 private fun SensorText(sensor: Sensor, modifier: Modifier = Modifier) {
-    Row(
-        modifier = modifier.padding(10.dp)
+    Column(
+        modifier = modifier.padding(10.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Text(
-            text = sensor.name,
-        )
-        Spacer(modifier = Modifier.width(16.dp))
-        Text(
-            text = sensor.type.toString(),
-        )
+        Text(text = "name: ${sensor.name}")
+        Text(text = "type: ${sensor.type}")
+        Text(text = "stringType: ${sensor.stringType}")
+        Text(text = "power: ${sensor.power}")
+        Text(text = "resolution: ${sensor.resolution}")
+        Text(text = "maxRange: ${sensor.maximumRange}")
+        Text(text = "maxDelay: ${sensor.maxDelay}")
     }
 }
 

@@ -10,7 +10,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import com.example.composesensor.screen.CameraScreen
 import com.example.composesensor.ui.theme.ComposeSensorTheme
 
 class MainActivity : ComponentActivity() {
@@ -20,9 +19,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             ComposeSensorTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    MainNavHost(
-                        innerPadding
-                    )
+                    MainNavHost(innerPadding)
                 }
             }
         }
