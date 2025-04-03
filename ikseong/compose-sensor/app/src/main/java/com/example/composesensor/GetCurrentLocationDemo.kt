@@ -49,7 +49,23 @@ fun GetCurrentLocationDemo() {
 
     currentLocation?.let { loc ->
         Text(text = "현재 위치: ${loc.latitude}, ${loc.longitude}")
-        
+        // 예시: 목표 지점의 위도/경도 (서울 광화문 근처 좌표)
+        val targetLatitude = 37.5665
+        val targetLongitude = 126.9780
+
+// Location 객체를 이용한 거리 및 방위 계산
+        val targetLocation = Location("").apply {
+            latitude = targetLatitude
+            longitude = targetLongitude
+        }
+        val distanceMeters = loc.distanceTo(targetLocation)       // 현재 위치와 목표 위치 간 거리 (미터)
+        val initialBearing = loc.bearingTo(targetLocation)       // -180~180도 범위의 초기 방위각
+        val bearingToTarget =
+            if (initialBearing < 0) initialBearing + 360 else initialBearing  // 0~360도 보정
+
+        Text(
+            text = "목표까지 거리: ${"%.0f".format(distanceMeters)}m, 방위각: ${"%.1f".format(bearingToTarget)}°"
+        )
     }
 
 }
