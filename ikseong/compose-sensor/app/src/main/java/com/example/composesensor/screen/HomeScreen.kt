@@ -16,7 +16,7 @@ import androidx.compose.ui.unit.dp
 fun HomeScreen(
     paddingValues: PaddingValues = PaddingValues(0.dp),
     navigateToSensor: () -> Unit = {},
-    navigateToCamera: () -> Unit = {},
+    navigateToLocation: () -> Unit = {},
 ) {
     Column(
         modifier = Modifier
@@ -30,9 +30,9 @@ fun HomeScreen(
             navigateToSensor()
         }
         MyButton(
-            text = "Camera",
+            text = "Location",
         ) {
-            navigateToCamera()
+            navigateToLocation()
         }
     }
 }

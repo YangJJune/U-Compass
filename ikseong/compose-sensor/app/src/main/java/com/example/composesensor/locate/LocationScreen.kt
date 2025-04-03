@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -75,8 +74,11 @@ fun LocationRoute(
         val bearingToTarget =
             if (initialBearing < 0) initialBearing + 360 else initialBearing  // 0~360도 보정
 
-        Text(
-            text = "목표까지 거리: ${"%.0f".format(distanceMeters)}m, 방위각: ${"%.1f".format(bearingToTarget)}°"
+        LocationScreen(
+            padding = padding,
+            currentLocation = loc,
+            distanceMeters = distanceMeters,
+            bearingToTarget = bearingToTarget
         )
     }
 }

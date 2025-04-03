@@ -10,5 +10,5 @@ sealed class Route {
     @Serializable
     data object Sensor: Route()
     @Serializable
-    data object Camera: Route()
+    data object Location: Route()
 }
