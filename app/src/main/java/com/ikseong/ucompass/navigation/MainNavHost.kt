@@ -7,7 +7,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.ikseong.ucompass.create.component.viewmodel.CreateViewModel
+import com.ikseong.ucompass.create.viewmodel.CreateViewModel
 import com.ikseong.ucompass.create.navgraph.createNavGraph
 
 @Composable

@@ -24,7 +24,7 @@ import com.ikseong.ucompass.common.component.UCompassButton
 import com.ikseong.ucompass.common.component.UCompassLogo
 import com.ikseong.ucompass.common.component.UCompassTextField
 import com.ikseong.ucompass.create.component.CreateRoomTitleContent
-import com.ikseong.ucompass.create.component.viewmodel.CreateViewModel
+import com.ikseong.ucompass.create.viewmodel.CreateViewModel
 
 @Composable
 fun CreateRoomTitleRoute(

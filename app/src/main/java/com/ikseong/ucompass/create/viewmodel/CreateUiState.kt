@@ -1,4 +1,4 @@
-package com.ikseong.ucompass.create.component.viewmodel
+package com.ikseong.ucompass.create.viewmodel
 
 data class CreateUiState(
     val title: String = "",

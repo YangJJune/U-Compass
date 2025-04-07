@@ -1,4 +1,4 @@
-package com.ikseong.ucompass.create.component.viewmodel
+package com.ikseong.ucompass.create.viewmodel
 
 sealed interface CreateUiEvent {
     data object NavigateToFinish: CreateUiEvent
