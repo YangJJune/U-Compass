@@ -2,7 +2,9 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.hilt.android)
     kotlin("plugin.serialization") version "2.0.21" // Serialization
+    id("kotlin-kapt")
 }
 
 android {
@@ -61,4 +63,15 @@ dependencies {
 
     // Serialization
     implementation(libs.kotlinx.serialization.json)
+
+    // Hilt
+    implementation(libs.hilt.android)
+    kapt(libs.hilt.compiler)
+    implementation(libs.androidx.hilt.navigation.compose)
+    implementation(libs.androidx.hilt.lifecycle.viewmodel)
+}
+
+// Hilt 컴파일러 구성
+kapt {
+    correctErrorTypes = true
 }
