@@ -2,6 +2,7 @@ package com.ikseong.ucompass.create.viewmodel
 
 import android.content.Context
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -9,6 +10,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.launch
 
 @HiltViewModel
 class CreateViewModel @Inject constructor(
@@ -22,16 +24,35 @@ class CreateViewModel @Inject constructor(
     val uiEvent = _uiEvent.receiveAsFlow()
 
     fun onCreateUiAction(action: CreateUiAction) {
-        when(action) {
-            CreateUiAction.OnConfirmClick -> TODO()
-            CreateUiAction.OnCreateClick -> TODO()
-            CreateUiAction.OnShareClick -> TODO()
+        when (action) {
+            CreateUiAction.OnConfirmClick -> navigateToFinishScreen()
+            CreateUiAction.OnCreateClick -> navigateToHomeScreen()
+            CreateUiAction.OnShareClick -> shareRoomInfo()
         }
     }
 
     fun updateTitle(title: String) {
         _uiState.value = _uiState.value.copy(title = title)
     }
+
+    private fun navigateToFinishScreen() {
+        viewModelScope.launch {
+            _uiEvent.send(CreateUiEvent.NavigateToFinish)
+        }
+    }
+
+    private fun navigateToHomeScreen() {
+        viewModelScope.launch {
+            _uiEvent.send(CreateUiEvent.NavigateToHome)
+        }
+    }
+
+    private fun shareRoomInfo() {
+        viewModelScope.launch {
+            _uiEvent.send(CreateUiEvent.ShareLink)
+        }
+    }
+
 
 }
 
