@@ -1,6 +1,5 @@
 package com.ikseong.ucompass.create.screen
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -25,13 +24,27 @@ import com.ikseong.ucompass.common.component.UCompassButton
 import com.ikseong.ucompass.common.component.UCompassLogo
 import com.ikseong.ucompass.create.component.CreateRoomFinishContent
 import com.ikseong.ucompass.create.component.CreateRoomStatus
-import com.ikseong.ucompass.create.component.CreateRoomTitleContent
 import com.ikseong.ucompass.create.component.viewmodel.CreateViewModel
+
+@Composable
+fun CreateRoomFinishRoute(
+    padding: PaddingValues,
+    navigateToHome: () -> Unit = {},
+    shareRoomLink: () -> Unit = {},
+    viewModel: CreateViewModel = hiltViewModel()
+) {
+    CreateRoomFinishScreen(
+        padding = padding,
+        navigateToHome = navigateToHome,
+        shareRoomLink = shareRoomLink
+    )
+}
 
 @Composable
 fun CreateRoomFinishScreen(
     padding: PaddingValues,
-    viewModel : CreateViewModel = hiltViewModel()
+    navigateToHome: () -> Unit = {},
+    shareRoomLink: () -> Unit = {},
 ) {
     val roomTitle by remember { mutableStateOf("") }
     val copyLink by remember { mutableStateOf("") }
@@ -67,7 +80,7 @@ fun CreateRoomFinishScreen(
                 text = "공유",
                 color = Color(0xFFD9D9D9),
                 fontSize = 20.sp
-            ) { }
+            ) { shareRoomLink() }
             Spacer(modifier = Modifier.weight(12f))
             UCompassButton(
                 modifier = Modifier
@@ -76,7 +89,7 @@ fun CreateRoomFinishScreen(
                 text = "확인",
                 color = Color(0xFF00E397),
                 fontSize = 20.sp
-            ) { }
+            ) { navigateToHome() }
         }
     }
 }

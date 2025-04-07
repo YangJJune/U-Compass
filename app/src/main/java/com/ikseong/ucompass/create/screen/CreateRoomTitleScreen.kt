@@ -27,9 +27,21 @@ import com.ikseong.ucompass.create.component.CreateRoomTitleContent
 import com.ikseong.ucompass.create.component.viewmodel.CreateViewModel
 
 @Composable
+fun CreateRoomTitleRoute(
+    padding: PaddingValues,
+    navigateToFinish: () -> Unit,
+    viewModel: CreateViewModel = hiltViewModel()
+) {
+    CreateRoomTitleScreen(
+        navigateToFinish = navigateToFinish,
+        padding = padding
+    )
+}
+
+@Composable
 fun CreateRoomTitleScreen(
     padding: PaddingValues,
-    viewModel : CreateViewModel = hiltViewModel()
+    navigateToFinish: () -> Unit,
 ) {
     var title by remember { mutableStateOf("") }
 
@@ -66,7 +78,7 @@ fun CreateRoomTitleScreen(
             text = "생성하기",
             fontSize = 20.sp,
             color = Color(0xFF00E397)
-        ) { }
+        ) { navigateToFinish() }
     }
 }
 
@@ -75,5 +87,5 @@ fun CreateRoomTitleScreen(
 private fun CreateRoomTitleScreenPreview() {
     CreateRoomTitleScreen(
         padding = PaddingValues(0.dp)
-    )
+    ) {}
 }
