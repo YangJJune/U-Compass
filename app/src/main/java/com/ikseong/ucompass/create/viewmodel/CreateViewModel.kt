@@ -28,11 +28,12 @@ class CreateViewModel @Inject constructor(
             CreateUiAction.OnConfirmClick -> navigateToFinishScreen()
             CreateUiAction.OnCreateClick -> navigateToHomeScreen()
             CreateUiAction.OnShareClick -> shareRoomInfo()
+            is CreateUiAction.UpdateTitleField -> updateTitle(action.text)
         }
     }
 
-    fun updateTitle(title: String) {
-        _uiState.value = _uiState.value.copy(title = title)
+    private fun updateTitle(text: String) {
+        _uiState.value = _uiState.value.copy(title = text)
     }
 
     private fun navigateToFinishScreen() {
