@@ -20,7 +20,7 @@ import com.ikseong.ucompass.R
 import com.ikseong.ucompass.ui.theme.UCompassTheme.typography
 
 @Composable
-fun CreateRoomContent(modifier: Modifier = Modifier) {
+fun CreateRoomTitleContent(modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -61,6 +61,6 @@ fun CreateRoomContent(modifier: Modifier = Modifier) {
 
 @Preview
 @Composable
-private fun CreateRoomContentPreview() {
-    CreateRoomContent()
+private fun CreateRoomTitleContentPreview() {
+    CreateRoomTitleContent()
 }

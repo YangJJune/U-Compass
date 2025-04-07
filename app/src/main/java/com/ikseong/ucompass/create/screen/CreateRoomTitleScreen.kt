@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -23,7 +22,7 @@ import androidx.compose.ui.unit.sp
 import com.ikseong.ucompass.common.component.UCompassButton
 import com.ikseong.ucompass.common.component.UCompassLogo
 import com.ikseong.ucompass.common.component.UCompassTextField
-import com.ikseong.ucompass.create.component.CreateRoomContent
+import com.ikseong.ucompass.create.component.CreateRoomTitleContent
 
 @Composable
 fun CreateRoomTitleScreen(
@@ -40,7 +39,7 @@ fun CreateRoomTitleScreen(
         Column {
             UCompassLogo()
             Spacer(modifier = Modifier.height(120.dp))
-            CreateRoomContent()
+            CreateRoomTitleContent()
             UCompassTextField(
                 modifier = Modifier
                     .fillMaxWidth()
