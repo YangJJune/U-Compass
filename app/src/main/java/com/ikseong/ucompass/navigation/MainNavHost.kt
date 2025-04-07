@@ -25,7 +25,11 @@ fun MainNavHost(
         createNavGraph(
             paddingValues = padding,
             navigateToFinish = { navController.navigate(Routes.CreateRoomFinished) },
-            navigateToHome = { navController.navigate(Routes.Home) },
+            navigateToHome = {
+                navController.navigate(Routes.Home) {
+                    popUpTo(Routes.Home) { inclusive = false }
+                }
+            },
             getBackStackCreateViewModel = { navBackStackEntry ->
                 val parentEntry = remember(navBackStackEntry) {
                     navController.getBackStackEntry(Routes.CreateRoomTitle)
