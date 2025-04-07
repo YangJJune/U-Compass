@@ -10,9 +10,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -20,11 +17,17 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.ikseong.ucompass.common.component.ObserveAsEvents
 import com.ikseong.ucompass.common.component.UCompassButton
 import com.ikseong.ucompass.common.component.UCompassLogo
 import com.ikseong.ucompass.common.component.UCompassTextField
 import com.ikseong.ucompass.create.component.CreateRoomTitleContent
+import com.ikseong.ucompass.create.viewmodel.CreateUiAction
+import com.ikseong.ucompass.create.viewmodel.CreateUiEvent
+import com.ikseong.ucompass.create.viewmodel.CreateUiState
 import com.ikseong.ucompass.create.viewmodel.CreateViewModel
+import com.ikseong.ucompass.ui.theme.UCompassTheme
 
 @Composable
 fun CreateRoomTitleRoute(
@@ -32,18 +35,30 @@ fun CreateRoomTitleRoute(
     navigateToFinish: () -> Unit,
     viewModel: CreateViewModel = hiltViewModel()
 ) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    ObserveAsEvents(flow = viewModel.uiEvent) { event ->
+        when (event) {
+            CreateUiEvent.NavigateToFinish -> navigateToFinish()
+            else -> {}
+        }
+    }
+
     CreateRoomTitleScreen(
-        navigateToFinish = navigateToFinish,
-        padding = padding
+        padding = padding,
+        uiState = uiState,
+        onAction = viewModel::onCreateUiAction
     )
+
 }
 
 @Composable
 fun CreateRoomTitleScreen(
     padding: PaddingValues,
-    navigateToFinish: () -> Unit,
+    uiState: CreateUiState,
+    onAction: (CreateUiAction) -> Unit
 ) {
-    var title by remember { mutableStateOf("") }
+    val title = uiState.title
 
     Box(
         modifier = Modifier
@@ -65,7 +80,7 @@ fun CreateRoomTitleScreen(
                 text = title,
                 placeholder = "방 제목을 입력하세요.",
                 verticalPadding = 15.dp,
-                onValueChange = { title = it }
+                onValueChange = { onAction(CreateUiAction.UpdateTitleField(it)) }
             )
         }
 
@@ -78,14 +93,18 @@ fun CreateRoomTitleScreen(
             text = "생성하기",
             fontSize = 20.sp,
             color = Color(0xFF00E397)
-        ) { navigateToFinish() }
+        ) { onAction(CreateUiAction.OnCreateClick) }
     }
 }
 
 @Preview(showBackground = true)
 @Composable
 private fun CreateRoomTitleScreenPreview() {
-    CreateRoomTitleScreen(
-        padding = PaddingValues(0.dp)
-    ) {}
+    UCompassTheme {
+        CreateRoomTitleScreen(
+            padding = PaddingValues(0.dp),
+            uiState = CreateUiState(),
+            onAction = {},
+        )
+    }
 }
