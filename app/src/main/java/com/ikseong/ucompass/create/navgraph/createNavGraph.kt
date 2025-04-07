@@ -20,7 +20,6 @@ fun NavGraphBuilder.createNavGraph(
         CreateRoomTitleRoute(
             padding = paddingValues,
             navigateToFinish = navigateToFinish,
-            viewModel = getBackStackCreateViewModel(it)
         )
     }
     composable<Routes.CreateRoomFinished> {
@@ -28,6 +27,7 @@ fun NavGraphBuilder.createNavGraph(
             padding = paddingValues,
             navigateToHome = navigateToHome,
             shareRoomLink = { /*TODO*/ },
+            viewModel = getBackStackCreateViewModel(it)
         )
     }
 }
