@@ -9,6 +9,8 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.ReadOnlyComposable
+import androidx.compose.runtime.Stable
 import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
@@ -32,6 +34,14 @@ private val LightColorScheme = lightColorScheme(
     onSurface = Color(0xFF1C1B1F),
     */
 )
+@Stable
+object UCompassTheme {
+
+    val typography: UCompassTypography
+        @Composable
+        @ReadOnlyComposable
+        get() = LocalUCompassTypographyProvider.current
+}
 
 @Composable
 fun UCompassTheme(
@@ -52,7 +62,6 @@ fun UCompassTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = Typography,
         content = content
     )
 }
