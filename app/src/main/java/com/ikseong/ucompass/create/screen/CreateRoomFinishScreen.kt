@@ -20,15 +20,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.ikseong.ucompass.common.component.UCompassButton
 import com.ikseong.ucompass.common.component.UCompassLogo
 import com.ikseong.ucompass.create.component.CreateRoomFinishContent
 import com.ikseong.ucompass.create.component.CreateRoomStatus
 import com.ikseong.ucompass.create.component.CreateRoomTitleContent
+import com.ikseong.ucompass.create.component.viewmodel.CreateViewModel
 
 @Composable
 fun CreateRoomFinishScreen(
-    padding: PaddingValues
+    padding: PaddingValues,
+    viewModel : CreateViewModel = hiltViewModel()
 ) {
     val roomTitle by remember { mutableStateOf("") }
     val copyLink by remember { mutableStateOf("") }

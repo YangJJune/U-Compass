@@ -19,14 +19,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.ikseong.ucompass.common.component.UCompassButton
 import com.ikseong.ucompass.common.component.UCompassLogo
 import com.ikseong.ucompass.common.component.UCompassTextField
 import com.ikseong.ucompass.create.component.CreateRoomTitleContent
+import com.ikseong.ucompass.create.component.viewmodel.CreateViewModel
 
 @Composable
 fun CreateRoomTitleScreen(
-    padding: PaddingValues
+    padding: PaddingValues,
+    viewModel : CreateViewModel = hiltViewModel()
 ) {
     var title by remember { mutableStateOf("") }
 
@@ -35,8 +38,10 @@ fun CreateRoomTitleScreen(
             .padding(padding)
             .fillMaxSize()
     ) {
-
-        Column {
+        Column(
+            modifier = Modifier
+                .matchParentSize()
+        ) {
             UCompassLogo()
             Spacer(modifier = Modifier.height(120.dp))
             CreateRoomTitleContent()
