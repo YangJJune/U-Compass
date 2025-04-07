@@ -37,7 +37,7 @@ fun UCompassTextField(
                 shape = RoundedCornerShape(100.dp)
             )
             .padding(
-                vertical = verticalPadding.minus(12.dp)
+                vertical = if (verticalPadding > 12.dp) verticalPadding.minus(12.dp) else 0.dp
             ),
         value = text,
         onValueChange = onValueChange,
