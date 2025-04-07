@@ -20,11 +20,17 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.ikseong.ucompass.common.component.ObserveAsEvents
 import com.ikseong.ucompass.common.component.UCompassButton
 import com.ikseong.ucompass.common.component.UCompassLogo
 import com.ikseong.ucompass.create.component.CreateRoomFinishContent
 import com.ikseong.ucompass.create.component.CreateRoomStatus
+import com.ikseong.ucompass.create.viewmodel.CreateUiAction
+import com.ikseong.ucompass.create.viewmodel.CreateUiEvent
+import com.ikseong.ucompass.create.viewmodel.CreateUiState
 import com.ikseong.ucompass.create.viewmodel.CreateViewModel
+import com.ikseong.ucompass.ui.theme.UCompassTheme
 
 @Composable
 fun CreateRoomFinishRoute(
@@ -33,21 +39,31 @@ fun CreateRoomFinishRoute(
     shareRoomLink: () -> Unit = {},
     viewModel: CreateViewModel = hiltViewModel()
 ) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    ObserveAsEvents(flow = viewModel.uiEvent) { action ->
+        when (action) {
+            CreateUiEvent.NavigateToHome -> navigateToHome()
+            CreateUiEvent.ShareLink -> shareRoomLink() // TODO
+            else -> {}
+        }
+    }
+
     CreateRoomFinishScreen(
         padding = padding,
-        navigateToHome = navigateToHome,
-        shareRoomLink = shareRoomLink
+        uiState = uiState,
+        onAction = viewModel::onCreateUiAction
     )
 }
 
 @Composable
 fun CreateRoomFinishScreen(
     padding: PaddingValues,
-    navigateToHome: () -> Unit = {},
-    shareRoomLink: () -> Unit = {},
+    uiState: CreateUiState,
+    onAction: (CreateUiAction) -> Unit
 ) {
-    val roomTitle by remember { mutableStateOf("") }
-    val copyLink by remember { mutableStateOf("") }
+    val roomTitle = uiState.title
+    val copyLink = uiState.link
 
     Box(
         modifier = Modifier
@@ -80,7 +96,7 @@ fun CreateRoomFinishScreen(
                 text = "공유",
                 color = Color(0xFFD9D9D9),
                 fontSize = 20.sp
-            ) { shareRoomLink() }
+            ) { onAction(CreateUiAction.OnShareClick) }
             Spacer(modifier = Modifier.weight(12f))
             UCompassButton(
                 modifier = Modifier
@@ -89,7 +105,7 @@ fun CreateRoomFinishScreen(
                 text = "확인",
                 color = Color(0xFF00E397),
                 fontSize = 20.sp
-            ) { navigateToHome() }
+            ) { onAction(CreateUiAction.OnConfirmClick) }
         }
     }
 }
@@ -97,7 +113,11 @@ fun CreateRoomFinishScreen(
 @Preview(showBackground = true)
 @Composable
 private fun CreateRoomFinishScreenPreview() {
-    CreateRoomFinishScreen(
-        padding = PaddingValues()
-    )
+    UCompassTheme {
+        CreateRoomFinishScreen(
+            padding = PaddingValues(),
+            uiState = CreateUiState(),
+            onAction = {}
+        )
+    }
 }
