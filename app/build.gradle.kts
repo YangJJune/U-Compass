@@ -72,4 +72,8 @@ dependencies {
     ksp(libs.hilt.compiler)
     ksp(libs.hilt.manager)
 
+    // Coil
+    implementation(libs.coil.compose)
+    implementation(libs.coil.network.okhttp)
+
 }
