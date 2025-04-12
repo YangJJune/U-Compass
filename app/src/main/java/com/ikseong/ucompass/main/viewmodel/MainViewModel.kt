@@ -19,7 +19,7 @@ class MainViewModel @Inject constructor() : ViewModel() {
     private val _uiEvent = Channel<MainUiEvent>()
     val uiEvent = _uiEvent.receiveAsFlow()
 
-    fun onCreateUiAction(action: MainUiAction) {
+    fun onMainUiAction(action: MainUiAction) {
         when (action) {
             MainUiAction.OnAddressClick -> TODO()
             MainUiAction.OnCreateRoomClick -> TODO()
