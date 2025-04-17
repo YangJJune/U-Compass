@@ -1,8 +1,10 @@
 package com.example.composesensor.screen
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
@@ -14,25 +16,63 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun HomeScreen(
-    paddingValues: PaddingValues = PaddingValues(0.dp),
-    navigateToSensor: () -> Unit = {},
-    navigateToLocation: () -> Unit = {},
+    paddingValues: PaddingValues,
+    navigateToSensor: () -> Unit,
+    navigateToLocation: () -> Unit,
+    navigateToNaverMap: () -> Unit,
+    navigateToFingerprinting: () -> Unit,
+    navigateToTriangulation: () -> Unit,
+    navigateToInsNavigation: () -> Unit
 ) {
+
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .padding(16.dp)
             .padding(paddingValues),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically)
     ) {
-        MyButton(
-            text = "Sensor",
+        Button(
+            onClick = navigateToSensor,
+            modifier = Modifier.fillMaxWidth()
         ) {
-            navigateToSensor()
+            Text(text = "센서 정보")
         }
-        MyButton(
-            text = "Location",
+
+        Button(
+            onClick = navigateToLocation,
+            modifier = Modifier.fillMaxWidth()
         ) {
-            navigateToLocation()
+            Text(text = "위치 정보")
+        }
+
+        Button(
+            onClick = navigateToNaverMap,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(text = "네이버 지도")
+        }
+
+        Button(
+            onClick = navigateToFingerprinting,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(text = "핑거프린팅")
+        }
+
+        Button(
+            onClick = navigateToTriangulation,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(text = "삼각측량")
+        }
+        
+        Button(
+            onClick = navigateToInsNavigation,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(text = "INS 내비게이션")
         }
     }
 }
@@ -55,5 +95,5 @@ fun MyButton(
 @Preview
 @Composable
 private fun HomeScreenPreview() {
-    HomeScreen()
+    HomeScreen(PaddingValues(0.dp), {}, {}, {}, {}, {}, {})
 }
