@@ -1,6 +1,7 @@
 package com.ikseong.ucompass.common.component
 
 import androidx.compose.foundation.border
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -61,7 +62,8 @@ fun UCompassTextField(
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent
         ),
-        shape = RoundedCornerShape(100.dp)
+        shape = RoundedCornerShape(100.dp),
+        interactionSource = MutableInteractionSource(),
     )
 }
 

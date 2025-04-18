@@ -1,7 +1,6 @@
 package com.ikseong.ucompass.main.component
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,6 +25,7 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.ikseong.ucompass.R
 import com.ikseong.ucompass.ui.theme.UCompassTheme.typography
+import com.ikseong.ucompass.util.viewutil.noRippleClickable
 
 @Composable
 fun MainUserContent(
@@ -73,7 +73,7 @@ fun MainTopAddress(
 ) {
     Row(
         modifier = modifier
-            .clickable { onAddressClick() }
+            .noRippleClickable { onAddressClick() }
     ) {
         Icon(
             modifier = Modifier
@@ -106,7 +106,7 @@ fun MainProfile(
         modifier = modifier
             .width(110.dp)
             .height(114.dp)
-            .clickable { onClick() }
+            .noRippleClickable { onClick() }
     ) {
         Box(
             modifier = Modifier

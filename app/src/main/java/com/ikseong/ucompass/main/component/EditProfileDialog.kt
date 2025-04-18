@@ -39,6 +39,7 @@ import com.ikseong.ucompass.R
 import com.ikseong.ucompass.common.component.UCompassButton
 import com.ikseong.ucompass.common.component.UCompassTextField
 import com.ikseong.ucompass.ui.theme.UCompassTheme.typography
+import com.ikseong.ucompass.util.viewutil.noRippleClickable
 
 @Composable
 fun EditProfileDialog(
@@ -71,7 +72,7 @@ fun EditProfileDialog(
                         .padding(12.dp)
                         .size(36.dp)
                         .align(Alignment.CenterEnd)
-                        .clickable { onDismissRequest() }
+                        .noRippleClickable { onDismissRequest() }
                 ) {
                     Icon(
                         modifier = Modifier
@@ -100,7 +101,7 @@ fun EditProfileDialog(
                 Box(
                     modifier = Modifier
                         .align(Alignment.CenterHorizontally)
-                        .clickable { onEditProfileImgClick() },
+                        .noRippleClickable { onEditProfileImgClick() },
                     contentAlignment = Alignment.Center
                 ) {
                     Box(
