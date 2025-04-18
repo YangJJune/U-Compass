@@ -46,6 +46,8 @@ import androidx.compose.ui.unit.sp
 import com.ikseong.ucompass.R
 import com.ikseong.ucompass.main.viewmodel.RoomInfo
 import com.ikseong.ucompass.ui.theme.UCompassTheme.typography
+import kotlinx.collections.immutable.PersistentList
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
@@ -53,9 +55,9 @@ import kotlin.math.roundToInt
 @Composable
 fun MainRoomList(
     modifier: Modifier = Modifier,
-    roomList: List<RoomInfo>,
+    roomList: PersistentList<RoomInfo>,
     onRoomClick: (Long) -> Unit = {},
-    onActionClick: (Long) -> Unit = {}
+    onActionClick: (RoomInfo, Boolean) -> Unit = { _, _ -> }
 ) {
     val density = LocalDensity.current
     val actionWidth = remember { with(density) { 70.dp.toPx() } }
@@ -63,7 +65,7 @@ fun MainRoomList(
     val scope = rememberCoroutineScope()
 
     LazyColumn(
-        modifier = modifier.padding(horizontal = 21.dp),
+        modifier = modifier,
         state = scrollState,
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
@@ -74,7 +76,7 @@ fun MainRoomList(
                 actionWidth = actionWidth,
                 scope = scope,
                 onActionClick = {
-                    onActionClick(roomList[index].roomId)
+                    onActionClick(roomList[index], roomList[index].isHost)
                 },
                 onRoomClick = {
                     onRoomClick(roomList[index].roomId)
@@ -302,7 +304,7 @@ private fun MainRoomItemPreview() {
 private fun MainRoomListPreview() {
     MainRoomList(
         modifier = Modifier,
-        roomList = listOf(
+        roomList = persistentListOf(
             RoomInfo(
                 hostName = "HostName1",
                 roomLink = "RoomLink1",

@@ -7,6 +7,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -25,7 +26,22 @@ class MainViewModel @Inject constructor() : ViewModel() {
             MainUiAction.OnCreateRoomClick -> TODO()
             MainUiAction.OnProfileClick -> TODO()
             is MainUiAction.OnRoomClick -> navigateToRoom(action.id)
+            is MainUiAction.OnRoomActionClick -> performRoomAction(action.room, action.isHost)
         }
+    }
+
+    private fun performRoomAction(room: RoomInfo, isHost: Boolean) {
+        _uiState.update {
+            it.copy(
+                roomList = it.roomList.remove(room)
+            )
+        }
+        if (isHost) {
+            // TODO : 방 삭제 API
+        } else {
+            // TODO : 방 나가기 API
+        }
+
     }
 
     private fun showLocationPermissionDialog() {

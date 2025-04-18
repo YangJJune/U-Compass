@@ -5,4 +5,5 @@ sealed interface MainUiAction {
     data object OnAddressClick : MainUiAction
     data object OnCreateRoomClick : MainUiAction
     data class OnRoomClick(val id: Long) : MainUiAction
+    data class OnRoomActionClick(val room: RoomInfo, val isHost: Boolean) : MainUiAction
 }
