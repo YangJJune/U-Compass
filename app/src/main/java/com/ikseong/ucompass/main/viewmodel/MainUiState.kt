@@ -7,7 +7,9 @@ data class MainUiState(
     val name: String = "",
     val address: String = "",
     val profileUrl: String = "",
-    val roomList : PersistentList<RoomInfo> = persistentListOf()
+    val roomList : PersistentList<RoomInfo> = persistentListOf(),
+    val isPermissionDialogVisible: Boolean = false,
+    val isEditProfileDialogVisible: Boolean = false
 )
 
 data class RoomInfo(
