@@ -1,10 +1,13 @@
 package com.ikseong.ucompass.main.viewmodel
 
+import kotlinx.collections.immutable.PersistentList
+import kotlinx.collections.immutable.persistentListOf
+
 data class MainUiState(
     val name: String = "",
     val address: String = "",
     val profileUrl: String = "",
-    val roomList : List<RoomInfo> = listOf()
+    val roomList : PersistentList<RoomInfo> = persistentListOf()
 )
 
 data class RoomInfo(
