@@ -71,7 +71,7 @@ fun EditProfileDialog(
                         .padding(12.dp)
                         .size(36.dp)
                         .align(Alignment.CenterEnd)
-                        .clickable { }
+                        .clickable { onDismissRequest() }
                 ) {
                     Icon(
                         modifier = Modifier

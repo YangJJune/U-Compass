@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -74,6 +73,7 @@ fun MainTopAddress(
 ) {
     Row(
         modifier = modifier
+            .clickable { onAddressClick() }
     ) {
         Icon(
             modifier = Modifier
@@ -99,7 +99,7 @@ fun MainTopAddress(
 @Composable
 fun MainProfile(
     modifier: Modifier = Modifier,
-    imageUrl : String = "",
+    imageUrl: String = "",
     onClick: () -> Unit = {}
 ) {
     Box(

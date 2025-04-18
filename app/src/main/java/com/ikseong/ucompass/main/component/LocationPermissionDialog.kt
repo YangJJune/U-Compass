@@ -65,7 +65,7 @@ fun LocationPermissionDialog(
                         .padding(top = 24.dp),
                     text = "서비스 이용을 위해 위치 권한이 필요합니다.",
                     style = typography.regular.copy(
-                        fontSize = 14.sp,
+                        fontSize = 13.sp,
                     )
                 )
                 Row(

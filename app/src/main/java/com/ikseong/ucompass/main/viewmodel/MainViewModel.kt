@@ -14,7 +14,7 @@ import javax.inject.Inject
 @HiltViewModel
 class MainViewModel @Inject constructor() : ViewModel() {
 
-    private val _uiState = MutableStateFlow(MainUiState())
+    private val _uiState = MutableStateFlow(MainUiState.dummyDataState)
     val uiState = _uiState.asStateFlow()
 
     private val _uiEvent = Channel<MainUiEvent>()
