@@ -22,19 +22,48 @@ class MainViewModel @Inject constructor() : ViewModel() {
 
     fun onMainUiAction(action: MainUiAction) {
         when (action) {
-            MainUiAction.OnAddressClick -> TODO()
-            MainUiAction.OnCreateRoomClick -> TODO()
-            MainUiAction.OnProfileClick -> TODO()
+            MainUiAction.OnAddressClick -> setLocationPermissionDialogVisible(true)
+            MainUiAction.OnAllowLocationClick -> requestLocationPermission()
+            MainUiAction.OnDenyLocationClick -> setLocationPermissionDialogVisible(false)
+
+            MainUiAction.OnProfileClick -> setEditProfileDialogVisible(true)
+            MainUiAction.OnCloseClick -> setEditProfileDialogVisible(false)
+            MainUiAction.OnOpenGalleryClick -> openGallery()
+            is MainUiAction.OnEditCompleteClick -> editProfileData(action.name, action.email)
+
             is MainUiAction.OnRoomClick -> navigateToRoom(action.id)
             is MainUiAction.OnRoomActionClick -> performRoomAction(action.room, action.isHost)
+            MainUiAction.OnCreateRoomClick -> navigateToCreateRoom()
         }
+    }
+
+    private fun openGallery() {
+        viewModelScope.launch {
+            _uiEvent.send(MainUiEvent.OpenGallery)
+        }
+    }
+
+    private fun editProfileData(name: String, email: String) {
+        _uiState.update {
+            it.copy(
+                name = name,
+                email = email
+            )
+        }
+        // TODO : 프로필 수정 API
+        setEditProfileDialogVisible(false)
+    }
+
+    private fun requestLocationPermission() {
+        viewModelScope.launch {
+            _uiEvent.send(MainUiEvent.RequestLocationPermission)
+        }
+        setLocationPermissionDialogVisible(false)
     }
 
     private fun performRoomAction(room: RoomInfo, isHost: Boolean) {
         _uiState.update {
-            it.copy(
-                roomList = it.roomList.remove(room)
-            )
+            it.copy(roomList = it.roomList.remove(room))
         }
         if (isHost) {
             // TODO : 방 삭제 API
@@ -44,9 +73,15 @@ class MainViewModel @Inject constructor() : ViewModel() {
 
     }
 
-    private fun showLocationPermissionDialog() {
-        viewModelScope.launch {
-            _uiEvent.send(MainUiEvent.RequestLocationPermissionDialog)
+    private fun setLocationPermissionDialogVisible(flag: Boolean) {
+        _uiState.update {
+            it.copy(isLocationPermissionDialogVisible = flag)
+        }
+    }
+
+    private fun setEditProfileDialogVisible(flag: Boolean) {
+        _uiState.update {
+            it.copy(isEditProfileDialogVisible = flag)
         }
     }
 
@@ -62,9 +97,4 @@ class MainViewModel @Inject constructor() : ViewModel() {
         }
     }
 
-    private fun showEditProfileDialog() {
-        viewModelScope.launch {
-            _uiEvent.send(MainUiEvent.EditProfileDialog)
-        }
-    }
 }

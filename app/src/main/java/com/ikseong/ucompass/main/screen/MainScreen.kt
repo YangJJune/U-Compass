@@ -23,6 +23,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ikseong.ucompass.common.component.ObserveAsEvents
 import com.ikseong.ucompass.common.component.UCompassButton
 import com.ikseong.ucompass.common.component.UCompassLogo
+import com.ikseong.ucompass.main.component.EditProfileDialog
+import com.ikseong.ucompass.main.component.LocationPermissionDialog
 import com.ikseong.ucompass.main.component.MainRoomList
 import com.ikseong.ucompass.main.component.MainUserContent
 import com.ikseong.ucompass.main.viewmodel.MainUiAction
@@ -50,8 +52,10 @@ fun MainRoute(
 
             MainUiEvent.NavigateToCreateRoom -> navigateToCreateRoom()
             is MainUiEvent.NavigateToRoom -> navigateToRoom(event.id)
-            MainUiEvent.RequestLocationPermissionDialog -> { /*show Dialog*/
+            MainUiEvent.RequestLocationPermission -> { /*show Dialog*/
             }
+
+            MainUiEvent.OpenGallery -> {}// TODO: 갤러리 열기
         }
     }
     MainScreen(
@@ -123,6 +127,26 @@ fun MainScreen(
             fontSize = 20.sp,
             color = Color(0xFF00E397)
         ) { onAction(MainUiAction.OnCreateRoomClick) }
+
+        if (uiState.isLocationPermissionDialogVisible) {
+            LocationPermissionDialog(
+                onRequestPermission = { onAction(MainUiAction.OnAllowLocationClick) },
+                onDismissRequest = { onAction(MainUiAction.OnDenyLocationClick) }
+            )
+        }
+
+        if (uiState.isEditProfileDialogVisible) {
+            EditProfileDialog(
+                profileImgUrl = "",
+                onComplete = { name, email ->
+                    onAction(MainUiAction.OnEditCompleteClick(name, email))
+                },
+                onEditProfileImgClick = {
+                    // TODO: Open Gallery
+                },
+                onDismissRequest = { onAction(MainUiAction.OnCloseClick) }
+            )
+        }
     }
 }
 

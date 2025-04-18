@@ -5,10 +5,11 @@ import kotlinx.collections.immutable.persistentListOf
 
 data class MainUiState(
     val name: String = "",
+    val email: String = "",
     val address: String = "",
     val profileUrl: String = "",
     val roomList : PersistentList<RoomInfo> = persistentListOf(),
-    val isPermissionDialogVisible: Boolean = false,
+    val isLocationPermissionDialogVisible: Boolean = false,
     val isEditProfileDialogVisible: Boolean = false
 )
 

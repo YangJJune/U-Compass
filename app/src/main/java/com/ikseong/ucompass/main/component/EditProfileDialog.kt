@@ -21,9 +21,12 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -40,15 +43,14 @@ import com.ikseong.ucompass.ui.theme.UCompassTheme.typography
 @Composable
 fun EditProfileDialog(
     modifier: Modifier = Modifier,
-    name: String = "",
-    email: String = "",
     profileImgUrl: String = "",
-    onNameChanged: (String) -> Unit = { },
-    onEmailChanged: (String) -> Unit = { },
-    onComplete: () -> Unit = { },
+    onComplete: (String, String) -> Unit = { _, _ -> },
     onEditProfileImgClick: () -> Unit = { },
     onDismissRequest: () -> Unit = { },
 ) {
+    var name by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
+
     Dialog(
         onDismissRequest = onDismissRequest,
     ) {
@@ -149,7 +151,7 @@ fun EditProfileDialog(
                         color = Color(0x80000000)
                     ),
                     placeholder = "이름을 입력해주세요.",
-                    onValueChange = { onNameChanged(it) }
+                    onValueChange = { name = it }
                 )
                 Text(
                     modifier = Modifier
@@ -170,7 +172,7 @@ fun EditProfileDialog(
                         color = Color(0x80000000)
                     ),
                     placeholder = "이메일을 입력해주세요.",
-                    onValueChange = { onEmailChanged(it) }
+                    onValueChange = { email = it }
                 )
                 UCompassButton(
                     modifier = Modifier
@@ -180,7 +182,7 @@ fun EditProfileDialog(
                     fontSize = 20.sp,
                     color = Color(0xFF00E397),
                     contentPadding = PaddingValues(vertical = 19.dp),
-                ) { onComplete() }
+                ) { onComplete(name, email) }
             }
         }
     }
