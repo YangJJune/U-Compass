@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.ikseong.ucompass.ui.theme.UCompassTheme.typography
 
 @Composable
@@ -25,10 +26,10 @@ fun UCompassTextField(
     placeholder: String = "",
     onValueChange: (String) -> Unit,
 ) {
-    val containerColor = Color(0xFFF6F6F6)
     val borderColor = Color(0xFFE8E8E8)
     val textColor = Color.Black.copy(alpha = 0.5f)
 
+    // TODO : BasicTextField 로 변경
     TextField(
         modifier = modifier
             .border(
@@ -53,13 +54,14 @@ fun UCompassTextField(
         singleLine = true,
         maxLines = 1,
         colors = TextFieldDefaults.colors(
-            focusedContainerColor = containerColor,
-            unfocusedContainerColor = containerColor,
+            focusedContainerColor = Color.White,
+            unfocusedContainerColor = Color.White,
             focusedTextColor = textColor,
             unfocusedTextColor = textColor,
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent
-        )
+        ),
+        shape = RoundedCornerShape(100.dp)
     )
 }
 
@@ -67,6 +69,7 @@ fun UCompassTextField(
 @Composable
 private fun UCompassTextFieldPreview() {
     UCompassTextField(
+        modifier = Modifier.padding(20.dp),
         text = "양석준",
         onValueChange = {},
         verticalPadding = 15.dp,
