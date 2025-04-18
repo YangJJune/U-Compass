@@ -13,9 +13,9 @@ activityCompose = "1.10.1"
 ksp = "2.0.0-1.0.21"
 composeBom = "2024.09.00"
 navigationCompose = "2.8.9"
-hilt = "2.48.1"
+hilt = "2.52"
 hiltNavigationCompose = "1.2.0"
-hiltManager = "1.0.0"
+hiltManager = "1.2.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
