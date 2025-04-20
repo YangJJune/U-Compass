@@ -270,12 +270,17 @@ fun TriangulationScreen(
     ) {
 
         MyNaverMap(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(400.dp)
+                .padding(horizontal = 16.dp, vertical = 16.dp),
             latLng = position?.let { LatLng(it.first.toDouble(), it.second.toDouble()) }
         )
         
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .padding(top = 432.dp)
                 .padding(16.dp)
         ) {
             // 측정 방식 선택 카드

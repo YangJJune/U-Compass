@@ -3,7 +3,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    kotlin("plugin.serialization") version "1.9.21"
+    alias(libs.plugins.kotlin.serialization)
+    id("com.google.devtools.ksp") version "2.1.20-1.0.32"
 }
 
 val properties = Properties().apply {
@@ -74,4 +75,13 @@ dependencies {
     implementation("io.github.fornewid:naver-map-compose:1.8.0")
     implementation("io.github.fornewid:naver-map-location:21.0.2")
     implementation("com.naver.maps:map-sdk:3.21.0")
+    
+    // Room 데이터베이스 의존성 추가
+    implementation("androidx.room:room-runtime:2.7.0")
+    implementation("androidx.room:room-ktx:2.7.0")
+    ksp("androidx.room:room-compiler:2.7.0")
+    
+    // ViewModel 및 LiveData
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
 }

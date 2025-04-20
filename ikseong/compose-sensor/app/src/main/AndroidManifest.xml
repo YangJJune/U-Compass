@@ -15,9 +15,12 @@
         android:usesPermissionFlags="neverForLocation" />
 
     <!-- WiFi-RTT 권한 -->
-    <uses-permission android:name="android.permission.LOCATION_HARDWARE"
+    <uses-permission
+        android:name="android.permission.LOCATION_HARDWARE"
         tools:ignore="ProtectedPermissions" />
-    <uses-feature android:name="android.hardware.wifi.rtt" android:required="false" />
+    <uses-feature
+        android:name="android.hardware.wifi.rtt"
+        android:required="false" />
 
     <!-- 네트워크 상태 확인 (선택 사항) -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -25,6 +28,8 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- 걸음 수 측정을 위함 -->
+    <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
 
     <application
         android:name=".App"
