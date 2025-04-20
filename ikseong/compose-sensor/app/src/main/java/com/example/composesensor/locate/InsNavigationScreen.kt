@@ -95,12 +95,21 @@ fun InsNavigationScreen(
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             arrayOf(
                 Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_COARSE_LOCATION
+                Manifest.permission.ACCESS_COARSE_LOCATION,
+                Manifest.permission.ACTIVITY_RECOGNITION
             )
-        } else {
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+             arrayOf(
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION,
+                Manifest.permission.ACTIVITY_RECOGNITION
+            )
+        }
+        else {
             arrayOf(
                 Manifest.permission.ACCESS_FINE_LOCATION,
                 Manifest.permission.ACCESS_COARSE_LOCATION
+                // ACTIVITY_RECOGNITION은 API 29 이상에서 필요
             )
         }
     }
@@ -143,6 +152,9 @@ fun InsNavigationScreen(
     val magnetometer = remember { 
         sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD) 
     }
+    val stepCounterSensor = remember {
+        sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
+    }
     
     // 센서 데이터 상태
     var accelValues by remember { mutableStateOf(floatArrayOf(0f, 0f, 0f)) }
@@ -150,10 +162,14 @@ fun InsNavigationScreen(
     
     // 위치 및 방향 관련 상태
     var initialLocation by remember { mutableStateOf<Location?>(null) }
+    // 위치 값 초기화
     var currentLatitude by remember { mutableDoubleStateOf(0.0) }
     var currentLongitude by remember { mutableDoubleStateOf(0.0) }
     var currentAzimuth by remember { mutableFloatStateOf(0f) }
     var lastUpdateTime by remember { mutableLongStateOf(0L) }
+    
+    // 위치 초기화 성공 여부 추적
+    var isLocationInitialized by remember { mutableStateOf(false) }
     
     // INS 사용 여부
     var insActive by remember { mutableStateOf(false) }
@@ -162,6 +178,7 @@ fun InsNavigationScreen(
     var calibrationMode by remember { mutableStateOf(false) }
     var stepLength by remember { mutableFloatStateOf(0.75f) } // 기본 보폭: 0.75m
     var stepCount by remember { mutableIntStateOf(0) }
+    var lastStepValue by remember { mutableLongStateOf(0L) } // 비교용으로만 사용
     
     // 로그 메시지
     var logMessages by remember { mutableStateOf(listOf<String>()) }
@@ -176,10 +193,14 @@ fun InsNavigationScreen(
         object : LocationCallback() {
             override fun onLocationResult(locationResult: LocationResult) {
                 for (location in locationResult.locations) {
+                    // 유효한 위치가 도착했을 때 로그
+                    logMessages = addLogMessage(logMessages) { "위치 업데이트 수신: 위도 ${location.latitude}, 경도 ${location.longitude}" }
+                    
                     if (initialLocation == null) {
                         initialLocation = location
                         currentLatitude = location.latitude
                         currentLongitude = location.longitude
+                        isLocationInitialized = true
                         logMessages = addLogMessage(logMessages) { "초기 위치 설정: 위도 ${location.latitude}, 경도 ${location.longitude}" }
                     } else if (!insActive) {
                         // INS가 활성화되지 않은 경우에만 GPS 위치 업데이트
@@ -192,56 +213,117 @@ fun InsNavigationScreen(
         }
     }
     
+    // 위치 업데이트 요청 함수
+    fun requestLocationUpdates(isInsActive: Boolean) {
+        if (!allPermissionsGranted) return
+        
+        try {
+            // 기존 업데이트 콜백 제거
+            fusedLocationClient.removeLocationUpdates(locationCallback)
+            
+            // INS 활성화 상태에 따라 다른 위치 업데이트 간격 설정
+            val updateIntervalMs = if (isInsActive) 5000L else 2000L // INS 비활성화 시 2초마다 업데이트
+            
+            val locationRequest = LocationRequest.Builder(updateIntervalMs)
+                .setPriority(Priority.PRIORITY_HIGH_ACCURACY)
+                .setMinUpdateIntervalMillis(if (isInsActive) 3000L else 1000L)
+                .setMaxUpdateDelayMillis(if (isInsActive) 10000L else 3000L)
+                .build()
+            
+            logMessages = addLogMessage(logMessages) { 
+                if (isInsActive) "INS 활성화: GPS 업데이트 간격 5초로 설정" 
+                else "INS 비활성화: GPS 업데이트 간격 2초로 설정" 
+            }
+            
+            fusedLocationClient.requestLocationUpdates(
+                locationRequest,
+                locationCallback,
+                Looper.getMainLooper()
+            )
+        } catch (e: SecurityException) {
+            logMessages = addLogMessage(logMessages) { "위치 권한 오류: ${e.message}" }
+        }
+    }
+    
     // 위치 권한이 있는 경우 위치 업데이트 요청
     LaunchedEffect(allPermissionsGranted) {
         if (allPermissionsGranted) {
             try {
-                val locationRequest = LocationRequest.Builder(1000) // 1초마다 업데이트
-                    .setPriority(Priority.PRIORITY_HIGH_ACCURACY)
-                    .build()
+                // 초기 위치 업데이트 요청 (INS 비활성화 상태 기준)
+                requestLocationUpdates(false)
                 
-                fusedLocationClient.requestLocationUpdates(
-                    locationRequest,
-                    locationCallback,
-                    Looper.getMainLooper()
-                )
-                
-                // 마지막 알려진 위치 가져오기
-                fusedLocationClient.lastLocation.addOnSuccessListener { location ->
-                    if (location != null) {
-                        initialLocation = location
-                        currentLatitude = location.latitude
-                        currentLongitude = location.longitude
-                        logMessages = addLogMessage(logMessages) { "초기 위치 설정: 위도 ${location.latitude}, 경도 ${location.longitude}" }
+                // 마지막 알려진 위치 가져오는 시도 개선
+                fusedLocationClient.lastLocation
+                    .addOnSuccessListener { location ->
+                        if (location != null) {
+                            initialLocation = location
+                            currentLatitude = location.latitude
+                            currentLongitude = location.longitude
+                            isLocationInitialized = true
+                            logMessages = addLogMessage(logMessages) { "마지막 위치 성공적으로 가져옴: 위도 ${location.latitude}, 경도 ${location.longitude}" }
+                        } else {
+                            // 마지막 위치를 가져오지 못한 경우 - 네트워크 위치 요청 시도
+                            logMessages = addLogMessage(logMessages) { "마지막 위치 null, 위치 요청 대기 중..." }
+                            
+                            // 네트워크 기반 위치 명시적 요청
+                            val networkRequest = LocationRequest.Builder(500)
+                                .setPriority(Priority.PRIORITY_BALANCED_POWER_ACCURACY) // 네트워크 우선
+                                .setMaxUpdates(1) // 한 번만 요청
+                                .build()
+                                
+                            fusedLocationClient.requestLocationUpdates(
+                                networkRequest,
+                                object : LocationCallback() {
+                                    override fun onLocationResult(result: LocationResult) {
+                                        val networkLocation = result.lastLocation
+                                        if (networkLocation != null && !isLocationInitialized) {
+                                            currentLatitude = networkLocation.latitude
+                                            currentLongitude = networkLocation.longitude
+                                            initialLocation = networkLocation
+                                            isLocationInitialized = true
+                                            logMessages = addLogMessage(logMessages) { "네트워크 위치 설정: 위도 ${networkLocation.latitude}, 경도 ${networkLocation.longitude}" }
+                                        }
+                                        fusedLocationClient.removeLocationUpdates(this) // 콜백 제거
+                                    }
+                                },
+                                Looper.getMainLooper()
+                            )
+                        }
                     }
-                }
+                    .addOnFailureListener { e ->
+                        logMessages = addLogMessage(logMessages) { "위치 요청 실패: ${e.message}" }
+                    }
             } catch (e: SecurityException) {
                 logMessages = addLogMessage(logMessages) { "위치 권한 오류: ${e.message}" }
             }
         }
     }
     
+    // INS 활성화 상태가 변경될 때 위치 업데이트 요청 업데이트
+    LaunchedEffect(insActive) {
+        if (allPermissionsGranted) {
+            requestLocationUpdates(insActive)
+        }
+    }
+    
     // 센서 리스너 등록 및 해제
-    DisposableEffect(Unit) {
+    DisposableEffect(allPermissionsGranted) {
+        if (!allPermissionsGranted) {
+            logMessages = addLogMessage(logMessages) { "권한이 없어 센서 리스너를 등록하지 않습니다." }
+            onDispose {
+            }
+        }
+
+        logMessages = addLogMessage(logMessages) { "센서 리스너를 등록합니다." }
+        
         val sensorListener = object : SensorEventListener {
             override fun onSensorChanged(event: SensorEvent) {
                 when (event.sensor.type) {
                     Sensor.TYPE_ACCELEROMETER -> {
                         accelValues = event.values.clone()
-                        detectStep(accelValues, lastUpdateTime) { isStep ->
-                            if (isStep && insActive) {
-                                stepCount++
-                                updatePositionWithINS(
-                                    currentAzimuth,
-                                    stepLength,
-                                    currentLatitude,
-                                    currentLongitude
-                                ) { lat, lng ->
-                                    currentLatitude = lat
-                                    currentLongitude = lng
-                                }
-                            }
-                            lastUpdateTime = System.currentTimeMillis()
+                        // 방위각 계산
+                        calculateOrientation(accelValues, magnetValues) { azimuth ->
+                            currentAzimuth = azimuth
                         }
                     }
                     Sensor.TYPE_MAGNETIC_FIELD -> {
@@ -251,11 +333,40 @@ fun InsNavigationScreen(
                             currentAzimuth = azimuth
                         }
                     }
+                    Sensor.TYPE_STEP_COUNTER -> {
+                        val steps = event.values[0].toLong()
+                        Log.d("StepCounter", "걸음 수 센서 이벤트: $steps")
+                        
+                        // 걸음 수가 증가했을 때만 처리 (기기 재부팅 등으로 값이 리셋되는 경우 고려)
+                        if (insActive && (steps > lastStepValue || lastStepValue - steps > 1000000)) {
+                            stepCount++ // 세션 내 걸음 수만 증가
+                            logMessages = addLogMessage(logMessages) { "걸음 감지 (카운터): $stepCount" }
+                            
+                            // 위치 업데이트
+                            updatePositionWithINS(
+                                currentAzimuth,
+                                stepLength,
+                                currentLatitude,
+                                currentLongitude
+                            ) { lat, lng ->
+                                currentLatitude = lat
+                                currentLongitude = lng
+                            }
+                        }
+                        lastStepValue = steps // 마지막 값 저장
+                    }
                 }
             }
             
             override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {
                 // 정확도 변경 처리 (필요시 구현)
+                val sensorName = when(sensor.type) {
+                    Sensor.TYPE_ACCELEROMETER -> "가속도계"
+                    Sensor.TYPE_MAGNETIC_FIELD -> "자기장"
+                    Sensor.TYPE_STEP_COUNTER -> "걸음수 카운터"
+                    else -> "알 수 없음"
+                }
+                logMessages = addLogMessage(logMessages) { "$sensorName 정확도 변경: $accuracy" }
             }
         }
         
@@ -270,11 +381,74 @@ fun InsNavigationScreen(
             magnetometer, 
             SensorManager.SENSOR_DELAY_NORMAL
         )
+        // 걸음 수 센서가 있으면 등록
+        if (stepCounterSensor != null) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q &&
+                ActivityCompat.checkSelfPermission(context, Manifest.permission.ACTIVITY_RECOGNITION) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                logMessages = addLogMessage(logMessages) { "걸음 수 센서 권한이 없어 등록할 수 없습니다." }
+            } else {
+                val registered = sensorManager.registerListener(
+                    sensorListener,
+                    stepCounterSensor,
+                    SensorManager.SENSOR_DELAY_GAME // NORMAL 대신 GAME 사용 (더 빠른 업데이트)
+                )
+                if (!registered) {
+                    logMessages = addLogMessage(logMessages) { "걸음 수 카운터 센서 등록 실패" }
+                } else {
+                    logMessages = addLogMessage(logMessages) { "걸음 수 카운터 센서 등록됨" }
+                }
+            }
+        } else {
+            logMessages = addLogMessage(logMessages) { "기기에 걸음 수 카운터 센서가 없습니다. 가속도계 기반 걸음 감지로 전환합니다." }
+            // 가속도계 기반 걸음 감지 로직 추가 (fallback)
+            var lastDetectionTime = 0L
+            sensorManager.registerListener(
+                object : SensorEventListener {
+                    override fun onSensorChanged(event: SensorEvent) {
+                        if (event.sensor.type == Sensor.TYPE_ACCELEROMETER && insActive) {
+                            val accel = event.values.clone()
+                            // 가속도 크기 계산
+                            val magnitude = sqrt(
+                                accel[0].toDouble().pow(2) +
+                                accel[1].toDouble().pow(2) +
+                                accel[2].toDouble().pow(2)
+                            ).toFloat()
+                            
+                            val now = System.currentTimeMillis()
+                            if (magnitude > 12.0f && (now - lastDetectionTime) > 400) { // 임계값 및 쿨다운
+                                stepCount++ // 세션 걸음 수 증가
+                                lastDetectionTime = now
+                                
+                                logMessages = addLogMessage(logMessages) { "걸음 감지 (가속도계): $stepCount" }
+                                
+                                // 위치 업데이트
+                                updatePositionWithINS(
+                                    currentAzimuth,
+                                    stepLength,
+                                    currentLatitude,
+                                    currentLongitude
+                                ) { lat, lng ->
+                                    currentLatitude = lat
+                                    currentLongitude = lng
+                                }
+                            }
+                        }
+                    }
+                    
+                    override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {
+                        // 무시
+                    }
+                },
+                accelerometer,
+                SensorManager.SENSOR_DELAY_GAME
+            )
+        }
         
         // 컴포저블이 사라질 때 리스너 해제
         onDispose {
             sensorManager.unregisterListener(sensorListener)
             fusedLocationClient.removeLocationUpdates(locationCallback)
+            logMessages = addLogMessage(logMessages) { "센서 리스너 및 위치 업데이트 해제됨" }
         }
     }
     
@@ -293,14 +467,14 @@ fun InsNavigationScreen(
         ) {
             // 제목 및 설명
             Text(
-                text = "INS 내비게이션",
+                text = "INS 내비게이션 (걸음수 카운터)",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
             
             Text(
-                text = "관성 항법 시스템을 이용한 실내 위치 추적",
+                text = "걸음수 카운터 센서를 이용한 실내 위치 추적",
                 fontSize = 14.sp,
                 modifier = Modifier.padding(bottom = 16.dp)
             )
@@ -310,7 +484,10 @@ fun InsNavigationScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(300.dp),
-                latLng = LatLng(currentLatitude, currentLongitude),
+                latLng = if (currentLatitude == 0.0 && currentLongitude == 0.0) 
+                    LatLng(37.5666791, 126.9782914) // 유효한 위치가 없을 경우 서울 시청 좌표 사용
+                else 
+                    LatLng(currentLatitude, currentLongitude),
                 initialZoom = 15.0,
                 autoMoveCamera = true
             )
@@ -338,13 +515,14 @@ fun InsNavigationScreen(
                     
                     Spacer(modifier = Modifier.height(8.dp))
                     
-                    LocationInfoItem(label = "위도", value = currentLatitude.toString())
-                    LocationInfoItem(label = "경도", value = currentLongitude.toString())
+                    // 위치 정보 (걸음 수 카운터 관련 정보 추가)
+                    LocationInfoItem(label = "위도", value = "%.6f".format(currentLatitude))
+                    LocationInfoItem(label = "경도", value = "%.6f".format(currentLongitude))
                     LocationInfoItem(label = "방향", value = "${currentAzimuth.toInt()}°")
                     
                     if (insActive) {
                         LocationInfoItem(label = "걸음 수", value = stepCount.toString())
-                        LocationInfoItem(label = "보폭 길이", value = "${stepLength}m")
+                        LocationInfoItem(label = "보폭 길이", value = "${"%.2f".format(stepLength)}m")
                     }
                 }
             }
@@ -385,11 +563,15 @@ fun InsNavigationScreen(
                             onCheckedChange = { checked ->
                                 insActive = checked
                                 if (checked) {
-                                    logMessages = addLogMessage(logMessages) { "INS 내비게이션 활성화" }
+                                    // 세션 걸음 수만 리셋
+                                    stepCount = 0
+                                    logMessages = addLogMessage(logMessages) { "INS 활성화. 걸음 수 리셋" }
                                 } else {
-                                    logMessages = addLogMessage(logMessages) { "INS 내비게이션 비활성화" }
+                                    logMessages = addLogMessage(logMessages) { "INS 비활성화. GPS 위치로 전환" }
                                 }
-                            }
+                                // 위치 업데이트 요청은 LaunchedEffect에서 처리
+                            },
+                            enabled = allPermissionsGranted // 센서 사용 가능 여부와 상관없이 활성화 (가속도계 대체 로직 있음)
                         )
                     }
                     
@@ -398,18 +580,24 @@ fun InsNavigationScreen(
                     // 초기화 버튼
                     Button(
                         onClick = {
-                            // 현재 GPS 위치로 초기화
+                            // 현재 GPS 위치로 초기화하고, 걸음 수도 리셋
                             fusedLocationClient.lastLocation.addOnSuccessListener { location ->
                                 if (location != null) {
                                     initialLocation = location
                                     currentLatitude = location.latitude
                                     currentLongitude = location.longitude
+                                    // 걸음 수 관련 상태 초기화
                                     stepCount = 0
-                                    logMessages = addLogMessage(logMessages) { "위치 초기화: 위도 ${location.latitude}, 경도 ${location.longitude}" }
+                                    logMessages = addLogMessage(logMessages) { "위치 및 걸음 수 초기화: 위도 ${"%.6f".format(location.latitude)}, 경도 ${"%.6f".format(location.longitude)}" }
+                                } else {
+                                    logMessages = addLogMessage(logMessages) { "위치 초기화 실패: 마지막 위치 사용 불가" }
                                 }
+                            }.addOnFailureListener { e ->
+                                logMessages = addLogMessage(logMessages) { "위치 초기화 실패 (LastLocation): ${e.message}" }
                             }
                         },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = allPermissionsGranted // 위치 권한이 있을 때만 활성화
                     ) {
                         Text("현재 GPS 위치로 초기화")
                     }
@@ -563,6 +751,11 @@ private fun calculateOrientation(
     val rotationMatrix = FloatArray(9)
     val orientationAngles = FloatArray(3)
     
+    // 가속도 및 자기장 데이터가 유효한지 확인 (모두 0이면 계산 불가)
+    if (accelValues.all { it == 0f } || magnetValues.all { it == 0f }) {
+        return // 계산하지 않고 반환
+    }
+
     val success = SensorManager.getRotationMatrix(
         rotationMatrix,
         null,
@@ -582,34 +775,6 @@ private fun calculateOrientation(
         }
         
         onResult(azimuthDegrees)
-    }
-}
-
-// 걸음 감지 함수
-private fun detectStep(
-    accelValues: FloatArray,
-    lastUpdateTime: Long,
-    onStep: (Boolean) -> Unit
-) {
-    val now = System.currentTimeMillis()
-    
-    // 가속도 크기 계산
-    val magnitude = sqrt(
-        accelValues[0].toDouble().pow(2) +
-        accelValues[1].toDouble().pow(2) +
-        accelValues[2].toDouble().pow(2)
-    ).toFloat()
-    
-    // 임계값 및 쿨다운 시간 설정
-    val threshold = 11.5f  // 걸음 감지 임계값 (중력 가속도 포함)
-    val cooldownMs = 400   // 최소 걸음 간격 (ms)
-    
-    // 걸음 감지 로직
-    val timeDiff = now - lastUpdateTime
-    if (magnitude > threshold && timeDiff > cooldownMs) {
-        onStep(true)
-    } else {
-        onStep(false)
     }
 }
 
@@ -633,15 +798,29 @@ private fun updatePositionWithINS(
     
     // 위도 변화량 (라디안)
     val latRad = Math.toRadians(currentLat)
+    
+    // 위도 변화량이 유효한지 확인 (분모가 0이 되는 경우 방지)
+    if (earthRadius == 0.0) return
+
     val latChange = northMeter / earthRadius
     
     // 경도 변화량 (라디안)
-    val lngChange = eastMeter / (earthRadius * cos(latRad))
+    val cosLatRad = cos(latRad)
+    // 경도 변화량이 유효한지 확인 (분모가 0이 되는 경우 방지)
+    if (earthRadius * cosLatRad == 0.0) return
+
+    val lngChange = eastMeter / (earthRadius * cosLatRad)
     
     // 라디안에서 도(degree)로 변환
     val newLat = currentLat + Math.toDegrees(latChange)
     val newLng = currentLng + Math.toDegrees(lngChange)
     
+    // 계산된 위치가 유효한지 확인 (예: NaN 또는 무한대)
+    if (newLat.isNaN() || newLat.isInfinite() || newLng.isNaN() || newLng.isInfinite()) {
+        Log.e("InsNavigationScreen", "계산된 위치가 유효하지 않습니다: Lat=$newLat, Lng=$newLng")
+        return
+    }
+
     onUpdate(newLat, newLng)
 }
 
@@ -652,5 +831,7 @@ private fun addLogMessage(
 ): List<String> {
     val timestamp = SimpleDateFormat("HH:mm:ss", Locale.getDefault()).format(Date())
     val newMessage = "[$timestamp] ${message()}"
-    return currentMessages + newMessage
+    // 로그 리스트 크기 제한 (예: 최근 50개)
+    val limitedMessages = currentMessages.takeLast(49)
+    return limitedMessages + newMessage
 } 
