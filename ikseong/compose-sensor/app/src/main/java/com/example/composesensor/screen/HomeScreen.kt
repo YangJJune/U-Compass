@@ -55,6 +55,7 @@ fun HomeScreen(
         }
 
         Button(
+            enabled = false,
             onClick = navigateToFingerprinting,
             modifier = Modifier.fillMaxWidth()
         ) {
