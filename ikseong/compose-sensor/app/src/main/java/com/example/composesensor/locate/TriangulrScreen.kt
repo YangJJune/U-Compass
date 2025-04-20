@@ -15,30 +15,40 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.annotation.RequiresPermission
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.app.ActivityCompat
@@ -68,6 +78,13 @@ fun TriangulationScreen(
 
     // 측정 모드 (RTT 또는 RSSI)
     var measurementMode by remember { mutableStateOf(MeasurementMode.AUTO) }
+    
+    // RTT 관련 상태값
+    var rttSupported by remember { mutableStateOf(false) }
+    var rttAvailable by remember { mutableStateOf(false) }
+    var rttEnabled by remember { mutableStateOf(true) } // RTT 모드 ON/OFF 스위치
+    var rttCapableAPs by remember { mutableStateOf<List<String>>(emptyList()) } // RTT 가능한 AP 목록
+    var totalScannedAPs by remember { mutableIntStateOf(0) } // 스캔된 총 AP 수
 
     // 필요한 모든 권한 정의
     val requiredPermissions = remember {
@@ -103,12 +120,15 @@ fun TriangulationScreen(
         if (!allPermissionsGranted) {
             multiplePermissionLauncher.launch(requiredPermissions)
         }
+        
+        // RTT 지원 여부 확인
+        rttSupported = context.packageManager.hasSystemFeature(PackageManager.FEATURE_WIFI_RTT)
     }
 
     var status by remember { mutableStateOf("측정 대기중") }
     var position by remember { mutableStateOf<Pair<Double, Double>?>(null) }
 
-    LaunchedEffect(allPermissionsGranted, measurementMode) {
+    LaunchedEffect(allPermissionsGranted, measurementMode, rttEnabled) {
         try {
             if (!allPermissionsGranted) {
                 status = "권한이 필요합니다. 모든 위치 권한을 허용해주세요."
@@ -117,13 +137,19 @@ fun TriangulationScreen(
             }
 
             // RTT 요청 시도
-            if (measurementMode == MeasurementMode.RTT || measurementMode == MeasurementMode.AUTO) {
+            if ((measurementMode == MeasurementMode.RTT || measurementMode == MeasurementMode.AUTO) && rttEnabled) {
                 try {
                     val wifiRttManager = context.getSystemService(Context.WIFI_RTT_RANGING_SERVICE) as WifiRttManager
+                    rttAvailable = wifiRttManager.isAvailable
                     Log.d("PositionLog", "WifiRttManager 초기화 완료")
                     Log.d("PositionLog", "WifiRttManager availability: ${wifiRttManager.isAvailable}")
                     // 반복 측정을 위한 루프
                     while (true) {
+                        if (!rttEnabled) {
+                            Log.d("PositionLog", "RTT 모드가 OFF로 변경되어 RSSI 모드로 전환")
+                            break
+                        }
+                        
                         if (ActivityCompat.checkSelfPermission(
                                 context,
                                 Manifest.permission.ACCESS_FINE_LOCATION
@@ -133,6 +159,18 @@ fun TriangulationScreen(
                             Log.e("PositionLog", "위치 권한 부족: ACCESS_FINE_LOCATION 권한이 없습니다")
                             delay(5000L)
                             continue
+                        }
+                        
+                        // RTT 가능한 AP 스캔
+                        val wifiManager = context.getSystemService(Context.WIFI_SERVICE) as WifiManager
+                        wifiManager.startScan()
+                        val scanResults = wifiManager.scanResults
+                        totalScannedAPs = scanResults.size
+                        val rttAPs = scanResults.filter { it.is80211mcResponder }
+                        
+                        // RTT 가능한 AP 목록 업데이트
+                        rttCapableAPs = rttAPs.map { 
+                            "${it.SSID.ifEmpty { "무명" }} (${it.BSSID}) - RSSI: ${it.level}dBm" 
                         }
 
                         // RTT 요청 객체 생성
@@ -215,7 +253,7 @@ fun TriangulationScreen(
             }
             
             // RSSI 기반 측정 (RTT가 실패했거나 RSSI 모드로 설정된 경우)
-            if (measurementMode == MeasurementMode.RSSI) {
+            if (measurementMode == MeasurementMode.RSSI || !rttEnabled) {
                 status = "RSSI 기반 측정 시작"
                 Log.d("PositionLog", "RSSI 기반 측정 시작")
                 
@@ -232,6 +270,12 @@ fun TriangulationScreen(
                     }
                     
                     try {
+                        // WiFi 스캔 먼저 실행
+                        val wifiManager = context.getSystemService(Context.WIFI_SERVICE) as WifiManager
+                        wifiManager.startScan()
+                        val scanResults = wifiManager.scanResults
+                        totalScannedAPs = scanResults.size
+                        
                         // RSSI 측정 수행
                         val results = performRssiMeasurement(context, measurementManager)
                         
@@ -261,34 +305,272 @@ fun TriangulationScreen(
         }
     }
 
-    Box(
+    Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(padding)
             .background(MaterialTheme.colorScheme.background),
     ) {
-
-        MyNaverMap(
+        // 상단 RTT 제어 섹션
+        Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(400.dp)
-                .padding(horizontal = 16.dp, vertical = 16.dp),
-            latLng = position?.let { LatLng(it.first.toDouble(), it.second.toDouble()) }
-        )
-        
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 432.dp)
-                .padding(16.dp)
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            shape = RoundedCornerShape(8.dp),
+            elevation = CardDefaults.cardElevation(
+                defaultElevation = 4.dp
+            ),
+            colors = CardDefaults.cardColors(
+                containerColor = if (rttSupported && rttAvailable) 
+                    MaterialTheme.colorScheme.primaryContainer 
+                else 
+                    MaterialTheme.colorScheme.errorContainer
+            )
         ) {
-            // 측정 방식 선택 카드
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "RTT 상태 정보",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp,
+                        color = if (rttSupported && rttAvailable) 
+                            MaterialTheme.colorScheme.onPrimaryContainer 
+                        else 
+                            MaterialTheme.colorScheme.onErrorContainer
+                    )
+                    
+                    // RTT 모드 ON/OFF 스위치
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "RTT 모드",
+                            fontSize = 14.sp,
+                            color = if (rttSupported && rttAvailable) 
+                                MaterialTheme.colorScheme.onPrimaryContainer 
+                            else 
+                                MaterialTheme.colorScheme.onErrorContainer
+                        )
+                        
+                        Spacer(modifier = Modifier.width(8.dp))
+                        
+                        Switch(
+                            checked = rttEnabled,
+                            onCheckedChange = { 
+                                rttEnabled = it 
+                                if (!it && measurementMode == MeasurementMode.RTT) {
+                                    measurementMode = MeasurementMode.RSSI
+                                }
+                            },
+                            enabled = rttSupported && rttAvailable
+                        )
+                    }
+                }
+                
+                Spacer(modifier = Modifier.height(4.dp))
+                
+                val rttStatusText = when {
+                    !rttSupported -> "이 기기는 WiFi RTT를 지원하지 않습니다"
+                    !rttAvailable -> "WiFi RTT가 현재 사용 불가능합니다"
+                    else -> "WiFi RTT 사용 가능"
+                }
+                
+                Text(
+                    text = rttStatusText,
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 12.sp,
+                    color = if (rttSupported && rttAvailable) 
+                        MaterialTheme.colorScheme.onPrimaryContainer 
+                    else 
+                        MaterialTheme.colorScheme.onErrorContainer
+                )
+                
+                Spacer(modifier = Modifier.height(4.dp))
+                
+                // AP 스캔 결과 정보 추가
+                Text(
+                    text = "스캔된 AP: $totalScannedAPs 개, RTT 지원 AP: ${rttCapableAPs.size}개",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = if (rttSupported && rttAvailable) 
+                        MaterialTheme.colorScheme.onPrimaryContainer 
+                    else 
+                        MaterialTheme.colorScheme.onErrorContainer
+                )
+                
+                Spacer(modifier = Modifier.height(4.dp))
+                
+                // 측정 모드 선택 간략화 (기존 카드에서 옮겨옴)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "측정 모드:",
+                        fontSize = 12.sp,
+                        color = if (rttSupported && rttAvailable) 
+                            MaterialTheme.colorScheme.onPrimaryContainer 
+                        else 
+                            MaterialTheme.colorScheme.onErrorContainer
+                    )
+                    
+                    Spacer(modifier = Modifier.width(8.dp))
+                    
+                    // 측정 모드 선택 버튼들을 가로로 배치 (라디오 버튼)
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // 자동 모드
+                        androidx.compose.material3.RadioButton(
+                            selected = measurementMode == MeasurementMode.AUTO,
+                            onClick = { measurementMode = MeasurementMode.AUTO },
+                            enabled = rttEnabled || measurementMode != MeasurementMode.RTT,
+                            modifier = Modifier.size(32.dp)
+                        )
+                        Text(
+                            text = "자동",
+                            fontSize = 12.sp,
+                            modifier = Modifier.padding(end = 8.dp)
+                        )
+                        
+                        // RTT 전용 모드
+                        androidx.compose.material3.RadioButton(
+                            selected = measurementMode == MeasurementMode.RTT,
+                            onClick = { if (rttEnabled) measurementMode = MeasurementMode.RTT },
+                            enabled = rttEnabled,
+                            modifier = Modifier.size(32.dp)
+                        )
+                        Text(
+                            text = "RTT",
+                            fontSize = 12.sp,
+                            modifier = Modifier.padding(end = 8.dp)
+                        )
+                        
+                        // RSSI 전용 모드
+                        androidx.compose.material3.RadioButton(
+                            selected = measurementMode == MeasurementMode.RSSI,
+                            onClick = { measurementMode = MeasurementMode.RSSI },
+                            modifier = Modifier.size(32.dp)
+                        )
+                        Text(
+                            text = "RSSI",
+                            fontSize = 12.sp
+                        )
+                    }
+                }
+            }
+        }
+        
+        // 지도 및 위치 정보 섹션
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+        ) {
+            // 지도 (화면의 2/3)
+            MyNaverMap(
+                modifier = Modifier
+                    .weight(2f)
+                    .height(250.dp),
+                latLng = position?.let { LatLng(it.first.toDouble(), it.second.toDouble()) }
+            )
+            
+            Spacer(modifier = Modifier.width(8.dp))
+            
+            // 위치 정보 카드 (화면의 1/3)
+            Card(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(250.dp),
+                shape = RoundedCornerShape(8.dp),
+                elevation = CardDefaults.cardElevation(
+                    defaultElevation = 4.dp
+                ),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                )
+            ) {
+                Column(
+                    modifier = Modifier
+                        .padding(12.dp)
+                ) {
+                    Text(
+                        text = "위치 정보",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // 현재 위치 정보 표시
+                    position?.let { loc ->
+                        // 위도 경도 정보를 카드로 강조 표시
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(4.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                            )
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(8.dp)
+                            ) {
+                                Text(
+                                    text = "위도: ${loc.first}",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 14.sp,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = "경도: ${loc.second}",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 14.sp,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
+                    } ?: Text(
+                        text = "위치 측정 중...",
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        fontSize = 14.sp
+                    )
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    // 상태 정보 표시
+                    Text(
+                        text = "상태",
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                    )
+                    Text(
+                        text = status,
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
+            }
+        }
+        
+        // RTT 가능한 AP 목록 카드
+        if (rttCapableAPs.isNotEmpty()) {
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 16.dp),
-                shape = RoundedCornerShape(12.dp),
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                shape = RoundedCornerShape(8.dp),
                 elevation = CardDefaults.cardElevation(
                     defaultElevation = 4.dp
                 ),
@@ -301,63 +583,40 @@ fun TriangulationScreen(
                         .padding(16.dp)
                 ) {
                     Text(
-                        text = "측정 방식 선택",
+                        text = "RTT 지원 액세스 포인트 (${rttCapableAPs.size}개)",
                         fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp,
+                        fontSize = 16.sp,
                         color = MaterialTheme.colorScheme.onSecondaryContainer
                     )
                     
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(4.dp))
                     
-                    // 측정 모드 선택 버튼들
-                    androidx.compose.material3.RadioButton(
-                        selected = measurementMode == MeasurementMode.AUTO,
-                        onClick = { measurementMode = MeasurementMode.AUTO },
-                        modifier = Modifier.padding(4.dp)
-                    )
-                    Text(
-                        text = "자동 (RTT 우선, 불가능 시 RSSI)",
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
-                    
-                    androidx.compose.material3.RadioButton(
-                        selected = measurementMode == MeasurementMode.RTT,
-                        onClick = { measurementMode = MeasurementMode.RTT },
-                        modifier = Modifier.padding(4.dp)
-                    )
-                    Text(
-                        text = "RTT 전용 (지원되는 AP만 사용)",
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
-                    
-                    androidx.compose.material3.RadioButton(
-                        selected = measurementMode == MeasurementMode.RSSI,
-                        onClick = { measurementMode = MeasurementMode.RSSI },
-                        modifier = Modifier.padding(4.dp)
-                    )
-                    Text(
-                        text = "RSSI 전용 (모든 AP 사용)",
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
-                    
-                    Text(
-                        text = "현재 모드: ${when(measurementMode) {
-                            MeasurementMode.AUTO -> "자동 모드"
-                            MeasurementMode.RTT -> "RTT 전용"
-                            MeasurementMode.RSSI -> "RSSI 전용"
-                        }}",
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
+                    // 스크롤 가능한 AP 목록
+                    Column(
+                        modifier = Modifier
+                            .heightIn(max = 150.dp) // 최대 높이 제한
+                            .verticalScroll(rememberScrollState())
+                    ) {
+                        rttCapableAPs.forEach { ap ->
+                            Text(
+                                text = ap,
+                                fontSize = 12.sp,
+                                modifier = Modifier.padding(vertical = 2.dp),
+                                color = MaterialTheme.colorScheme.onSecondaryContainer
+                            )
+                        }
+                    }
                 }
             }
-            
-            // 상태 정보 카드
+        }
+        
+        // 현재 위도/경도 정보 카드 (맨 아래에 크게 표시)
+        position?.let { loc ->
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 16.dp),
-                shape = RoundedCornerShape(12.dp),
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                shape = RoundedCornerShape(8.dp),
                 elevation = CardDefaults.cardElevation(
                     defaultElevation = 4.dp
                 ),
@@ -368,56 +627,51 @@ fun TriangulationScreen(
                 Column(
                     modifier = Modifier
                         .padding(16.dp)
+                        .fillMaxWidth()
                 ) {
                     Text(
-                        text = "상태 정보",
+                        text = "현재 좌표",
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp,
                         color = MaterialTheme.colorScheme.onTertiaryContainer
                     )
                     
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
                     
-                    Text(
-                        text = status,
-                        color = MaterialTheme.colorScheme.onTertiaryContainer
-                    )
-                }
-            }
-            
-            // 위치 정보 카드
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                elevation = CardDefaults.cardElevation(
-                    defaultElevation = 4.dp
-                ),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
-                )
-            ) {
-                Column(
-                    modifier = Modifier
-                        .padding(16.dp)
-                ) {
-                    Text(
-                        text = "위치 정보",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    // 현재 위치 정보 표시
-                    position?.let { loc ->
-                        LocationInfoItem2("위도", "${loc.first}")
-                        LocationInfoItem2("경도", "${loc.second}")
-                    } ?: Text(
-                        text = "위치 측정 중...",
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column {
+                            Text(
+                                text = "위도",
+                                fontWeight = FontWeight.Medium,
+                                fontSize = 16.sp,
+                                color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.7f)
+                            )
+                            Text(
+                                text = "${loc.first}",
+                                fontWeight = FontWeight.Medium,
+                                fontSize = 14.sp,
+                                color = MaterialTheme.colorScheme.onTertiaryContainer
+                            )
+                        }
+                        
+                        Column {
+                            Text(
+                                text = "경도",
+                                fontWeight = FontWeight.Medium,
+                                fontSize = 16.sp,
+                                color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.7f)
+                            )
+                            Text(
+                                text = "${loc.second}",
+                                fontWeight = FontWeight.Medium,
+                                fontSize = 14.sp,
+                                color = MaterialTheme.colorScheme.onTertiaryContainer
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -427,15 +681,17 @@ fun TriangulationScreen(
 // 위치 정보 아이템 컴포넌트
 @Composable
 private fun LocationInfoItem2(label: String, value: String) {
-    Column(modifier = Modifier.padding(vertical = 4.dp)) {
+    Column(modifier = Modifier.padding(vertical = 2.dp)) {
         Text(
             text = label,
             fontWeight = FontWeight.Medium,
+            fontSize = 14.sp,
             color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
         )
         Text(
             text = value,
             fontWeight = FontWeight.Normal,
+            fontSize = 12.sp,
             color = MaterialTheme.colorScheme.onPrimaryContainer
         )
     }
