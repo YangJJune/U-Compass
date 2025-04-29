@@ -55,8 +55,8 @@ fun UCompassTextField(
         singleLine = true,
         maxLines = 1,
         colors = TextFieldDefaults.colors(
-            focusedContainerColor = Color.White,
-            unfocusedContainerColor = Color.White,
+            focusedContainerColor = Color(0xFFF6F6F6),
+            unfocusedContainerColor = Color(0xFFF6F6F6),
             focusedTextColor = textColor,
             unfocusedTextColor = textColor,
             focusedIndicatorColor = Color.Transparent,
