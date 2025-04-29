@@ -39,7 +39,7 @@ fun LocationPermissionDialog(
             modifier = modifier
                 .fillMaxWidth()
                 .padding(20.dp),
-            shape = RoundedCornerShape(16.dp),
+            shape = RoundedCornerShape(20.dp),
         ) {
             Column(
                 modifier = modifier

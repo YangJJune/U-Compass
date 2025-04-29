@@ -54,7 +54,7 @@ fun EditProfileDialog(
             modifier = modifier
                 .fillMaxWidth()
                 .padding(20.dp),
-            shape = RoundedCornerShape(16.dp),
+            shape = RoundedCornerShape(20.dp),
             colors = CardDefaults.cardColors(
                 containerColor = Color.White,
             )
