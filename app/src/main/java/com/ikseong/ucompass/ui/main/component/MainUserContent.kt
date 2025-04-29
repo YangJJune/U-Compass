@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.ikseong.ucompass.R
+import com.ikseong.ucompass.ui.common.component.AddressInfo
 import com.ikseong.ucompass.ui.theme.UCompassTheme.typography
 import com.ikseong.ucompass.ui.util.viewutil.noRippleClickable
 
@@ -50,7 +51,7 @@ fun MainUserContent(
                     lineHeight = 44.sp
                 )
             )
-            MainTopAddress(
+            AddressInfo(
                 modifier = Modifier.padding(top = 16.dp),
                 address = address,
                 onAddressClick = onAddressClick
@@ -65,36 +66,6 @@ fun MainUserContent(
     }
 }
 
-@Composable
-fun MainTopAddress(
-    modifier: Modifier = Modifier,
-    address: String = "",
-    onAddressClick: () -> Unit = {},
-) {
-    Row(
-        modifier = modifier
-            .noRippleClickable { onAddressClick() }
-    ) {
-        Icon(
-            modifier = Modifier
-                .align(Alignment.CenterVertically),
-            painter = painterResource(R.drawable.ic_location_main),
-            contentDescription = "위치",
-            tint = Color(0xFF606060)
-        )
-
-        Text(
-            modifier = Modifier
-                .padding(start = 8.dp)
-                .align(Alignment.CenterVertically),
-            text = address,
-            style = typography.medium.copy(
-                fontSize = 20.sp,
-                color = Color(0x80000000)
-            )
-        )
-    }
-}
 
 @Composable
 fun MainProfile(
