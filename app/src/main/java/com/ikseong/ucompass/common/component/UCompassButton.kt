@@ -1,6 +1,8 @@
 package com.ikseong.ucompass.common.component
 
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -21,12 +23,14 @@ fun UCompassButton(
     text: String,
     fontSize: TextUnit,
     color: Color,
+    contentPadding: PaddingValues = ButtonDefaults.ContentPadding,
     onClick: () -> Unit,
 ) {
     Button(
         onClick = onClick,
         modifier = modifier,
-        colors = ButtonDefaults.buttonColors(containerColor = color)
+        colors = ButtonDefaults.buttonColors(containerColor = color),
+        contentPadding = contentPadding
     ) {
         Text(
             text = text,
@@ -44,6 +48,7 @@ private fun UCompassButtonPreview() {
     UCompassTheme {
         UCompassButton(
             modifier = Modifier
+                .padding(10.dp)
                 .width(368.dp)
                 .height(62.dp),
             text = "생성하기",

@@ -9,6 +9,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.ikseong.ucompass.create.viewmodel.CreateViewModel
 import com.ikseong.ucompass.create.navgraph.createNavGraph
+import com.ikseong.ucompass.main.screen.MainRoute
+import com.ikseong.ucompass.main.screen.MainScreen
 
 @Composable
 fun MainNavHost(
@@ -20,7 +22,11 @@ fun MainNavHost(
         startDestination = Routes.Home
     ) {
         composable<Routes.Home> {
-
+            MainRoute(
+                padding = padding,
+                navigateToRoom = { navController.navigate(Routes.Room(it)) },
+                navigateToCreateRoom = { navController.navigate(Routes.CreateRoomTitle) },
+            )
         }
         createNavGraph(
             paddingValues = padding,

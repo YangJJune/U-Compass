@@ -41,8 +41,8 @@ fun CreateRoomFinishRoute(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    ObserveAsEvents(flow = viewModel.uiEvent) { action ->
-        when (action) {
+    ObserveAsEvents(flow = viewModel.uiEvent) { event ->
+        when (event) {
             CreateUiEvent.NavigateToHome -> navigateToHome()
             CreateUiEvent.ShareLink -> shareRoomLink() // TODO
             else -> {}

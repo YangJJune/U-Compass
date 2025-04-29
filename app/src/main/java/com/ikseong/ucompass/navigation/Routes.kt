@@ -12,5 +12,5 @@ sealed interface Routes {
     data object CreateRoomFinished : Routes
 
     @Serializable
-    data object Room: Routes
+    data class Room(val id: Long): Routes
 }
