@@ -28,7 +28,7 @@ fun RoomGuideComponent(
         Text(
             text = "버튼을 눌러",
             style = typography.semiBold.copy(
-                fontSize = 32.sp,
+                fontSize = 28.sp,
                 lineHeight = 44.sp
             )
         )
@@ -43,7 +43,7 @@ fun RoomGuideComponent(
             Text(
                 text = "를 시작하세요!",
                 style = typography.semiBold.copy(
-                    fontSize = 32.sp,
+                    fontSize = 28.sp,
                     lineHeight = 44.sp
                 )
             )

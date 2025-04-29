@@ -28,6 +28,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.animateLottieCompositionAsState
+import com.airbnb.lottie.compose.rememberLottieComposition
 import com.ikseong.ucompass.R
 import com.ikseong.ucompass.ui.common.component.ObserveAsEvents
 import com.ikseong.ucompass.ui.room.component.RoomGuideComponent
@@ -67,6 +71,11 @@ fun RoomScreen(
     uiState: RoomUiState,
     onAction: (RoomUiAction) -> Unit,
 ) {
+    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.lottie))
+
+    val progress by animateLottieCompositionAsState(composition, isPlaying = true)
+
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -87,12 +96,12 @@ fun RoomScreen(
                 modifier = Modifier.padding(top = 64.dp),
                 address = uiState.address,
             )
-
-            Box(
+            LottieAnimation(
                 modifier = Modifier
                     .padding(top = 48.dp)
-                    .size(323.dp)
-                    .background(Color(0xFF00E397))
+                    .size(323.dp),
+                composition = composition,
+                progress = { progress },
             )
         }
         Row(

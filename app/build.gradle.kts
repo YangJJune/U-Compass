@@ -78,7 +78,7 @@ dependencies {
     implementation(libs.coil.network.okhttp)
 
     // Lotties
-    implementation("com.airbnb.android:lottie-compose:6.6.6")
+    implementation("com.airbnb.android:lottie-compose:6.6.0")
 
 
 }
