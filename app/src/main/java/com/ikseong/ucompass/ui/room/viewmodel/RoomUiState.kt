@@ -9,7 +9,8 @@ data class RoomUiState(
     val roomId: String = "",
     val roomName: String = "",
     val participantsNumber: Int = 0,
-    val participantInfo: List<ParticipantInfo> = listOf()
+    val participantInfo: List<ParticipantInfo> = listOf(),
+    val isBottomSheetExpanded: Boolean = false,
 )
 
 data class ParticipantInfo(
