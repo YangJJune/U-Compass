@@ -24,12 +24,18 @@ class RoomViewModel @Inject constructor() : ViewModel() {
             RoomUiAction.OnDeleteClick -> setRoomDeleteDialogVisible(true)
             RoomUiAction.OnDeleteConfirmClick -> deleteRoom()
             RoomUiAction.OnDeleteCancelClick -> setRoomDeleteDialogVisible(false)
-            RoomUiAction.OnMapToggleClick -> {}
+            is RoomUiAction.OnMapToggleClick -> setMapVisible(action.isShown)
             RoomUiAction.OnUserListClick -> {}
             is RoomUiAction.OnUserShownClick -> {}
             is RoomUiAction.OnAllUserShownClick -> {}
             RoomUiAction.OnLottieClick -> {}
             
+        }
+    }
+
+    private fun setMapVisible(flag: Boolean) {
+        _uiState.update {
+            it.copy(isMapVisible = !flag)
         }
     }
 

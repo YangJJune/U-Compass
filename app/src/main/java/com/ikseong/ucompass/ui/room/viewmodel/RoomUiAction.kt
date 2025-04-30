@@ -6,7 +6,7 @@ interface RoomUiAction {
     data object OnDeleteClick : RoomUiAction
     data object OnDeleteConfirmClick : RoomUiAction
     data object OnDeleteCancelClick : RoomUiAction
-    data object OnMapToggleClick : RoomUiAction
+    data class OnMapToggleClick(val isShown: Boolean) : RoomUiAction
     data object OnUserListClick : RoomUiAction
     data class OnUserShownClick(val userName: String, val isShown: Boolean) : RoomUiAction
     data class OnAllUserShownClick(val isShown: Boolean) : RoomUiAction
