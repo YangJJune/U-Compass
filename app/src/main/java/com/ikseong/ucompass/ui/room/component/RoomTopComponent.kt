@@ -23,6 +23,7 @@ fun RoomTopComponent(
     modifier: Modifier = Modifier,
     onBackClick: () -> Unit,
     onDeleteClick: () -> Unit,
+    isSearchMode: Boolean,
     roomName: String,
 ) {
     Row(
@@ -46,12 +47,17 @@ fun RoomTopComponent(
             )
         )
 
-        IconButton(onClick = onDeleteClick) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_room_delete_36),
-                contentDescription = "Delete Room Icon",
-                tint = Color(0xFF606060)
-            )
+        IconButton(
+            onClick = onDeleteClick,
+            enabled = !isSearchMode
+        ) {
+            if (!isSearchMode) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_room_delete_36),
+                    contentDescription = "Delete Room Icon",
+                    tint = Color(0xFF606060)
+                )
+            }
         }
     }
 }
@@ -62,6 +68,7 @@ private fun RoomTopComponentPreview() {
     RoomTopComponent(
         onBackClick = {},
         onDeleteClick = {},
-        roomName = "위치 찾기 방 1"
+        roomName = "위치 찾기 방 1",
+        isSearchMode = true
     )
 }

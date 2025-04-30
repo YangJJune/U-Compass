@@ -1,6 +1,7 @@
 package com.ikseong.ucompass.ui.room.component
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -23,7 +24,9 @@ fun RoomGuideComponent(
     address: String,
 ) {
     Column(
-        modifier = modifier.fillMaxWidth()
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(start = 20.dp)
     ) {
         Text(
             text = "버튼을 눌러",

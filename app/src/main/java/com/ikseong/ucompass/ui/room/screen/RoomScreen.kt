@@ -1,47 +1,28 @@
 package com.ikseong.ucompass.ui.room.screen
 
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.airbnb.lottie.compose.LottieAnimation
-import com.airbnb.lottie.compose.LottieCompositionSpec
-import com.airbnb.lottie.compose.animateLottieCompositionAsState
-import com.airbnb.lottie.compose.rememberLottieComposition
-import com.ikseong.ucompass.R
 import com.ikseong.ucompass.ui.common.component.ObserveAsEvents
+import com.ikseong.ucompass.ui.room.component.RoomDefaultContent
 import com.ikseong.ucompass.ui.room.component.RoomDeleteDialog
-import com.ikseong.ucompass.ui.room.component.RoomGuideComponent
 import com.ikseong.ucompass.ui.room.component.RoomTopComponent
 import com.ikseong.ucompass.ui.room.viewmodel.ParticipantInfo
 import com.ikseong.ucompass.ui.room.viewmodel.RoomUiAction
 import com.ikseong.ucompass.ui.room.viewmodel.RoomUiEvent
 import com.ikseong.ucompass.ui.room.viewmodel.RoomUiState
 import com.ikseong.ucompass.ui.room.viewmodel.RoomViewModel
-import com.ikseong.ucompass.ui.theme.UCompassTheme.typography
 
 @Composable
 fun RoomRoute(
@@ -71,78 +52,45 @@ fun RoomScreen(
     uiState: RoomUiState,
     onAction: (RoomUiAction) -> Unit,
 ) {
-    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.lottie))
-
-    val progress by animateLottieCompositionAsState(composition, isPlaying = true)
-
-
     Box(
         modifier = Modifier
             .fillMaxSize()
             .padding(padding)
     ) {
+        if (uiState.isSearchMode && uiState.isMapVisible) {
+            // TODO: NaverMap 화면에 띄우기
+        }
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp),
+            modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             RoomTopComponent(
                 onBackClick = { onAction(RoomUiAction.OnBackClick) },
                 onDeleteClick = { onAction(RoomUiAction.OnDeleteClick) },
+                isSearchMode = uiState.isSearchMode,
                 roomName = uiState.roomName
             )
-            RoomGuideComponent(
-                modifier = Modifier.padding(top = 64.dp),
-                address = uiState.address,
-            )
-            LottieAnimation(
-                modifier = Modifier
-                    .padding(top = 48.dp)
-                    .size(323.dp),
-                composition = composition,
-                progress = { progress },
-            )
-        }
-        Row(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(bottom = 60.dp)
-                .width(194.dp)
-                .height(72.dp)
-                .border(
-                    width = 2.dp,
-                    shape = RoundedCornerShape(25.dp),
-                    color = Color(0xFF00E397)
+            if (!uiState.isSearchMode) {
+                RoomDefaultContent(
+                    address = uiState.address,
+                    participantCount = uiState.participantInfo.size
                 )
-                .clickable { },
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_room_participant_40),
-                contentDescription = null,
-                tint = Color(0x8000E397)
-            )
-            Text(
-                text = "참가 인원 ${uiState.participantInfo.size}명",
-                style = typography.medium.copy(
-                    fontSize = 18.sp,
-                    color = Color(0xFF606060)
-                )
-            )
+            } else {
+//                RoomSearchContent()
+            }
         }
-
-        if (uiState.isRoomDeleteDialogVisible) {
-            RoomDeleteDialog(
-                isHost = uiState.isHost,
-                onDismissRequest = { onAction(RoomUiAction.OnDeleteCancelClick) },
-                onCancelClick = { onAction(RoomUiAction.OnDeleteCancelClick) },
-                onConfirmClick = { onAction(RoomUiAction.OnDeleteConfirmClick) },
-            )
-        }
-
     }
+
+
+    if (uiState.isRoomDeleteDialogVisible) {
+        RoomDeleteDialog(
+            isHost = uiState.isHost,
+            onDismissRequest = { onAction(RoomUiAction.OnDeleteCancelClick) },
+            onCancelClick = { onAction(RoomUiAction.OnDeleteCancelClick) },
+            onConfirmClick = { onAction(RoomUiAction.OnDeleteConfirmClick) },
+        )
+    }
+
 }
 
 

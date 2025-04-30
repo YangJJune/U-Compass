@@ -11,6 +11,8 @@ data class RoomUiState(
     val participantsNumber: Int = 0,
     val participantInfo: List<ParticipantInfo> = listOf(),
     val isHost: Boolean = false,
+    val isSearchMode: Boolean = false,
+    val isMapVisible: Boolean = false,
     val isBottomSheetExpanded: Boolean = false,
     val isRoomDeleteDialogVisible: Boolean = false
 )
