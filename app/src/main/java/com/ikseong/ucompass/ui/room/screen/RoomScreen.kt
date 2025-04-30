@@ -1,6 +1,5 @@
 package com.ikseong.ucompass.ui.room.screen
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -34,6 +33,7 @@ import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.ikseong.ucompass.R
 import com.ikseong.ucompass.ui.common.component.ObserveAsEvents
+import com.ikseong.ucompass.ui.room.component.RoomDeleteDialog
 import com.ikseong.ucompass.ui.room.component.RoomGuideComponent
 import com.ikseong.ucompass.ui.room.component.RoomTopComponent
 import com.ikseong.ucompass.ui.room.viewmodel.ParticipantInfo
@@ -88,8 +88,8 @@ fun RoomScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             RoomTopComponent(
-                onBackClick = { RoomUiAction.OnBackClick },
-                onDeleteClick = { RoomUiAction.OnDeleteClick },
+                onBackClick = { onAction(RoomUiAction.OnBackClick) },
+                onDeleteClick = { onAction(RoomUiAction.OnDeleteClick) },
                 roomName = uiState.roomName
             )
             RoomGuideComponent(
@@ -130,6 +130,15 @@ fun RoomScreen(
                     fontSize = 18.sp,
                     color = Color(0xFF606060)
                 )
+            )
+        }
+
+        if (uiState.isRoomDeleteDialogVisible) {
+            RoomDeleteDialog(
+                isHost = uiState.isHost,
+                onDismissRequest = { onAction(RoomUiAction.OnDeleteCancelClick) },
+                onCancelClick = { onAction(RoomUiAction.OnDeleteCancelClick) },
+                onConfirmClick = { onAction(RoomUiAction.OnDeleteConfirmClick) },
             )
         }
 
