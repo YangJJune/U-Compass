@@ -24,6 +24,7 @@ fun RoomTopComponent(
     onBackClick: () -> Unit,
     onDeleteClick: () -> Unit,
     isSearchMode: Boolean,
+    isMapVisible: Boolean,
     roomName: String,
 ) {
     Row(
@@ -37,13 +38,14 @@ fun RoomTopComponent(
             Icon(
                 painter = painterResource(id = R.drawable.ic_arrow_left_fill_36),
                 contentDescription = "Back Icon",
-                tint = Color(0xFF606060)
+                tint = if (isMapVisible) Color.White else Color(0xFF606060)
             )
         }
         Text(
             text = roomName,
             style = typography.semiBold.copy(
                 fontSize = 24.sp,
+                color = if (isMapVisible) Color.White else Color.Black
             )
         )
 
@@ -69,6 +71,7 @@ private fun RoomTopComponentPreview() {
         onBackClick = {},
         onDeleteClick = {},
         roomName = "위치 찾기 방 1",
-        isSearchMode = true
+        isSearchMode = true,
+        isMapVisible = false
     )
 }

@@ -1,5 +1,6 @@
 package com.ikseong.ucompass.ui.room.screen
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -14,6 +15,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -77,6 +79,9 @@ fun RoomScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .background(
+                    if (uiState.isSearchMode) Color(0xFF090A38) else Color.White
+                )
                 .padding(padding)
                 .padding(additionalPadding)
         ) {
@@ -91,13 +96,14 @@ fun RoomScreen(
                     onBackClick = { onAction(RoomUiAction.OnBackClick) },
                     onDeleteClick = { onAction(RoomUiAction.OnDeleteClick) },
                     isSearchMode = uiState.isSearchMode,
+                    isMapVisible = uiState.isMapVisible,
                     roomName = uiState.roomName
                 )
                 if (!uiState.isSearchMode) {
                     RoomDefaultContent(
                         address = uiState.address,
                         participantCount = uiState.participantInfo.size,
-                        onSearchClick = {onAction(RoomUiAction.OnLottieClick(it))}
+                        onSearchClick = { onAction(RoomUiAction.OnLottieClick(it)) }
                     )
                 } else {
                     RoomSearchContent(
