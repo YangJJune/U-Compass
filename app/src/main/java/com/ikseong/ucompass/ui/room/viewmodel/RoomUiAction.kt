@@ -10,5 +10,5 @@ interface RoomUiAction {
     data object OnUserListClick : RoomUiAction
     data class OnUserShownClick(val userName: String, val isShown: Boolean) : RoomUiAction
     data class OnAllUserShownClick(val isShown: Boolean) : RoomUiAction
-    data object OnLottieClick : RoomUiAction
+    data class OnLottieClick(val isSearching: Boolean) : RoomUiAction
 }

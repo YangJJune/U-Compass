@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.ikseong.ucompass.R
@@ -35,22 +36,38 @@ import com.ikseong.ucompass.ui.theme.UCompassTheme.typography
 fun RoomDefaultContent(
     modifier: Modifier = Modifier,
     address: String,
-    participantCount: Int
+    participantCount: Int,
+    onSearchClick: (Boolean) -> Unit = {}
 ) {
     val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.lottie))
-    val progress by animateLottieCompositionAsState(composition, isPlaying = true)
+    val progress by animateLottieCompositionAsState(
+        composition = composition,
+        isPlaying = true,
+        iterations = LottieConstants.IterateForever
+    )
     RoomGuideComponent(
         modifier = Modifier
             .padding(top = 64.dp),
         address = address,
     )
-    LottieAnimation(
-        modifier = Modifier
-            .padding(top = 48.dp)
-            .size(323.dp),
-        composition = composition,
-        progress = { progress },
-    )
+    Box(
+        modifier = Modifier.padding(top = 48.dp)
+            .clickable { onSearchClick(true) }
+    ) {
+        LottieAnimation(
+            modifier = Modifier
+                .size(323.dp),
+            composition = composition,
+            progress = { progress },
+        )
+        Icon(
+            painter = painterResource(R.drawable.ic_lottie_arrow),
+            contentDescription = null,
+            modifier = Modifier
+                .align(Alignment.Center),
+            tint = Color.Unspecified
+        )
+    }
     Box(
         modifier = modifier.fillMaxSize()
     ) {

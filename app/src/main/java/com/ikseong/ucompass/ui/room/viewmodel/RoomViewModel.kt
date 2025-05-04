@@ -28,8 +28,14 @@ class RoomViewModel @Inject constructor() : ViewModel() {
             RoomUiAction.OnUserListClick -> {}
             is RoomUiAction.OnUserShownClick -> {}
             is RoomUiAction.OnAllUserShownClick -> {}
-            RoomUiAction.OnLottieClick -> {}
+            is RoomUiAction.OnLottieClick -> setSearchMode(action.isSearching)
             
+        }
+    }
+
+    private fun setSearchMode(flag: Boolean) {
+        _uiState.update {
+            it.copy(isSearchMode = flag)
         }
     }
 
