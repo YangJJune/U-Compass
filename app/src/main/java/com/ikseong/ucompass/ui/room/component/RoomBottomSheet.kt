@@ -13,12 +13,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -26,17 +24,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ikseong.ucompass.R
 import com.ikseong.ucompass.ui.model.Direction
 import com.ikseong.ucompass.ui.model.ParticipantInfo
 import com.ikseong.ucompass.ui.theme.UCompassTheme.typography
+import com.ikseong.ucompass.ui.util.viewutil.noRippleClickable
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -58,7 +54,8 @@ fun RoomBottomSheetDragHandle(
 fun RoomBottomSheet(
     modifier: Modifier = Modifier,
     participantInfo: List<ParticipantInfo>,
-    onUserClick: (String) -> Unit = {}
+    onUserClick: (String) -> Unit = {},
+    onAllClick: () -> Unit = {}
 ) {
     Column(
         modifier = modifier
@@ -69,7 +66,8 @@ fun RoomBottomSheet(
         Text(
             modifier = Modifier
                 .align(Alignment.End)
-                .padding(end = 11.dp),
+                .padding(end = 11.dp)
+                .noRippleClickable { onAllClick() },
             text = "전체 선택",
             style = typography.medium.copy(
                 fontSize = 14.sp,
@@ -84,7 +82,7 @@ fun RoomBottomSheet(
             items(participantInfo) { participant ->
                 ParticipantItem(
                     participant = participant,
-                    onUserClick = onUserClick
+                    onUserClick = onUserClick,
                 )
             }
         }
@@ -95,7 +93,7 @@ fun RoomBottomSheet(
 fun ParticipantItem(
     modifier: Modifier = Modifier,
     participant: ParticipantInfo,
-    onUserClick: (String) -> Unit = {}
+    onUserClick: (String) -> Unit = {},
 ) {
     Row(
         modifier = modifier

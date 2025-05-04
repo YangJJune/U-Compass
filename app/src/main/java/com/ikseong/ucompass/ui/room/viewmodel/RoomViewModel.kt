@@ -29,9 +29,20 @@ class RoomViewModel @Inject constructor() : ViewModel() {
             is RoomUiAction.OnMapToggleClick -> setMapVisible(action.isShown)
             RoomUiAction.OnUserListClick -> showUserListBottomSheet()
             is RoomUiAction.OnUserShownClick -> setUserShown(action.userName)
-            is RoomUiAction.OnAllUserShownClick -> {}
+            is RoomUiAction.OnAllUserShownClick -> setAllUserShown()
             is RoomUiAction.OnLottieClick -> setSearchMode(action.isSearching)
 
+        }
+    }
+
+    private fun setAllUserShown() {
+        val isAllShown = _uiState.value.participantInfo.all { it.isShown }
+
+        _uiState.update { currentState ->
+            currentState.copy(
+                participantInfo = currentState.participantInfo.map { info ->
+                    info.copy(isShown = !isAllShown)
+                })
         }
     }
 

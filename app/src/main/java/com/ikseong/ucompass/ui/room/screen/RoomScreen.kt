@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.BottomSheetScaffold
+import androidx.compose.material3.BottomSheetScaffoldState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
@@ -54,93 +55,100 @@ fun RoomRoute(
         }
     }
 
+    RoomScreen(
+        padding = padding,
+        uiState = uiState,
+        scaffoldState = scaffoldState,
+        onAction = viewModel::onRoomUiAction
+    )
+}
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun RoomScreen(
+    padding: PaddingValues,
+    scaffoldState: BottomSheetScaffoldState,
+    uiState: RoomUiState,
+    onAction: (RoomUiAction) -> Unit,
+) {
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
         sheetPeekHeight = 0.dp,
         sheetDragHandle = { RoomBottomSheetDragHandle() },
         sheetContent = {
             RoomBottomSheet(
-                participantInfo = uiState.participantInfo
+                participantInfo = uiState.participantInfo,
+                onUserClick = { onAction(RoomUiAction.OnUserShownClick(it)) },
+                onAllClick = { onAction(RoomUiAction.OnAllUserShownClick) }
             )
         }
     ) { additionalPadding ->
-        RoomScreen(
-            padding = padding + additionalPadding,
-            uiState = uiState,
-            onAction = viewModel::onRoomUiAction
-        )
-    }
-}
-
-
-@Composable
-fun RoomScreen(
-    padding: PaddingValues,
-    uiState: RoomUiState,
-    onAction: (RoomUiAction) -> Unit,
-) {
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(
-                if (uiState.isSearchMode) Color(0xFF090A38) else Color.White
-            )
-            .padding(padding)
-    ) {
-        if (uiState.isSearchMode && uiState.isMapVisible) {
-            // TODO: NaverMap 화면에 띄우기
-        }
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    if (uiState.isSearchMode) Color(0xFF090A38) else Color.White
+                )
+                .padding(padding + additionalPadding)
         ) {
-            RoomTopComponent(
-                onBackClick = { onAction(RoomUiAction.OnBackClick) },
-                onDeleteClick = { onAction(RoomUiAction.OnDeleteClick) },
-                isSearchMode = uiState.isSearchMode,
-                isMapVisible = uiState.isMapVisible,
-                roomName = uiState.roomName
-            )
-            if (!uiState.isSearchMode) {
-                RoomDefaultContent(
-                    address = uiState.address,
-                    participantCount = uiState.participantInfo.size,
-                    onSearchClick = { onAction(RoomUiAction.OnLottieClick(it)) }
-                )
-            } else {
-                RoomSearchContent(
-                    address = uiState.address,
-                    participantCount = uiState.participantInfo.size,
-                    isMapVisible = uiState.isMapVisible,
-                    onMapToggleClick = { flag ->
-                        onAction(RoomUiAction.OnMapToggleClick(flag))
-                    },
+            if (uiState.isSearchMode && uiState.isMapVisible) {
+                // TODO: NaverMap 화면에 띄우기
+            }
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                RoomTopComponent(
+                    onBackClick = { onAction(RoomUiAction.OnBackClick) },
                     onDeleteClick = { onAction(RoomUiAction.OnDeleteClick) },
-                    onUserListClick = { onAction(RoomUiAction.OnUserListClick) }
+                    isSearchMode = uiState.isSearchMode,
+                    isMapVisible = uiState.isMapVisible,
+                    roomName = uiState.roomName
                 )
+                if (!uiState.isSearchMode) {
+                    RoomDefaultContent(
+                        address = uiState.address,
+                        participantCount = uiState.participantInfo.size,
+                        onSearchClick = { onAction(RoomUiAction.OnLottieClick(it)) }
+                    )
+                } else {
+                    RoomSearchContent(
+                        address = uiState.address,
+                        participantCount = uiState.participantInfo.size,
+                        isMapVisible = uiState.isMapVisible,
+                        onMapToggleClick = { flag ->
+                            onAction(RoomUiAction.OnMapToggleClick(flag))
+                        },
+                        onDeleteClick = { onAction(RoomUiAction.OnDeleteClick) },
+                        onUserListClick = { onAction(RoomUiAction.OnUserListClick) },
+                    )
+                }
             }
         }
-    }
 
 
-    if (uiState.isRoomDeleteDialogVisible) {
-        RoomDeleteDialog(
-            isHost = uiState.isHost,
-            onDismissRequest = { onAction(RoomUiAction.OnDeleteCancelClick) },
-            onCancelClick = { onAction(RoomUiAction.OnDeleteCancelClick) },
-            onConfirmClick = { onAction(RoomUiAction.OnDeleteConfirmClick) },
-        )
+        if (uiState.isRoomDeleteDialogVisible) {
+            RoomDeleteDialog(
+                isHost = uiState.isHost,
+                onDismissRequest = { onAction(RoomUiAction.OnDeleteCancelClick) },
+                onCancelClick = { onAction(RoomUiAction.OnDeleteCancelClick) },
+                onConfirmClick = { onAction(RoomUiAction.OnDeleteConfirmClick) },
+            )
+        }
     }
+
 
 }
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Preview(showBackground = true)
 @Composable
 private fun RoomScreenPreview() {
     RoomScreen(
         padding = PaddingValues(0.dp),
+        scaffoldState = rememberBottomSheetScaffoldState(),
         uiState = RoomUiState(
             roomName = "Room Name",
             address = "123 Main St, City, Country",
