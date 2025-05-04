@@ -1,6 +1,7 @@
 package com.ikseong.ucompass.ui.room.component
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -56,7 +57,8 @@ fun RoomBottomSheetDragHandle(
 @Composable
 fun RoomBottomSheet(
     modifier: Modifier = Modifier,
-    participantInfo: List<ParticipantInfo>
+    participantInfo: List<ParticipantInfo>,
+    onUserClick: (String) -> Unit = {}
 ) {
     Column(
         modifier = modifier
@@ -81,7 +83,8 @@ fun RoomBottomSheet(
         ) {
             items(participantInfo) { participant ->
                 ParticipantItem(
-                    participant = participant
+                    participant = participant,
+                    onUserClick = onUserClick
                 )
             }
         }
@@ -91,13 +94,15 @@ fun RoomBottomSheet(
 @Composable
 fun ParticipantItem(
     modifier: Modifier = Modifier,
-    participant: ParticipantInfo
+    participant: ParticipantInfo,
+    onUserClick: (String) -> Unit = {}
 ) {
     Row(
         modifier = modifier
             .fillMaxWidth()
             .height(77.dp)
             .clip(RoundedCornerShape(16.dp))
+            .clickable { onUserClick(participant.name) }
             .background(Color(0x80CCF9EA))
             .padding(horizontal = 20.dp),
         horizontalArrangement = Arrangement.SpaceBetween,

@@ -28,13 +28,26 @@ class RoomViewModel @Inject constructor() : ViewModel() {
             RoomUiAction.OnDeleteCancelClick -> setRoomDeleteDialogVisible(false)
             is RoomUiAction.OnMapToggleClick -> setMapVisible(action.isShown)
             RoomUiAction.OnUserListClick -> showUserListBottomSheet()
+            is RoomUiAction.OnUserShownClick -> setUserShown(action.userName)
             is RoomUiAction.OnAllUserShownClick -> {}
             is RoomUiAction.OnLottieClick -> setSearchMode(action.isSearching)
 
         }
     }
 
-
+    private fun setUserShown(userName: String) {
+        _uiState.update {
+            it.copy(
+                participantInfo = it.participantInfo.map { info ->
+                    if (info.name == userName) {
+                        info.copy(isShown = !info.isShown)
+                    } else {
+                        info
+                    }
+                }
+            )
+        }
+    }
 
     private fun showUserListBottomSheet() {
         viewModelScope.launch {
