@@ -33,7 +33,10 @@ import com.ikseong.ucompass.ui.room.viewmodel.RoomUiAction
 import com.ikseong.ucompass.ui.room.viewmodel.RoomUiEvent
 import com.ikseong.ucompass.ui.room.viewmodel.RoomUiState
 import com.ikseong.ucompass.ui.room.viewmodel.RoomViewModel
+import com.ikseong.ucompass.ui.util.viewutil.plus
+import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RoomRoute(
     padding: PaddingValues,
@@ -41,30 +44,15 @@ fun RoomRoute(
     viewModel: RoomViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val scaffoldState = rememberBottomSheetScaffoldState()
+    val scope = rememberCoroutineScope()
 
     ObserveAsEvents(flow = viewModel.uiEvent) { event ->
         when (event) {
             RoomUiEvent.NavigateToBack -> navigateBack()
+            RoomUiEvent.ShowBottomSheet -> scope.launch { scaffoldState.bottomSheetState.expand() }
         }
     }
-
-    RoomScreen(
-        padding = padding,
-        uiState = uiState,
-        onAction = viewModel::onRoomUiAction
-    )
-}
-
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun RoomScreen(
-    padding: PaddingValues,
-    uiState: RoomUiState,
-    onAction: (RoomUiAction) -> Unit,
-) {
-    val scaffoldState = rememberBottomSheetScaffoldState()
-    val scope = rememberCoroutineScope()
 
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
@@ -76,60 +64,75 @@ fun RoomScreen(
             )
         }
     ) { additionalPadding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    if (uiState.isSearchMode) Color(0xFF090A38) else Color.White
-                )
-                .padding(padding)
-                .padding(additionalPadding)
-        ) {
-            if (uiState.isSearchMode && uiState.isMapVisible) {
-                // TODO: NaverMap 화면에 띄우기
-            }
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                RoomTopComponent(
-                    onBackClick = { onAction(RoomUiAction.OnBackClick) },
-                    onDeleteClick = { onAction(RoomUiAction.OnDeleteClick) },
-                    isSearchMode = uiState.isSearchMode,
-                    isMapVisible = uiState.isMapVisible,
-                    roomName = uiState.roomName
-                )
-                if (!uiState.isSearchMode) {
-                    RoomDefaultContent(
-                        address = uiState.address,
-                        participantCount = uiState.participantInfo.size,
-                        onSearchClick = { onAction(RoomUiAction.OnLottieClick(it)) }
-                    )
-                } else {
-                    RoomSearchContent(
-                        address = uiState.address,
-                        participantCount = uiState.participantInfo.size,
-                        isMapVisible = uiState.isMapVisible,
-                        onMapToggleClick = { flag ->
-                            onAction(RoomUiAction.OnMapToggleClick(flag))
-                        },
-                        onDeleteClick = { onAction(RoomUiAction.OnDeleteClick) }
-                    )
-                }
-            }
-        }
-
-
-        if (uiState.isRoomDeleteDialogVisible) {
-            RoomDeleteDialog(
-                isHost = uiState.isHost,
-                onDismissRequest = { onAction(RoomUiAction.OnDeleteCancelClick) },
-                onCancelClick = { onAction(RoomUiAction.OnDeleteCancelClick) },
-                onConfirmClick = { onAction(RoomUiAction.OnDeleteConfirmClick) },
-            )
-        }
-
+        RoomScreen(
+            padding = padding + additionalPadding,
+            uiState = uiState,
+            onAction = viewModel::onRoomUiAction
+        )
     }
+}
+
+
+@Composable
+fun RoomScreen(
+    padding: PaddingValues,
+    uiState: RoomUiState,
+    onAction: (RoomUiAction) -> Unit,
+) {
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                if (uiState.isSearchMode) Color(0xFF090A38) else Color.White
+            )
+            .padding(padding)
+    ) {
+        if (uiState.isSearchMode && uiState.isMapVisible) {
+            // TODO: NaverMap 화면에 띄우기
+        }
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            RoomTopComponent(
+                onBackClick = { onAction(RoomUiAction.OnBackClick) },
+                onDeleteClick = { onAction(RoomUiAction.OnDeleteClick) },
+                isSearchMode = uiState.isSearchMode,
+                isMapVisible = uiState.isMapVisible,
+                roomName = uiState.roomName
+            )
+            if (!uiState.isSearchMode) {
+                RoomDefaultContent(
+                    address = uiState.address,
+                    participantCount = uiState.participantInfo.size,
+                    onSearchClick = { onAction(RoomUiAction.OnLottieClick(it)) }
+                )
+            } else {
+                RoomSearchContent(
+                    address = uiState.address,
+                    participantCount = uiState.participantInfo.size,
+                    isMapVisible = uiState.isMapVisible,
+                    onMapToggleClick = { flag ->
+                        onAction(RoomUiAction.OnMapToggleClick(flag))
+                    },
+                    onDeleteClick = { onAction(RoomUiAction.OnDeleteClick) },
+                    onUserListClick = { onAction(RoomUiAction.OnUserListClick) }
+                )
+            }
+        }
+    }
+
+
+    if (uiState.isRoomDeleteDialogVisible) {
+        RoomDeleteDialog(
+            isHost = uiState.isHost,
+            onDismissRequest = { onAction(RoomUiAction.OnDeleteCancelClick) },
+            onCancelClick = { onAction(RoomUiAction.OnDeleteCancelClick) },
+            onConfirmClick = { onAction(RoomUiAction.OnDeleteConfirmClick) },
+        )
+    }
+
 }
 
 

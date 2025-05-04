@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ikseong.ucompass.R
 import com.ikseong.ucompass.ui.theme.UCompassTheme.typography
+import com.ikseong.ucompass.ui.util.viewutil.noRippleClickable
 
 @Composable
 fun RoomSearchContent(
@@ -33,7 +34,8 @@ fun RoomSearchContent(
     participantCount: Int,
     isMapVisible: Boolean = false,
     onMapToggleClick: (Boolean) -> Unit = {},
-    onDeleteClick: () -> Unit = {}
+    onDeleteClick: () -> Unit = {},
+    onUserListClick: () -> Unit = {}
 ) {
     Column(
         modifier = modifier
@@ -95,6 +97,7 @@ fun RoomSearchContent(
                 Row(
                     modifier = Modifier
                         .height(64.dp)
+                        .noRippleClickable { onUserListClick() }
                         .clip(RoundedCornerShape(25.dp))
                         .background(
                             if (isMapVisible) Color(0xFFD8FCF0)
