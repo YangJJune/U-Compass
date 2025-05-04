@@ -30,7 +30,8 @@ fun RoomTopComponent(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(top = 32.dp),
+            .padding(top = 32.dp)
+            .padding(horizontal = 20.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {

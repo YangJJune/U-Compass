@@ -22,7 +22,7 @@ class RoomViewModel @Inject constructor() : ViewModel() {
 
     fun onRoomUiAction(action: RoomUiAction) {
         when (action) {
-            RoomUiAction.OnBackClick -> {}
+            RoomUiAction.OnBackClick -> navigateBack()
             RoomUiAction.OnDeleteClick -> setRoomDeleteDialogVisible(true)
             RoomUiAction.OnDeleteConfirmClick -> deleteRoom()
             RoomUiAction.OnDeleteCancelClick -> setRoomDeleteDialogVisible(false)
@@ -32,6 +32,12 @@ class RoomViewModel @Inject constructor() : ViewModel() {
             is RoomUiAction.OnAllUserShownClick -> setAllUserShown()
             is RoomUiAction.OnLottieClick -> setSearchMode(action.isSearching)
 
+        }
+    }
+
+    private fun navigateBack() {
+        viewModelScope.launch {
+            _uiEvent.send(RoomUiEvent.NavigateBack)
         }
     }
 
@@ -80,6 +86,7 @@ class RoomViewModel @Inject constructor() : ViewModel() {
 
     private fun deleteRoom() {
         // TODO : isHost 에 따라 방 나가기/삭제하기 API
+        setRoomDeleteDialogVisible(false)
     }
 
     private fun setRoomDeleteDialogVisible(flag: Boolean) {
