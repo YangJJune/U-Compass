@@ -1,0 +1,33 @@
+package com.ikseong.ucompass.ui.create.navgraph
+
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.runtime.Composable
+import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavGraphBuilder
+import androidx.navigation.compose.composable
+import com.ikseong.ucompass.ui.create.screen.CreateRoomFinishRoute
+import com.ikseong.ucompass.ui.create.screen.CreateRoomTitleRoute
+import com.ikseong.ucompass.ui.create.viewmodel.CreateViewModel
+import com.ikseong.ucompass.ui.navigation.Routes
+
+fun NavGraphBuilder.createNavGraph(
+    paddingValues: PaddingValues,
+    navigateToFinish: () -> Unit,
+    navigateToHome: () -> Unit,
+    getBackStackCreateViewModel: @Composable (NavBackStackEntry) -> CreateViewModel
+) {
+    composable<Routes.CreateRoomTitle> {
+        CreateRoomTitleRoute(
+            padding = paddingValues,
+            navigateToFinish = navigateToFinish,
+        )
+    }
+    composable<Routes.CreateRoomFinished> {
+        CreateRoomFinishRoute(
+            padding = paddingValues,
+            navigateToHome = navigateToHome,
+            shareRoomLink = { /*TODO*/ },
+            viewModel = getBackStackCreateViewModel(it)
+        )
+    }
+}
