@@ -2,6 +2,8 @@ package com.ikseong.ucompass.ui.room.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ikseong.ucompass.ui.util.LocationUtil
+import com.naver.maps.geometry.LatLng
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,6 +22,10 @@ class RoomViewModel @Inject constructor() : ViewModel() {
     private val _uiEvent = Channel<RoomUiEvent>()
     val uiEvent = _uiEvent.receiveAsFlow()
 
+    // 현재 위치 정보
+    private val _currentLocation = MutableStateFlow<LatLng?>(null)
+    val currentLocation = _currentLocation.asStateFlow()
+
     fun onRoomUiAction(action: RoomUiAction) {
         when (action) {
             RoomUiAction.OnBackClick -> navigateBack()
@@ -31,7 +37,36 @@ class RoomViewModel @Inject constructor() : ViewModel() {
             is RoomUiAction.OnUserShownClick -> setUserShown(action.userName)
             is RoomUiAction.OnAllUserShownClick -> setAllUserShown()
             is RoomUiAction.OnLottieClick -> setSearchMode(action.isSearching)
+            is RoomUiAction.OnLocationUpdate -> updateCurrentLocation(action.location)
+        }
+    }
 
+    // 현재 위치 업데이트
+    fun updateCurrentLocation(location: LatLng) {
+        _currentLocation.value = location
+        updateParticipantsDistanceAndDirection(location)
+    }
+    
+    // 참가자들의 거리와 방향 업데이트
+    private fun updateParticipantsDistanceAndDirection(currentLatLng: LatLng) {
+        val updatedParticipants = _uiState.value.participantInfo.map { participant ->
+            // 참가자의 위치 정보가 있을 경우에만 계산
+            if (participant.latitude != 0.0 && participant.longitude != 0.0) {
+                val participantLatLng = LatLng(participant.latitude, participant.longitude)
+                val distance = LocationUtil.calculateDistanceInMeters(currentLatLng, participantLatLng)
+                val direction = LocationUtil.calculateDirection(currentLatLng, participantLatLng)
+                
+                participant.copy(
+                    direction = direction,
+                    distance = distance
+                )
+            } else {
+                participant
+            }
+        }
+        
+        _uiState.update { currentState ->
+            currentState.copy(participantInfo = updatedParticipants)
         }
     }
 

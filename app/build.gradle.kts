@@ -86,4 +86,7 @@ dependencies {
     // 위치 추적 기능 (선택적)
     implementation("com.google.android.gms:play-services-location:21.0.1")
     implementation("io.github.fornewid:naver-map-location:21.0.2")
+    
+    // Accompanist 권한 관리
+    implementation("com.google.accompanist:accompanist-permissions:0.32.0")
 }
