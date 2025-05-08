@@ -3,11 +3,13 @@ package com.ikseong.ucompass.ui.model
 data class ParticipantInfo(
     val name: String = "",
     val profileUrl: String = "",
-    val direction: Direction = Direction.NE,
-    val distance: Int = 0,
+    val latitude: Double = 0.0,
+    val longitude: Double = 0.0,
+    var direction: Direction = Direction.NE,
+    var distance: Int = 0,
     val isShown: Boolean = false,
 ) {
-    fun getDistanceType(): DistanceType =
+    fun ParticipantInfo.getDistanceType(): DistanceType =
         when (this.distance) {
             in 0..200 -> DistanceType.ZERO
             in 201..500 -> DistanceType.TWO_HUNDRED
