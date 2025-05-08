@@ -80,5 +80,10 @@ dependencies {
     // Lotties
     implementation("com.airbnb.android:lottie-compose:6.6.0")
 
-
+    // 네이버 지도 SDK
+    implementation("io.github.fornewid:naver-map-compose:1.7.4")
+    
+    // 위치 추적 기능 (선택적)
+    implementation("com.google.android.gms:play-services-location:21.0.1")
+    implementation("io.github.fornewid:naver-map-location:21.0.2")
 }
