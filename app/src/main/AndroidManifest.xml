@@ -17,6 +17,11 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.UCompass"
         tools:targetApi="31">
+
+        <meta-data
+            android:name="com.naver.maps.map.NCP_KEY_ID"
+            android:value="arpjjc9s0t" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -24,7 +29,6 @@
             android:theme="@style/Theme.UCompass">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>

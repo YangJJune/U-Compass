@@ -2,7 +2,6 @@ package com.ikseong.ucompass.ui.common.component
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import com.naver.maps.geometry.LatLng
 import com.naver.maps.map.CameraPosition
@@ -40,14 +39,17 @@ data class MapMarker(
 @OptIn(ExperimentalNaverMapApi::class)
 @Composable
 fun NaverMapComponent(
+    modifier: Modifier = Modifier,
     markers: ImmutableList<MapMarker>,
     currentLocation: LatLng = LatLng(37.5666805, 126.9784147), // 서울 중심 기본값
-    cameraPositionState: CameraPositionState = rememberCameraPositionState {
-        position = CameraPosition(currentLocation, 15.0)
-    },
+    cameraPositionState: CameraPositionState = rememberCameraPositionState(),
     onMapClick: (LatLng) -> Unit = {},
-    modifier: Modifier = Modifier
 ) {
+    cameraPositionState.position = CameraPosition(LatLng(
+        currentLocation.latitude + 0.0045,
+        currentLocation.longitude
+    ), 15.0)
+
     NaverMap(
         modifier = modifier.fillMaxSize(),
         cameraPositionState = cameraPositionState,
@@ -57,7 +59,7 @@ fun NaverMapComponent(
         ),
         uiSettings = MapUiSettings(
             isLocationButtonEnabled = true,
-            isZoomControlEnabled = true,
+            isZoomControlEnabled = false,
             isCompassEnabled = true,
         ),
         onMapClick = { _, latLng ->
@@ -69,7 +71,7 @@ fun NaverMapComponent(
             state = MarkerState(position = currentLocation),
             captionText = "현재 위치"
         )
-        
+
         // 마커 표시
         markers.forEach { marker ->
             if (marker.isVisible) {
@@ -79,7 +81,7 @@ fun NaverMapComponent(
                 } else {
                     marker.name
                 }
-                
+
                 Marker(
                     state = MarkerState(position = markerLocation),
                     captionText = captionText

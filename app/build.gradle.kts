@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -5,6 +7,10 @@ plugins {
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
+}
+
+val properties = Properties().apply {
+    load(project.rootProject.file("local.properties").inputStream())
 }
 
 android {
@@ -19,6 +25,9 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // Naver Map API 키 설정
+        manifestPlaceholders["NAVER_MAP_CLIENT_ID"] = properties["NAVER_MAP_CLIENT_ID"].toString()
     }
 
     buildTypes {
@@ -81,12 +90,12 @@ dependencies {
     implementation("com.airbnb.android:lottie-compose:6.6.0")
 
     // 네이버 지도 SDK
-    implementation("io.github.fornewid:naver-map-compose:1.7.4")
-    
-    // 위치 추적 기능 (선택적)
-    implementation("com.google.android.gms:play-services-location:21.0.1")
+    implementation("io.github.fornewid:naver-map-compose:1.8.0")
+    implementation("com.naver.maps:map-sdk:3.21.0")
+
+    implementation("com.google.android.gms:play-services-location:21.3.0")
     implementation("io.github.fornewid:naver-map-location:21.0.2")
-    
+
     // Accompanist 권한 관리
     implementation("com.google.accompanist:accompanist-permissions:0.32.0")
 }

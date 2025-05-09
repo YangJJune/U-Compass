@@ -72,7 +72,7 @@ class RoomViewModel @Inject constructor() : ViewModel() {
 
     private fun navigateBack() {
         viewModelScope.launch {
-            _uiEvent.send(RoomUiEvent.NavigateBack)
+            _uiEvent.send(RoomUiEvent.NavigateToBack)
         }
     }
 

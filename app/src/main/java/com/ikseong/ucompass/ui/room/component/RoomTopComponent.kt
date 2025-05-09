@@ -39,14 +39,14 @@ fun RoomTopComponent(
             Icon(
                 painter = painterResource(id = R.drawable.ic_arrow_left_fill_36),
                 contentDescription = "Back Icon",
-                tint = if (isMapVisible) Color.White else Color(0xFF606060)
+                tint = if (isMapVisible) Color(0xFF606060) else Color.White
             )
         }
         Text(
             text = roomName,
             style = typography.semiBold.copy(
                 fontSize = 24.sp,
-                color = if (isMapVisible) Color.White else Color.Black
+                color = if (isMapVisible) Color.Black else Color.White
             )
         )
 

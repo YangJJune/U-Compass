@@ -65,6 +65,7 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
 fun RoomRoute(
+    id: Long,
     padding: PaddingValues,
     navigateBack: () -> Unit,
     viewModel: RoomViewModel = hiltViewModel()
@@ -76,31 +77,35 @@ fun RoomRoute(
     val context = LocalContext.current
     
     // 위치 권한 요청 상태
-    val locationPermissionState = rememberPermissionState(Manifest.permission.ACCESS_FINE_LOCATION)
-    
-    // 위치 권한이 변경될 때마다 위치 업데이트 시작/중지
-    LaunchedEffect(locationPermissionState.status.isGranted) {
-        if (locationPermissionState.status.isGranted) {
-            startLocationUpdates(context) { location ->
-                viewModel.onRoomUiAction(RoomUiAction.OnLocationUpdate(location))
+    val locationPermissionState = rememberPermissionState(
+        permission = Manifest.permission.ACCESS_FINE_LOCATION,
+        onPermissionResult = { isGranted ->
+            if (isGranted) {
+                startLocationUpdates(context) { location ->
+                    viewModel.onRoomUiAction(RoomUiAction.OnLocationUpdate(location))
+                }
             }
         }
-    }
+    )
     
     // 앱 생명주기 관찰하여 위치 업데이트 관리
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) {
-                if (locationPermissionState.status.isGranted) {
-                    startLocationUpdates(context) { location ->
-                        viewModel.onRoomUiAction(RoomUiAction.OnLocationUpdate(location))
+            when (event) {
+                Lifecycle.Event.ON_RESUME -> {
+                    if (locationPermissionState.status.isGranted) {
+                        startLocationUpdates(context) { location ->
+                            viewModel.onRoomUiAction(RoomUiAction.OnLocationUpdate(location))
+                        }
+                    } else {
+                        locationPermissionState.launchPermissionRequest()
                     }
-                } else {
-                    locationPermissionState.launchPermissionRequest()
                 }
-            } else if (event == Lifecycle.Event.ON_PAUSE) {
-                stopLocationUpdates(context)
+                Lifecycle.Event.ON_PAUSE -> {
+                    stopLocationUpdates(context)
+                }
+                else -> { /* no-op */ }
             }
         }
         
@@ -239,7 +244,7 @@ fun RoomScreen(
                                 distanceText = "${participant.distance}m"
                             )
                         }.toImmutableList()
-                    
+
                     NaverMapComponent(
                         markers = mapMarkers,
                         currentLocation = location,
@@ -248,8 +253,7 @@ fun RoomScreen(
                     )
                 }
             }
-            
-            // 기존 UI 요소들 (높은 z-index)
+
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally

@@ -40,7 +40,6 @@ fun RoomSearchContent(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(Color(0xFF090A38))
             .padding(top = 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween
