@@ -1,5 +1,6 @@
 package com.ikseong.ucompass.ui.main.screen
 
+import android.Manifest
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,20 +12,28 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
+import com.google.accompanist.permissions.shouldShowRationale
 import com.ikseong.ucompass.ui.common.component.ObserveAsEvents
 import com.ikseong.ucompass.ui.common.component.UCompassButton
 import com.ikseong.ucompass.ui.common.component.UCompassLogo
 import com.ikseong.ucompass.ui.main.component.EditProfileDialog
-import com.ikseong.ucompass.ui.main.component.LocationPermissionDialog
 import com.ikseong.ucompass.ui.main.component.MainRoomList
 import com.ikseong.ucompass.ui.main.component.MainUserContent
 import com.ikseong.ucompass.ui.main.viewmodel.MainUiAction
@@ -36,6 +45,7 @@ import com.ikseong.ucompass.ui.theme.UCompassTheme.typography
 import kotlinx.collections.immutable.persistentListOf
 
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun MainRoute(
     padding: PaddingValues,
@@ -44,6 +54,40 @@ fun MainRoute(
     viewModel: MainViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    
+    // 위치 권한 요청 상태
+    val locationPermissionState = rememberPermissionState(Manifest.permission.ACCESS_FINE_LOCATION)
+    
+    // 앱 생명주기 관찰하여 위치 권한 요청 관리
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                if (!locationPermissionState.status.isGranted && 
+                    !locationPermissionState.status.shouldShowRationale) {
+                    // 권한이 없고, 이전에 거부된 적이 없으면 요청
+                    locationPermissionState.launchPermissionRequest()
+                }
+            }
+        }
+        
+        lifecycleOwner.lifecycle.addObserver(observer)
+        
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+    
+    // 사용자가 주소를 클릭했을 때 권한 요청
+    LaunchedEffect(uiState.isLocationPermissionDialogVisible) {
+        if (uiState.isLocationPermissionDialogVisible) {
+            if (!locationPermissionState.status.isGranted) {
+                locationPermissionState.launchPermissionRequest()
+            }
+            // 다이얼로그 상태 초기화
+            viewModel.onMainUiAction(MainUiAction.OnDenyLocationClick)
+        }
+    }
 
     ObserveAsEvents(flow = viewModel.uiEvent) { event ->
         when (event) {
@@ -52,7 +96,10 @@ fun MainRoute(
 
             MainUiEvent.NavigateToCreateRoom -> navigateToCreateRoom()
             is MainUiEvent.NavigateToRoom -> navigateToRoom(event.id)
-            MainUiEvent.RequestLocationPermission -> { /*show Dialog*/
+            MainUiEvent.RequestLocationPermission -> {
+                if (!locationPermissionState.status.isGranted) {
+                    locationPermissionState.launchPermissionRequest()
+                }
             }
 
             MainUiEvent.OpenGallery -> {}// TODO: 갤러리 열기
@@ -63,7 +110,6 @@ fun MainRoute(
         uiState = uiState,
         onAction = viewModel::onMainUiAction
     )
-
 }
 
 @Composable
@@ -127,13 +173,6 @@ fun MainScreen(
             fontSize = 20.sp,
             color = Color(0xFF00E397)
         ) { onAction(MainUiAction.OnCreateRoomClick) }
-
-        if (uiState.isLocationPermissionDialogVisible) {
-            LocationPermissionDialog(
-                onRequestPermission = { onAction(MainUiAction.OnAllowLocationClick) },
-                onDismissRequest = { onAction(MainUiAction.OnDenyLocationClick) }
-            )
-        }
 
         if (uiState.isEditProfileDialogVisible) {
             EditProfileDialog(

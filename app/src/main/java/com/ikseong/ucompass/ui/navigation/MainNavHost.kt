@@ -7,9 +7,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.toRoute
 import com.ikseong.ucompass.ui.create.navgraph.createNavGraph
 import com.ikseong.ucompass.ui.create.viewmodel.CreateViewModel
 import com.ikseong.ucompass.ui.main.screen.MainRoute
+import com.ikseong.ucompass.ui.room.screen.RoomRoute
 
 @Composable
 fun MainNavHost(
@@ -42,7 +44,13 @@ fun MainNavHost(
                 hiltViewModel<CreateViewModel>(parentEntry)
             }
         )
-        composable<Routes.Room> {
+        composable<Routes.Room> { navBackStackEntry ->
+            val route = navBackStackEntry.toRoute<Routes.Room>()
+            RoomRoute(
+                id = route.id,
+                padding = padding,
+                navigateBack = { navController.popBackStack() },
+            )
 
         }
     }

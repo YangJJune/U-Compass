@@ -153,6 +153,8 @@ private fun RoomBottomSheetPreview() {
             ParticipantInfo(
                 "name",
                 "profileUrl",
+                0.0,
+                0.0,
                 Direction.N,
                 100,
                 true
@@ -160,6 +162,8 @@ private fun RoomBottomSheetPreview() {
             ParticipantInfo(
                 "name",
                 "profileUrl",
+                0.0,
+                0.0,
                 Direction.N,
                 100,
                 false
@@ -167,6 +171,8 @@ private fun RoomBottomSheetPreview() {
             ParticipantInfo(
                 "name",
                 "profileUrl",
+                0.0,
+                0.0,
                 Direction.N,
                 100,
                 true
