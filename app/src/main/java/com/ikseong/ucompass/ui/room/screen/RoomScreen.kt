@@ -3,6 +3,11 @@ package com.ikseong.ucompass.ui.room.screen
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
+import android.os.Build
+import android.os.Handler
+import android.os.Looper
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,12 +40,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
-import com.google.accompanist.permissions.rememberPermissionState
-import com.google.android.gms.location.LocationCallback
-import com.google.android.gms.location.LocationRequest
-import com.google.android.gms.location.LocationResult
-import com.google.android.gms.location.LocationServices
-import com.google.android.gms.location.Priority
+import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.ikseong.ucompass.ui.common.component.MapMarker
 import com.ikseong.ucompass.ui.common.component.NaverMapComponent
 import com.ikseong.ucompass.ui.common.component.ObserveAsEvents
@@ -56,11 +56,18 @@ import com.ikseong.ucompass.ui.room.viewmodel.RoomUiAction
 import com.ikseong.ucompass.ui.room.viewmodel.RoomUiEvent
 import com.ikseong.ucompass.ui.room.viewmodel.RoomUiState
 import com.ikseong.ucompass.ui.room.viewmodel.RoomViewModel
+import com.ikseong.ucompass.ui.util.GpsLocationUtil
+import com.ikseong.ucompass.ui.util.WifiRttUtil
 import com.ikseong.ucompass.ui.util.viewutil.plus
 import com.naver.maps.geometry.LatLng
+import com.naver.maps.map.CameraPosition
+import com.naver.maps.map.compose.MapUiSettings
 import com.naver.maps.map.compose.rememberCameraPositionState
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.launch
+
+private const val TAG = "RoomScreen"
+private const val LOCATION_UPDATE_INTERVAL = 10000L // 10초
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
@@ -75,42 +82,50 @@ fun RoomRoute(
     val scaffoldState = rememberBottomSheetScaffoldState()
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
-    
-    // 위치 권한 요청 상태
-    val locationPermissionState = rememberPermissionState(
-        permission = Manifest.permission.ACCESS_FINE_LOCATION,
-        onPermissionResult = { isGranted ->
-            if (isGranted) {
-                startLocationUpdates(context) { location ->
-                    viewModel.onRoomUiAction(RoomUiAction.OnLocationUpdate(location))
-                }
+
+    // 필요한 모든 권한 상태 관리
+    val permissionsState = rememberMultiplePermissionsState(
+        permissions = buildList {
+            add(Manifest.permission.ACCESS_FINE_LOCATION)
+            add(Manifest.permission.ACCESS_COARSE_LOCATION)
+            add(Manifest.permission.ACCESS_WIFI_STATE)
+            add(Manifest.permission.CHANGE_WIFI_STATE)
+
+            // Android 13 (API 33) 이상에서 필요한 권한
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                add(Manifest.permission.NEARBY_WIFI_DEVICES)
             }
         }
     )
-    
+
     // 앱 생명주기 관찰하여 위치 업데이트 관리
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             when (event) {
                 Lifecycle.Event.ON_RESUME -> {
-                    if (locationPermissionState.status.isGranted) {
+                    if (permissionsState.allPermissionsGranted) {
+                        // 위치 업데이트 시작
                         startLocationUpdates(context) { location ->
                             viewModel.onRoomUiAction(RoomUiAction.OnLocationUpdate(location))
                         }
                     } else {
-                        locationPermissionState.launchPermissionRequest()
+                        permissionsState.launchMultiplePermissionRequest()
                     }
                 }
+
                 Lifecycle.Event.ON_PAUSE -> {
+                    // 위치 업데이트 중지
                     stopLocationUpdates(context)
                 }
-                else -> { /* no-op */ }
+
+                else -> { /* no-op */
+                }
             }
         }
-        
+
         lifecycleOwner.lifecycle.addObserver(observer)
-        
+
         onDispose {
             lifecycleOwner.lifecycle.removeObserver(observer)
             stopLocationUpdates(context)
@@ -133,60 +148,70 @@ fun RoomRoute(
     )
 }
 
-// 위치 콜백 인스턴스를 저장할 전역 변수
-private var locationCallback: LocationCallback? = null
+// 위치 업데이트 시작 - WiFi RTT와 GPS 모두 시작
+private fun startLocationUpdates(context: Context, onLocationUpdate: (LatLng) -> Unit) {
+    // 마지막으로 사용된 위치 소스를 추적
+    var lastUsedSource = "초기화"
 
-// 위치 업데이트 시작
-@SuppressLint("MissingPermission")
-private fun startLocationUpdates(
-    context: Context,
-    onLocationUpdate: (LatLng) -> Unit
-) {
-    val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
-    
-    val locationRequest = LocationRequest.Builder(30000) // 30초마다 업데이트
-        .setPriority(Priority.PRIORITY_HIGH_ACCURACY)
-        .build()
-    
-    // 이전 콜백이 있다면 제거
-    locationCallback?.let {
-        fusedLocationClient.removeLocationUpdates(it)
-    }
-    
-    locationCallback = object : LocationCallback() {
-        override fun onLocationResult(locationResult: LocationResult) {
-            locationResult.lastLocation?.let { location ->
-                val latLng = LatLng(location.latitude, location.longitude)
-                onLocationUpdate(latLng)
+    // WiFi RTT 시작 (10초마다 체크하고, 지원될 때만 위치 계산)
+    WifiRttUtil.startRttUpdateTimer(context, LOCATION_UPDATE_INTERVAL) { rttLocation ->
+        // RTT로 위치를 얻을 수 있다면 사용, 아니면 무시
+        rttLocation?.let {
+            Log.d(TAG, "WiFi RTT로 측정된 위치 사용: $it")
+
+            // 위치 소스가 변경되었거나 처음 사용되는 경우에만 토스트 표시
+            if (lastUsedSource != "WiFi RTT") {
+                lastUsedSource = "WiFi RTT"
+
+                // WiFi RTT 사용 시 토스트 메시지 표시
+                val rttAccessPoints = WifiRttUtil.getLastRttAccessPointCount()
+                val message = "WiFi RTT 위치 측정 중\n" +
+                        "- 측정된 AP 개수: $rttAccessPoints\n" +
+                        "- 위치: ${it.latitude.format(5)}, ${it.longitude.format(5)}"
+
+                showToast(context, message)
             }
+
+            onLocationUpdate(it)
         }
     }
-    
-    // 위치 업데이트 시작
-    locationCallback?.let {
-        fusedLocationClient.requestLocationUpdates(
-            locationRequest,
-            it,
-            context.mainLooper
-        )
-        
-        // 즉시 한 번 위치 요청
-        fusedLocationClient.lastLocation.addOnSuccessListener { location ->
-            location?.let {
-                val latLng = LatLng(location.latitude, location.longitude)
-                onLocationUpdate(latLng)
-            }
+
+    // GPS 위치 측정 시작 (기본 위치 소스로 사용)
+    GpsLocationUtil.startLocationUpdates(context, LOCATION_UPDATE_INTERVAL) { gpsLocation ->
+        Log.d(TAG, "GPS 위치 사용: $gpsLocation")
+
+        // 위치 소스가 변경되었거나 처음 사용되는 경우에만 토스트 표시
+        if (lastUsedSource != "GPS") {
+            lastUsedSource = "GPS"
+
+            // GPS 사용 시 토스트 메시지 표시
+            val accuracy = GpsLocationUtil.getLastLocationAccuracy()
+            val message = "GPS 위치 측정 중\n" +
+                    "- 정확도: ${accuracy}m\n" +
+                    "- 위치: ${gpsLocation.latitude.format(5)}, ${gpsLocation.longitude.format(5)}"
+
+            showToast(context, message)
         }
+
+        onLocationUpdate(gpsLocation)
     }
 }
 
-// 위치 업데이트 중지
+// 위치 업데이트 중지 - 모든 소스 중지
 private fun stopLocationUpdates(context: Context) {
-    val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
-    locationCallback?.let {
-        fusedLocationClient.removeLocationUpdates(it)
+    WifiRttUtil.stopRttUpdateTimer()
+    GpsLocationUtil.stopLocationUpdates(context)
+}
+
+// 토스트 메시지 표시 함수
+private fun showToast(context: Context, message: String) {
+    Handler(Looper.getMainLooper()).post {
+        Toast.makeText(context, message, Toast.LENGTH_LONG).show()
     }
 }
+
+// Double 값을 지정된 소수점 자릿수로 포맷팅하는 확장 함수
+private fun Double.format(digits: Int): String = String.format("%.${digits}f", this)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -199,14 +224,18 @@ fun RoomScreen(
 ) {
     // 카메라 상태 기억
     val cameraPositionState = rememberCameraPositionState()
-    
-    // 현재 위치가 업데이트되면 카메라도 업데이트
-    LaunchedEffect(currentLocation) {
-        currentLocation?.let {
-            cameraPositionState.position = com.naver.maps.map.CameraPosition(it, 15.0)
+
+    // 지도가 보이게 될 때만 카메라 위치를 업데이트
+    LaunchedEffect(uiState.isMapVisible, currentLocation) {
+        // 지도가 보이게 되었을 때 && 현재 위치가 있을 때만 카메라 위치 업데이트
+        if (uiState.isMapVisible && currentLocation != null) {
+            // 초기 카메라 위치를 현재 위치로 설정 (줌 레벨 17)
+            cameraPositionState.position = CameraPosition(
+                currentLocation, 17.0
+            )
         }
     }
-    
+
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
         sheetPeekHeight = 0.dp,
@@ -249,7 +278,22 @@ fun RoomScreen(
                         markers = mapMarkers,
                         currentLocation = location,
                         cameraPositionState = cameraPositionState,
-                        onMapClick = { /* 맵 클릭 이벤트 처리 */ }
+                        onMapClick = { /* 지도 클릭 이벤트 무시 */ },
+                        uiSettings = MapUiSettings(
+                            // 모든 제스처 비활성화
+                            isScrollGesturesEnabled = false, // 스크롤 제스처 비활성화 (지도 이동 불가)
+                            isZoomGesturesEnabled = false, // 줌 제스처 비활성화 (핀치 줌 불가)
+                            isRotateGesturesEnabled = false,// 회전 제스처 비활성화
+                            isTiltGesturesEnabled = false,// 틸트 제스처 비활성화
+                            isStopGesturesEnabled = false,// 애니메이션 중 탭으로 중지 불가
+
+                            // UI 컨트롤 비활성화
+                            isCompassEnabled = false,// 나침반 비활성화
+                            isScaleBarEnabled = true,// 축척 바는 유지 (거리감 제공)
+                            isZoomControlEnabled = false,// 줌 컨트롤 비활성화
+                            isIndoorLevelPickerEnabled = false, // 실내지도 층 피커 비활성화
+                            isLocationButtonEnabled = false,// 현위치 버튼 비활성화
+                        )
                     )
                 }
             }
