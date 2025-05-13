@@ -1,14 +1,7 @@
 package com.ikseong.ucompass.ui.room.screen
 
 import android.Manifest
-import android.annotation.SuppressLint
-import android.content.Context
-import android.location.Location
 import android.os.Build
-import android.os.Handler
-import android.os.Looper
-import android.util.Log
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,10 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -40,7 +30,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.ikseong.ucompass.ui.common.component.MapMarker
 import com.ikseong.ucompass.ui.common.component.NaverMapComponent
@@ -57,8 +46,9 @@ import com.ikseong.ucompass.ui.room.viewmodel.RoomUiAction
 import com.ikseong.ucompass.ui.room.viewmodel.RoomUiEvent
 import com.ikseong.ucompass.ui.room.viewmodel.RoomUiState
 import com.ikseong.ucompass.ui.room.viewmodel.RoomViewModel
-import com.ikseong.ucompass.ui.util.GpsLocationUtil
-import com.ikseong.ucompass.ui.util.WifiRttUtil
+import com.ikseong.ucompass.ui.util.DeviceOrientationUtil
+import com.ikseong.ucompass.ui.util.GpsLocationUtil.startLocationUpdates
+import com.ikseong.ucompass.ui.util.GpsLocationUtil.stopLocationUpdates
 import com.ikseong.ucompass.ui.util.viewutil.plus
 import com.naver.maps.geometry.LatLng
 import com.naver.maps.map.CameraPosition
@@ -67,8 +57,7 @@ import com.naver.maps.map.compose.rememberCameraPositionState
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.launch
 
-private const val TAG = "RoomScreen"
-private const val LOCATION_UPDATE_INTERVAL = 10000L // 10초
+
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
@@ -149,70 +138,9 @@ fun RoomRoute(
     )
 }
 
-// 위치 업데이트 시작 - WiFi RTT와 GPS 모두 시작
-private fun startLocationUpdates(context: Context, onLocationUpdate: (LatLng) -> Unit) {
-    // 마지막으로 사용된 위치 소스를 추적
-    var lastUsedSource = "초기화"
 
-    // WiFi RTT 시작 (10초마다 체크하고, 지원될 때만 위치 계산)
-    WifiRttUtil.startRttUpdateTimer(context, LOCATION_UPDATE_INTERVAL) { rttLocation ->
-        // RTT로 위치를 얻을 수 있다면 사용, 아니면 무시
-        rttLocation?.let {
-            Log.d(TAG, "WiFi RTT로 측정된 위치 사용: $it")
 
-            // 위치 소스가 변경되었거나 처음 사용되는 경우에만 토스트 표시
-            if (lastUsedSource != "WiFi RTT") {
-                lastUsedSource = "WiFi RTT"
 
-                // WiFi RTT 사용 시 토스트 메시지 표시
-                val rttAccessPoints = WifiRttUtil.getLastRttAccessPointCount()
-                val message = "WiFi RTT 위치 측정 중\n" +
-                        "- 측정된 AP 개수: $rttAccessPoints\n" +
-                        "- 위치: ${it.latitude.format(5)}, ${it.longitude.format(5)}"
-
-                showToast(context, message)
-            }
-
-            onLocationUpdate(it)
-        }
-    }
-
-    // GPS 위치 측정 시작 (기본 위치 소스로 사용)
-    GpsLocationUtil.startLocationUpdates(context, LOCATION_UPDATE_INTERVAL) { gpsLocation ->
-        Log.d(TAG, "GPS 위치 사용: $gpsLocation")
-
-        // 위치 소스가 변경되었거나 처음 사용되는 경우에만 토스트 표시
-        if (lastUsedSource != "GPS") {
-            lastUsedSource = "GPS"
-
-            // GPS 사용 시 토스트 메시지 표시
-            val accuracy = GpsLocationUtil.getLastLocationAccuracy()
-            val message = "GPS 위치 측정 중\n" +
-                    "- 정확도: ${accuracy}m\n" +
-                    "- 위치: ${gpsLocation.latitude.format(5)}, ${gpsLocation.longitude.format(5)}"
-
-            showToast(context, message)
-        }
-
-        onLocationUpdate(gpsLocation)
-    }
-}
-
-// 위치 업데이트 중지 - 모든 소스 중지
-private fun stopLocationUpdates(context: Context) {
-    WifiRttUtil.stopRttUpdateTimer()
-    GpsLocationUtil.stopLocationUpdates(context)
-}
-
-// 토스트 메시지 표시 함수
-private fun showToast(context: Context, message: String) {
-    Handler(Looper.getMainLooper()).post {
-        Toast.makeText(context, message, Toast.LENGTH_LONG).show()
-    }
-}
-
-// Double 값을 지정된 소수점 자릿수로 포맷팅하는 확장 함수
-private fun Double.format(digits: Int): String = String.format("%.${digits}f", this)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -226,18 +154,29 @@ fun RoomScreen(
     // 카메라 상태 기억
     val cameraPositionState = rememberCameraPositionState()
 
-    // 지도가 보이게 될 때만 카메라 위치를 업데이트
-    LaunchedEffect(uiState.isMapVisible, currentLocation) {
-        // 지도가 보이게 되었을 때 && 현재 위치가 있을 때만 카메라 위치 업데이트
+    // 기기 방향 각도 관찰 (0~360도)
+    val deviceOrientation = DeviceOrientationUtil.rememberDeviceOrientation()
+
+    // 기기 방향이 변경될 때마다 지도 회전 업데이트
+    LaunchedEffect(
+        uiState.isMapVisible,
+        currentLocation,
+        deviceOrientation.value
+    ) {
         if (uiState.isMapVisible && currentLocation != null) {
-            // 초기 카메라 위치를 현재 위치로 설정 (줌 레벨 17)
+            // 기기 방향 각도의 반대 방향으로 지도 회전 (기기가 시계방향으로 회전하면 지도는 반시계방향으로)
+            val mapBearing = deviceOrientation.value
             val cameraLocation = LatLng(
                 currentLocation.latitude + 0.00083,
                 currentLocation.longitude
             )
-
+            // 현재 카메라 위치 유지하면서 베어링(회전)만 업데이트
             cameraPositionState.position = CameraPosition(
-                cameraLocation, 17.0
+                cameraLocation,
+                17.0,
+                0.0,
+//                cameraPositionState.position.tilt,
+                mapBearing.toDouble()
             )
         }
     }
@@ -294,7 +233,7 @@ fun RoomScreen(
                             isStopGesturesEnabled = false,// 애니메이션 중 탭으로 중지 불가
 
                             // UI 컨트롤 비활성화
-                            isCompassEnabled = false,// 나침반 비활성화
+                            isCompassEnabled = true,// 나침반 활성화
                             isScaleBarEnabled = true,// 축척 바는 유지 (거리감 제공)
                             isZoomControlEnabled = false,// 줌 컨트롤 비활성화
                             isIndoorLevelPickerEnabled = false, // 실내지도 층 피커 비활성화
