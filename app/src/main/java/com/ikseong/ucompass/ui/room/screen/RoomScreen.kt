@@ -3,6 +3,7 @@ package com.ikseong.ucompass.ui.room.screen
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
+import android.location.Location
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
@@ -230,8 +231,13 @@ fun RoomScreen(
         // 지도가 보이게 되었을 때 && 현재 위치가 있을 때만 카메라 위치 업데이트
         if (uiState.isMapVisible && currentLocation != null) {
             // 초기 카메라 위치를 현재 위치로 설정 (줌 레벨 17)
+            val cameraLocation = LatLng(
+                currentLocation.latitude + 0.00083,
+                currentLocation.longitude
+            )
+
             cameraPositionState.position = CameraPosition(
-                currentLocation, 17.0
+                cameraLocation, 17.0
             )
         }
     }
