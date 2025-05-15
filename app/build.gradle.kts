@@ -28,6 +28,8 @@ android {
 
         // Naver Map API 키 설정
         manifestPlaceholders["NAVER_MAP_CLIENT_ID"] = properties["NAVER_MAP_CLIENT_ID"].toString()
+        // BASE URL
+        buildConfigField("String", "BASE_URL", properties["BASE_URL"].toString())
     }
 
     buildTypes {
@@ -48,6 +50,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -98,4 +101,13 @@ dependencies {
 
     // Accompanist 권한 관리
     implementation("com.google.accompanist:accompanist-permissions:0.32.0")
+
+    // Network
+    implementation(platform(libs.okhttp.bom))
+    implementation(libs.okhttp)
+    implementation(libs.okhttp.logging.interceptor)
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.kotlin.serialization.converter)
+    implementation(libs.kotlinx.serialization.json)
+
 }
