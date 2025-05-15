@@ -7,6 +7,7 @@ import com.naver.maps.geometry.LatLng
 import com.naver.maps.map.CameraPosition
 import com.naver.maps.map.compose.CameraPositionState
 import com.naver.maps.map.compose.ExperimentalNaverMapApi
+import com.naver.maps.map.compose.LocationTrackingMode
 import com.naver.maps.map.compose.MapProperties
 import com.naver.maps.map.compose.MapUiSettings
 import com.naver.maps.map.compose.Marker
@@ -35,6 +36,7 @@ data class MapMarker(
  * @param cameraPositionState 카메라 위치 상태 (외부에서 관리)
  * @param onMapClick 지도 클릭 이벤트 콜백
  * @param modifier Modifier
+ * @param uiSettings 지도 UI 설정 콜백
  */
 @OptIn(ExperimentalNaverMapApi::class)
 @Composable
@@ -44,24 +46,18 @@ fun NaverMapComponent(
     currentLocation: LatLng = LatLng(37.5666805, 126.9784147), // 서울 중심 기본값
     cameraPositionState: CameraPositionState = rememberCameraPositionState(),
     onMapClick: (LatLng) -> Unit = {},
+    uiSettings: MapUiSettings = MapUiSettings(),
 ) {
-    cameraPositionState.position = CameraPosition(LatLng(
-        currentLocation.latitude + 0.0045,
-        currentLocation.longitude
-    ), 15.0)
-
     NaverMap(
         modifier = modifier.fillMaxSize(),
         cameraPositionState = cameraPositionState,
         properties = MapProperties(
             isIndoorEnabled = true,
             isBuildingLayerGroupEnabled = true,
+            locationTrackingMode = LocationTrackingMode.Face, // Face 모드로 변경 (위치와 방향 모두 추적)
+            isNightModeEnabled = false, // 주간 모드 유지
         ),
-        uiSettings = MapUiSettings(
-            isLocationButtonEnabled = true,
-            isZoomControlEnabled = false,
-            isCompassEnabled = true,
-        ),
+        uiSettings = uiSettings,
         onMapClick = { _, latLng ->
             onMapClick(latLng)
         }
