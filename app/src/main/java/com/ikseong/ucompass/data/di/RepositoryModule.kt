@@ -1,6 +1,7 @@
 package com.ikseong.ucompass.data.di
 
 import com.ikseong.ucompass.data.repository.UCompassRepository
+import com.ikseong.ucompass.data.repositoryImpl.UCompassRepositoryImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -14,7 +15,7 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindUCompassRepository(
-        uCompassRepository: UCompassRepository
+        uCompassRepositoryImpl: UCompassRepositoryImpl
     ): UCompassRepository
 
 }
