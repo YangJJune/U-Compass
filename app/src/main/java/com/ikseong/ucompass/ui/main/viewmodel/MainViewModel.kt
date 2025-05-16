@@ -1,9 +1,7 @@
 package com.ikseong.ucompass.ui.main.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.ikseong.ucompass.domain.GetRootApiUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,22 +12,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class MainViewModel @Inject constructor(
-    private val getRootApiUseCase: GetRootApiUseCase
-) : ViewModel() {
-
-    init {
-        viewModelScope.launch {
-            getRootApiUseCase().fold(
-                onSuccess = {
-                    Log.d("MainViewModel", "onSuccess: $it")
-                },
-                onFailure = {
-                    Log.d("MainViewModel", "fail: $it")
-                }
-            )
-        }
-    }
+class MainViewModel @Inject constructor() : ViewModel() {
 
     private val _uiState = MutableStateFlow(MainUiState.dummyDataState)
     val uiState = _uiState.asStateFlow()
