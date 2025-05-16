@@ -1,4 +1,4 @@
-package com.ikseong.ucompass.di
+package com.ikseong.ucompass.data.di
 
 import com.ikseong.ucompass.data.service.UCompassService
 import dagger.Module

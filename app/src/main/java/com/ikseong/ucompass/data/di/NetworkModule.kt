@@ -1,4 +1,4 @@
-package com.ikseong.ucompass.di
+package com.ikseong.ucompass.data.di
 
 import com.ikseong.ucompass.BuildConfig
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
