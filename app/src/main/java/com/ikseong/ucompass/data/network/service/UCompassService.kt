@@ -1,4 +1,4 @@
-package com.ikseong.ucompass.data.service
+package com.ikseong.ucompass.data.network.service
 
 import retrofit2.http.GET
 

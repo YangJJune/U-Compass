@@ -1,6 +1,6 @@
 package com.ikseong.ucompass.data.di
 
-import com.ikseong.ucompass.data.service.UCompassService
+import com.ikseong.ucompass.data.network.service.UCompassService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
