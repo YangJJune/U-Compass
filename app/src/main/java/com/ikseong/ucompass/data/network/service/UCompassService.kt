@@ -5,6 +5,6 @@ import retrofit2.http.GET
 
 interface UCompassService {
     @GET("/")
-    fun getRootApi(): RootResponse
+    suspend fun getRootApi(): RootResponse
 
 }
