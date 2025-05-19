@@ -1,5 +1,7 @@
 package com.ikseong.ucompass.data.repositoryImpl
 
+import com.ikseong.ucompass.data.network.request.CreateRoomRequest
+import com.ikseong.ucompass.data.network.response.CreateRoomResponse
 import com.ikseong.ucompass.data.network.response.RoomItemResponse
 import com.ikseong.ucompass.data.network.response.RoomListResponse
 import com.ikseong.ucompass.data.network.service.UCompassService
@@ -21,5 +23,12 @@ class UCompassRepositoryImpl @Inject constructor(
     override suspend fun getRoomItem(id: Long): Result<RoomItemResponse> =
         runCatching {
             service.getRoomItem(roomId = id)
+        }
+
+    override suspend fun createRoom(
+        request: CreateRoomRequest
+    ): Result<CreateRoomResponse> =
+        runCatching {
+            service.createRoom(request = request)
         }
 }
