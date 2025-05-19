@@ -11,7 +11,7 @@ class RoomListResponse : ArrayList<RoomListResponseItem>(){
         @SerialName("creator")
         val creator: String,
         @SerialName("id")
-        val id: Int,
+        val id: Long,
         @SerialName("participants")
         val participants: List<String>,
         @SerialName("title")
