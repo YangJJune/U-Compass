@@ -1,8 +1,12 @@
 package com.ikseong.ucompass.ui.main.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ikseong.ucompass.domain.GetRoomListUseCase
+import com.ikseong.ucompass.mapper.toRoomInfo
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -12,7 +16,9 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class MainViewModel @Inject constructor() : ViewModel() {
+class MainViewModel @Inject constructor(
+    private val getRoomListUseCase: GetRoomListUseCase
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(MainUiState.dummyDataState)
     val uiState = _uiState.asStateFlow()
@@ -94,6 +100,23 @@ class MainViewModel @Inject constructor() : ViewModel() {
     private fun navigateToRoom(id: Long) {
         viewModelScope.launch {
             _uiEvent.send(MainUiEvent.NavigateToRoom(id))
+        }
+    }
+
+    fun fetchRoomList() {
+        viewModelScope.launch {
+            getRoomListUseCase().fold(
+                onSuccess = { data ->
+                    _uiState.update {
+                        it.copy(
+                            roomList = data.map { it.toRoomInfo() }.toPersistentList()
+                        )
+                    }
+                },
+                onFailure = {
+                    Log.e("fetchRoomList", it.message.toString())
+                }
+            )
         }
     }
 

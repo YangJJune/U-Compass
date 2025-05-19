@@ -59,5 +59,6 @@ data class RoomInfo(
     val roomName: String = "",
     val hostName: String = "",
     val roomLink: String = "",
+    val participantList: PersistentList<String> = persistentListOf(),
     val isHost: Boolean = false
 )
