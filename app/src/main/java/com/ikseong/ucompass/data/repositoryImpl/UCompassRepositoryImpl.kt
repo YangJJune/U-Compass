@@ -31,4 +31,9 @@ class UCompassRepositoryImpl @Inject constructor(
         runCatching {
             service.createRoom(request = request)
         }
+
+    override suspend fun deleteRoom(id: Int): Result<Unit> = runCatching {
+        service.deleteRoom(roomId = id)
+    }
+
 }

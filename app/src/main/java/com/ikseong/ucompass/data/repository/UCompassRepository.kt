@@ -14,4 +14,6 @@ interface UCompassRepository {
     suspend fun getRoomItem(id: Long): Result<RoomItemResponse>
 
     suspend fun createRoom(request: CreateRoomRequest): Result<CreateRoomResponse>
+
+    suspend fun deleteRoom(id: Int): Result<Unit>
 }

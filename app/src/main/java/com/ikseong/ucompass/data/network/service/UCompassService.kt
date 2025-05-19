@@ -6,6 +6,7 @@ import com.ikseong.ucompass.data.network.response.RoomItemResponse
 import com.ikseong.ucompass.data.network.response.RoomListResponse
 import com.ikseong.ucompass.data.network.response.RootResponse
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
@@ -26,4 +27,9 @@ interface UCompassService {
     suspend fun createRoom(
         @Body request: CreateRoomRequest
     ): CreateRoomResponse
+
+    @DELETE("/rooms/{room_id}")
+    suspend fun deleteRoom(
+        @Path("room_id") roomId: Int
+    ): Unit
 }
