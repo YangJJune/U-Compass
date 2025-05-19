@@ -7,4 +7,6 @@ interface UCompassService {
     @GET("/")
     suspend fun getRootApi(): RootResponse
 
+    @GET("/rooms")
+    suspend fun getRoomList(): RoomListResponse
 }
