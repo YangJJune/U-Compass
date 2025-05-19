@@ -88,6 +88,10 @@ fun RoomRoute(
         }
     )
 
+    LaunchedEffect(Unit) {
+        viewModel.getRoomItem(id)
+    }
+
     // 앱 생명주기 관찰하여 위치 업데이트 관리
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
