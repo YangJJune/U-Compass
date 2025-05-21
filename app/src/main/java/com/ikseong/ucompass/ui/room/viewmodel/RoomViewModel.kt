@@ -3,6 +3,7 @@ package com.ikseong.ucompass.ui.room.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ikseong.ucompass.domain.DeleteRoomUseCase
 import com.ikseong.ucompass.domain.GetRoomItemUseCase
 import com.ikseong.ucompass.ui.model.ParticipantInfo
 import com.ikseong.ucompass.ui.util.LocationUtil
@@ -19,6 +20,7 @@ import javax.inject.Inject
 @HiltViewModel
 class RoomViewModel @Inject constructor(
     private val getRoomItemUseCase: GetRoomItemUseCase,
+    private val deletionUseCase: DeleteRoomUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(RoomUiState())
@@ -126,8 +128,20 @@ class RoomViewModel @Inject constructor(
     }
 
     private fun deleteRoom() {
-        // TODO : isHost 에 따라 방 나가기/삭제하기 API
-        setRoomDeleteDialogVisible(false)
+        viewModelScope.launch {
+            val id = _uiState.value.roomId.toInt()
+            deletionUseCase(id).fold(
+                onSuccess = {
+                    Log.d("RoomViewModel", "deleteRoom: $it")
+                    setRoomDeleteDialogVisible(false)
+                    _uiEvent.send(RoomUiEvent.NavigateToBack)
+                },
+                onFailure = {
+                    Log.e("RoomViewModel", "deleteRoom: $it")
+                }
+            )
+        }
+
     }
 
     private fun setRoomDeleteDialogVisible(flag: Boolean) {
