@@ -60,7 +60,7 @@ class SocketRepository(
         writer?.println(json.toString())
     }
 
-    private fun disconnect() {
+    fun disconnect() {
         receiveJob?.cancel()
         writer?.close()
         reader?.close()
