@@ -1,0 +1,10 @@
+package com.ikseong.ucompass.data.network.response
+
+import kotlinx.serialization.SerialName
+
+data class RoomResultResponse(
+    @SerialName("data")
+    val data: Long,
+    @SerialName("participants")
+    val participants: List<String>,
+)
