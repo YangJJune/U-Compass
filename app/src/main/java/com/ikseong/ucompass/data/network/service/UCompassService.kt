@@ -1,9 +1,12 @@
 package com.ikseong.ucompass.data.network.service
 
 import com.ikseong.ucompass.data.network.request.CreateRoomRequest
+import com.ikseong.ucompass.data.network.request.JoinRoomRequest
+import com.ikseong.ucompass.data.network.request.LeaveRoomRequest
 import com.ikseong.ucompass.data.network.response.CreateRoomResponse
 import com.ikseong.ucompass.data.network.response.RoomItemResponse
 import com.ikseong.ucompass.data.network.response.RoomListResponse
+import com.ikseong.ucompass.data.network.response.RoomResultResponse
 import com.ikseong.ucompass.data.network.response.RootResponse
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -18,18 +21,28 @@ interface UCompassService {
     @GET("/rooms")
     suspend fun getRoomList(): RoomListResponse
 
-    @GET("/rooms/{room_id}")
+    @GET("/room/{room_id}")
     suspend fun getRoomItem(
         @Path("room_id") roomId: Long
     ): RoomItemResponse
 
-    @POST("/rooms")
+    @POST("/room")
     suspend fun createRoom(
         @Body request: CreateRoomRequest
     ): CreateRoomResponse
 
-    @DELETE("/rooms/{room_id}")
+    @DELETE("/room/{room_id}")
     suspend fun deleteRoom(
         @Path("room_id") roomId: Int
     ): Unit
+
+    @POST("/room/join")
+    suspend fun joinRoom(
+        @Body request: JoinRoomRequest
+    ): RoomResultResponse
+
+    @POST("/room/leave")
+    suspend fun leaveRoom(
+        @Body request: LeaveRoomRequest
+    ): RoomResultResponse
 }
