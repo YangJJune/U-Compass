@@ -148,7 +148,7 @@ class RoomViewModel @Inject constructor(
                 )
             } else {
                 getDeviceIdUseCase().collect {
-                    _deviceId.value = it
+                    _deviceId.value = it!!
                     leaveRoomUseCase(
                         deviceId = _deviceId.value,
                         roomId = _uiState.value.roomId

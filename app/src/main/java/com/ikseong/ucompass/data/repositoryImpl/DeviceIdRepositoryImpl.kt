@@ -1,29 +1,21 @@
 package com.ikseong.ucompass.data.repositoryImpl
 
-import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.stringPreferencesKey
+import com.ikseong.ucompass.data.local.DeviceIdDao
+import com.ikseong.ucompass.data.local.DeviceIdEntity
 import com.ikseong.ucompass.data.repository.DeviceIdRepository
-import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class DeviceIdRepositoryImpl @Inject constructor(
-    private val dataStore: DataStore<Preferences>
+    private val deviceIdDao: DeviceIdDao
 ) : DeviceIdRepository {
 
-    private companion object {
-        private val DEVICE_ID = stringPreferencesKey("device_id")
-    }
-
-    override suspend fun getDeviceId() =
-        dataStore.data.map { preferences ->
-            preferences[DEVICE_ID] ?: ""
-        }
+    override fun getDeviceId() = deviceIdDao.getDeviceId()
 
     override suspend fun setDeviceId(deviceId: String) {
-        dataStore.edit { preferences ->
-            preferences[DEVICE_ID] ?: run { preferences[DEVICE_ID] = deviceId }
+        getDeviceId().collect {
+            it ?: run {
+                deviceIdDao.saveDeviceId(DeviceIdEntity(id = 0, deviceId = deviceId))
+            }
         }
     }
 }

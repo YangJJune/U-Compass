@@ -92,7 +92,7 @@ class MainViewModel @Inject constructor(
                 )
             } else {
                 getDeviceIdUseCase().collect {
-                    _deviceId.value = it
+                    _deviceId.value = it!!
                     leaveRoomUseCase(
                         deviceId = "",
                         roomId = room.roomId

@@ -8,5 +8,5 @@ import javax.inject.Singleton
 class GetDeviceIdUseCase @Inject constructor(
     private val repository: DeviceIdRepository,
 ) {
-    suspend operator fun invoke() = repository.getDeviceId()
+    operator fun invoke() = repository.getDeviceId()
 }
