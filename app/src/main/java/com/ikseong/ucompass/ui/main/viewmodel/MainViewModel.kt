@@ -3,7 +3,9 @@ package com.ikseong.ucompass.ui.main.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ikseong.ucompass.domain.DeleteRoomUseCase
 import com.ikseong.ucompass.domain.GetRoomListUseCase
+import com.ikseong.ucompass.domain.LeaveRoomUseCase
 import com.ikseong.ucompass.mapper.toRoomInfo
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.toPersistentList
@@ -17,7 +19,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
-    private val getRoomListUseCase: GetRoomListUseCase
+    private val getRoomListUseCase: GetRoomListUseCase,
+    private val deleteRoomUseCase: DeleteRoomUseCase,
+    private val leaveRoomUseCase: LeaveRoomUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(MainUiState.dummyDataState)
@@ -68,15 +72,35 @@ class MainViewModel @Inject constructor(
     }
 
     private fun performRoomAction(room: RoomInfo, isHost: Boolean) {
-        _uiState.update {
-            it.copy(roomList = it.roomList.remove(room))
-        }
-        if (isHost) {
-            // TODO : 방 삭제 API
-        } else {
-            // TODO : 방 나가기 API
-        }
+        viewModelScope.launch {
+            if (isHost) {
+                deleteRoomUseCase(room.roomId.toInt()).fold(
+                    onSuccess = {
+                        _uiState.update {
+                            it.copy(roomList = it.roomList.remove(room))
+                        }
+                    },
+                    onFailure = {
+                        Log.e("performRoomAction", it.message.toString())
+                    }
+                )
+            } else {
+                leaveRoomUseCase(
+                    deviceId = "",
+                    roomId = room.roomId
+                ).fold(
+                    onSuccess = {
+                        _uiState.update {
+                            it.copy(roomList = it.roomList.remove(room))
+                        }
+                    },
+                    onFailure = {
+                        Log.e("performRoomAction", it.message.toString())
+                    }
+                )
+            }
 
+        }
     }
 
     private fun setLocationPermissionDialogVisible(flag: Boolean) {
