@@ -23,7 +23,7 @@ class DeviceIdRepositoryImpl @Inject constructor(
 
     override suspend fun setDeviceId(deviceId: String) {
         dataStore.edit { preferences ->
-            preferences[DEVICE_ID] = deviceId
+            preferences[DEVICE_ID] ?: run { preferences[DEVICE_ID] = deviceId }
         }
     }
 }

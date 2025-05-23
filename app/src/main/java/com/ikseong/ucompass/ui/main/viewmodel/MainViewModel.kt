@@ -7,6 +7,7 @@ import com.ikseong.ucompass.domain.DeleteRoomUseCase
 import com.ikseong.ucompass.domain.GetDeviceIdUseCase
 import com.ikseong.ucompass.domain.GetRoomListUseCase
 import com.ikseong.ucompass.domain.LeaveRoomUseCase
+import com.ikseong.ucompass.domain.SaveDeviceIdUseCase
 import com.ikseong.ucompass.mapper.toRoomInfo
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.collections.immutable.toPersistentList
@@ -24,6 +25,7 @@ class MainViewModel @Inject constructor(
     private val deleteRoomUseCase: DeleteRoomUseCase,
     private val leaveRoomUseCase: LeaveRoomUseCase,
     private val getDeviceIdUseCase: GetDeviceIdUseCase,
+    private val saveDeviceIdUseCase: SaveDeviceIdUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(MainUiState.dummyDataState)
