@@ -1,9 +1,12 @@
 package com.ikseong.ucompass.data.repositoryImpl
 
 import com.ikseong.ucompass.data.network.request.CreateRoomRequest
+import com.ikseong.ucompass.data.network.request.JoinRoomRequest
+import com.ikseong.ucompass.data.network.request.LeaveRoomRequest
 import com.ikseong.ucompass.data.network.response.CreateRoomResponse
 import com.ikseong.ucompass.data.network.response.RoomItemResponse
 import com.ikseong.ucompass.data.network.response.RoomListResponse
+import com.ikseong.ucompass.data.network.response.RoomResultResponse
 import com.ikseong.ucompass.data.network.service.UCompassService
 import com.ikseong.ucompass.data.repository.UCompassRepository
 import javax.inject.Inject
@@ -34,6 +37,14 @@ class UCompassRepositoryImpl @Inject constructor(
 
     override suspend fun deleteRoom(id: Int): Result<Unit> = runCatching {
         service.deleteRoom(roomId = id)
+    }
+
+    override suspend fun joinRoom(request: JoinRoomRequest): Result<RoomResultResponse> = runCatching {
+        service.joinRoom(request = request)
+    }
+
+    override suspend fun leaveRoom(request: LeaveRoomRequest): Result<RoomResultResponse> = runCatching {
+        service.leaveRoom(request = request)
     }
 
 }
