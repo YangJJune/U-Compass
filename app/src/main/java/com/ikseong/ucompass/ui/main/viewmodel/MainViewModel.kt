@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ikseong.ucompass.domain.DeleteRoomUseCase
+import com.ikseong.ucompass.domain.GetDeviceIdUseCase
 import com.ikseong.ucompass.domain.GetRoomListUseCase
 import com.ikseong.ucompass.domain.LeaveRoomUseCase
 import com.ikseong.ucompass.mapper.toRoomInfo
@@ -21,7 +22,8 @@ import javax.inject.Inject
 class MainViewModel @Inject constructor(
     private val getRoomListUseCase: GetRoomListUseCase,
     private val deleteRoomUseCase: DeleteRoomUseCase,
-    private val leaveRoomUseCase: LeaveRoomUseCase
+    private val leaveRoomUseCase: LeaveRoomUseCase,
+    private val getDeviceIdUseCase: GetDeviceIdUseCase,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(MainUiState.dummyDataState)
@@ -29,6 +31,8 @@ class MainViewModel @Inject constructor(
 
     private val _uiEvent = Channel<MainUiEvent>()
     val uiEvent = _uiEvent.receiveAsFlow()
+
+    private val _deviceId = MutableStateFlow("")
 
     fun onMainUiAction(action: MainUiAction) {
         when (action) {
@@ -85,21 +89,23 @@ class MainViewModel @Inject constructor(
                     }
                 )
             } else {
-                leaveRoomUseCase(
-                    deviceId = "",
-                    roomId = room.roomId
-                ).fold(
-                    onSuccess = {
-                        _uiState.update {
-                            it.copy(roomList = it.roomList.remove(room))
+                getDeviceIdUseCase().collect {
+                    _deviceId.value = it
+                    leaveRoomUseCase(
+                        deviceId = "",
+                        roomId = room.roomId
+                    ).fold(
+                        onSuccess = {
+                            _uiState.update {
+                                it.copy(roomList = it.roomList.remove(room))
+                            }
+                        },
+                        onFailure = {
+                            Log.e("performRoomAction", it.message.toString())
                         }
-                    },
-                    onFailure = {
-                        Log.e("performRoomAction", it.message.toString())
-                    }
-                )
+                    )
+                }
             }
-
         }
     }
 

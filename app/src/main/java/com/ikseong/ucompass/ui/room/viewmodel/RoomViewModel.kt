@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ikseong.ucompass.domain.DeleteRoomUseCase
+import com.ikseong.ucompass.domain.GetDeviceIdUseCase
 import com.ikseong.ucompass.domain.GetRoomItemUseCase
 import com.ikseong.ucompass.domain.LeaveRoomUseCase
 import com.ikseong.ucompass.ui.model.ParticipantInfo
@@ -22,7 +23,8 @@ import javax.inject.Inject
 class RoomViewModel @Inject constructor(
     private val getRoomItemUseCase: GetRoomItemUseCase,
     private val deleteRoomUseCase: DeleteRoomUseCase,
-    private val leaveRoomUseCase: LeaveRoomUseCase
+    private val leaveRoomUseCase: LeaveRoomUseCase,
+    private val getDeviceIdUseCase: GetDeviceIdUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(RoomUiState())
@@ -30,6 +32,8 @@ class RoomViewModel @Inject constructor(
 
     private val _uiEvent = Channel<RoomUiEvent>()
     val uiEvent = _uiEvent.receiveAsFlow()
+
+    private val _deviceId = MutableStateFlow("")
 
     // 현재 위치 정보
     private val _currentLocation = MutableStateFlow<LatLng?>(null)
@@ -143,23 +147,24 @@ class RoomViewModel @Inject constructor(
                     }
                 )
             } else {
-                leaveRoomUseCase(
-                    deviceId = "",
-                    roomId = _uiState.value.roomId
-                ).fold(
-                    onSuccess = {
-                        Log.d("RoomViewModel", "deleteRoom: $it")
-                        setRoomDeleteDialogVisible(false)
-                        _uiEvent.send(RoomUiEvent.NavigateToBack)
-                    },
-                    onFailure = {
-                        Log.e("RoomViewModel", "deleteRoom: $it")
-                    }
-                )
+                getDeviceIdUseCase().collect {
+                    _deviceId.value = it
+                    leaveRoomUseCase(
+                        deviceId = _deviceId.value,
+                        roomId = _uiState.value.roomId
+                    ).fold(
+                        onSuccess = {
+                            Log.d("RoomViewModel", "deleteRoom: $it")
+                            setRoomDeleteDialogVisible(false)
+                            _uiEvent.send(RoomUiEvent.NavigateToBack)
+                        },
+                        onFailure = {
+                            Log.e("RoomViewModel", "deleteRoom: $it")
+                        }
+                    )
+                }
             }
-
         }
-
     }
 
     private fun setRoomDeleteDialogVisible(flag: Boolean) {
