@@ -19,7 +19,7 @@ interface UCompassService {
     suspend fun getRootApi(): RootResponse
 
     @GET("/rooms")
-    suspend fun getRoomList(): RoomListResponse
+    suspend fun getRoomList(): List<RoomListResponse>
 
     @GET("/room/{room_id}")
     suspend fun getRoomItem(

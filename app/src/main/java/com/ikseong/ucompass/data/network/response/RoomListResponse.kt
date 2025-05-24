@@ -1,13 +1,11 @@
 package com.ikseong.ucompass.data.network.response
 
 
-import com.ikseong.ucompass.data.network.response.RoomListResponse.RoomListResponseItem
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-class RoomListResponse : ArrayList<RoomListResponseItem>(){
-    @Serializable
-    data class RoomListResponseItem(
+@Serializable
+data class RoomListResponse(
         @SerialName("creator")
         val creator: String,
         @SerialName("id")
@@ -17,4 +15,3 @@ class RoomListResponse : ArrayList<RoomListResponseItem>(){
         @SerialName("title")
         val title: String
     )
-}

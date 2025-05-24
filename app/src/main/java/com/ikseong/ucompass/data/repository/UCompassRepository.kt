@@ -12,7 +12,7 @@ import com.ikseong.ucompass.data.network.response.RootResponse
 interface UCompassRepository {
     suspend fun getRootApi(): Result<RootResponse>
 
-    suspend fun getRoomList(): Result<List<RoomListResponse.RoomListResponseItem>>
+    suspend fun getRoomList(): Result<List<RoomListResponse>>
 
     suspend fun getRoomItem(id: Long): Result<RoomItemResponse>
 

@@ -18,7 +18,7 @@ class UCompassRepositoryImpl @Inject constructor(
         service.getRootApi()
     }
 
-    override suspend fun getRoomList(): Result<List<RoomListResponse.RoomListResponseItem>> =
+    override suspend fun getRoomList(): Result<List<RoomListResponse>> =
         runCatching {
             service.getRoomList()
         }

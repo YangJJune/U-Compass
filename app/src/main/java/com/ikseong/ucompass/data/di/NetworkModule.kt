@@ -10,7 +10,6 @@ import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
-import retrofit2.Converter
 import retrofit2.Retrofit
 import javax.inject.Singleton
 
@@ -41,21 +40,24 @@ object NetworkModule {
         .addInterceptor(loggingInterceptor)
         .build()
 
-    @Provides
-    @Singleton
-    fun providesConverterFactory(
-        json: Json
-    ): Converter.Factory =
-        json.asConverterFactory("application/json".toMediaType())
+//    @Provides
+//    @Singleton
+//    fun providesConverterFactory(
+//        json: Json
+//    ): Converter.Factory =
+//        json.asConverterFactory("application/json".toMediaType())
 
     @Provides
     @Singleton
     fun providesRetrofit(
         client: OkHttpClient,
-        converterFactory: Converter.Factory
+        json: Json,
+//        converterFactory: Converter.Factory
     ): Retrofit = Retrofit.Builder()
         .baseUrl(BuildConfig.BASE_URL)
         .client(client)
-        .addConverterFactory(converterFactory)
+        .addConverterFactory(
+            json.asConverterFactory("application/json".toMediaType())
+        )
         .build()
 }

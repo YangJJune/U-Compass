@@ -1,10 +1,10 @@
 package com.ikseong.ucompass.mapper
 
-import com.ikseong.ucompass.data.network.response.RoomListResponse.RoomListResponseItem
+import com.ikseong.ucompass.data.network.response.RoomListResponse
 import com.ikseong.ucompass.ui.main.viewmodel.RoomInfo
 import kotlinx.collections.immutable.toPersistentList
 
-fun RoomListResponseItem.toRoomInfo() =
+fun RoomListResponse.toRoomInfo() =
     RoomInfo(
         roomId = this.id,
         roomName = this.title,
