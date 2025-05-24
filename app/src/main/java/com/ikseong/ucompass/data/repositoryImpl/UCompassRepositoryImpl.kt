@@ -3,7 +3,7 @@ package com.ikseong.ucompass.data.repositoryImpl
 import com.ikseong.ucompass.data.network.request.CreateRoomRequest
 import com.ikseong.ucompass.data.network.request.JoinRoomRequest
 import com.ikseong.ucompass.data.network.request.LeaveRoomRequest
-import com.ikseong.ucompass.data.network.response.CreateRoomResponse
+import com.ikseong.ucompass.data.network.response.RoomDataResponse
 import com.ikseong.ucompass.data.network.response.RoomItemResponse
 import com.ikseong.ucompass.data.network.response.RoomListResponse
 import com.ikseong.ucompass.data.network.response.RoomResultResponse
@@ -30,7 +30,7 @@ class UCompassRepositoryImpl @Inject constructor(
 
     override suspend fun createRoom(
         request: CreateRoomRequest
-    ): Result<CreateRoomResponse> =
+    ): Result<RoomDataResponse> =
         runCatching {
             service.createRoom(request = request)
         }
@@ -39,12 +39,14 @@ class UCompassRepositoryImpl @Inject constructor(
         service.deleteRoom(roomId = id)
     }
 
-    override suspend fun joinRoom(request: JoinRoomRequest): Result<RoomResultResponse> = runCatching {
-        service.joinRoom(request = request)
-    }
+    override suspend fun joinRoom(request: JoinRoomRequest): Result<RoomResultResponse> =
+        runCatching {
+            service.joinRoom(request = request)
+        }
 
-    override suspend fun leaveRoom(request: LeaveRoomRequest): Result<RoomResultResponse> = runCatching {
-        service.leaveRoom(request = request)
-    }
+    override suspend fun leaveRoom(request: LeaveRoomRequest): Result<RoomResultResponse> =
+        runCatching {
+            service.leaveRoom(request = request)
+        }
 
 }

@@ -3,7 +3,7 @@ package com.ikseong.ucompass.data.network.service
 import com.ikseong.ucompass.data.network.request.CreateRoomRequest
 import com.ikseong.ucompass.data.network.request.JoinRoomRequest
 import com.ikseong.ucompass.data.network.request.LeaveRoomRequest
-import com.ikseong.ucompass.data.network.response.CreateRoomResponse
+import com.ikseong.ucompass.data.network.response.RoomDataResponse
 import com.ikseong.ucompass.data.network.response.RoomItemResponse
 import com.ikseong.ucompass.data.network.response.RoomListResponse
 import com.ikseong.ucompass.data.network.response.RoomResultResponse
@@ -26,10 +26,10 @@ interface UCompassService {
         @Path("room_id") roomId: Long
     ): RoomItemResponse
 
-    @POST("/room")
+    @POST("/room/create")
     suspend fun createRoom(
         @Body request: CreateRoomRequest
-    ): CreateRoomResponse
+    ): RoomDataResponse
 
     @DELETE("/room/{room_id}")
     suspend fun deleteRoom(

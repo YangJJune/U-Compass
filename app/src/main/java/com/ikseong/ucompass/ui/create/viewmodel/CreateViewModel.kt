@@ -10,6 +10,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -26,7 +27,7 @@ class CreateViewModel @Inject constructor(
 
     fun onCreateUiAction(action: CreateUiAction) {
         when (action) {
-            CreateUiAction.OnConfirmClick -> navigateToFinishScreen()
+            CreateUiAction.OnConfirmClick -> navigateToHomeScreen()
             CreateUiAction.OnCreateClick -> createRoom()
             CreateUiAction.OnShareClick -> shareRoomInfo()
             is CreateUiAction.UpdateTitleField -> updateTitle(action.text)
@@ -58,14 +59,18 @@ class CreateViewModel @Inject constructor(
     private fun createRoom() {
         viewModelScope.launch {
             val request = _uiState.value.toRequest(
-                // TODO : 유저 닉네임 가져오기
                 creator = "test"
             )
 
             createRoomUseCase(request).fold(
                 onSuccess = { data ->
                     Log.d("CreateViewModel", "createRoom: $data")
-                    navigateToHomeScreen()
+                    _uiState.update {
+                        it.copy(
+                            roomNumber = data.data
+                        )
+                    }
+                    navigateToFinishScreen()
                 },
                 onFailure = { error ->
                     Log.e("CreateViewModel", "createRoom: $error")

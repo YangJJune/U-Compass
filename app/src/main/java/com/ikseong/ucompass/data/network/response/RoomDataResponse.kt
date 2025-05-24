@@ -4,9 +4,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class CreateRoomResponse(
-    @SerialName("title")
-    val title: String,
-    @SerialName("creator")
-    val creator: String,
+data class RoomDataResponse(
+    @SerialName("data")
+    val data: Int,
 )
