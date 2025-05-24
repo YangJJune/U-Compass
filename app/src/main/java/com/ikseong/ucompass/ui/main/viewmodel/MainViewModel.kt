@@ -18,6 +18,8 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
@@ -36,6 +38,10 @@ class MainViewModel @Inject constructor(
 
     private val _deviceId = MutableStateFlow("")
 
+    init {
+        saveDeviceId()
+    }
+
     fun onMainUiAction(action: MainUiAction) {
         when (action) {
             MainUiAction.OnAddressClick -> setLocationPermissionDialogVisible(true)
@@ -50,6 +56,22 @@ class MainViewModel @Inject constructor(
             is MainUiAction.OnRoomClick -> navigateToRoom(action.id)
             is MainUiAction.OnRoomActionClick -> performRoomAction(action.room, action.isHost)
             MainUiAction.OnCreateRoomClick -> navigateToCreateRoom()
+        }
+    }
+
+    @OptIn(ExperimentalUuidApi::class)
+    private fun saveDeviceId() {
+        val uuid = Uuid.random().toString()
+
+        viewModelScope.launch {
+            saveDeviceIdUseCase(uuid)
+            getDeviceIdUseCase().collect { deviceId ->
+                if (deviceId != null) {
+                    _deviceId.value = deviceId
+                } else {
+                    _deviceId.value = uuid
+                }
+            }
         }
     }
 
@@ -94,7 +116,7 @@ class MainViewModel @Inject constructor(
                 getDeviceIdUseCase().collect {
                     _deviceId.value = it!!
                     leaveRoomUseCase(
-                        deviceId = "",
+                        deviceId = _deviceId.value,
                         roomId = room.roomId
                     ).fold(
                         onSuccess = {

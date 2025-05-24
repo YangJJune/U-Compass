@@ -130,6 +130,7 @@ fun MainScreen(
         Column(
             modifier = Modifier
                 .matchParentSize()
+                .padding(bottom = 75.dp)
         ) {
             UCompassLogo()
             Spacer(modifier = Modifier.height(12.dp))
