@@ -57,7 +57,11 @@ fun MainRoute(
     
     // 위치 권한 요청 상태
     val locationPermissionState = rememberPermissionState(Manifest.permission.ACCESS_FINE_LOCATION)
-    
+
+    LaunchedEffect(Unit) {
+        viewModel.fetchRoomList()
+    }
+
     // 앱 생명주기 관찰하여 위치 권한 요청 관리
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
@@ -126,6 +130,7 @@ fun MainScreen(
         Column(
             modifier = Modifier
                 .matchParentSize()
+                .padding(bottom = 75.dp)
         ) {
             UCompassLogo()
             Spacer(modifier = Modifier.height(12.dp))

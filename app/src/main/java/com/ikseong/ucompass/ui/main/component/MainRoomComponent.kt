@@ -301,7 +301,8 @@ private fun MainRoomListPreview() {
             RoomInfo(
                 hostName = "HostName1",
                 roomLink = "RoomLink1",
-                roomName = "RoomName1"
+                roomName = "RoomName1",
+                        isHost = true
             ),
             RoomInfo(
                 hostName = "HostName2",

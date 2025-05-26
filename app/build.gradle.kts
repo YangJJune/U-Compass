@@ -82,8 +82,6 @@ dependencies {
     implementation(libs.hilt.core)
     implementation(libs.hilt.navigation.compose)
     ksp(libs.hilt.android.compiler)
-    ksp(libs.hilt.compiler)
-    ksp(libs.hilt.manager)
 
     // Coil
     implementation(libs.coil.compose)
@@ -109,5 +107,10 @@ dependencies {
     implementation(libs.retrofit)
     implementation(libs.retrofit.kotlin.serialization.converter)
     implementation(libs.kotlinx.serialization.json)
+
+    // Room
+    implementation("androidx.room:room-runtime:2.7.1")
+    implementation("androidx.room:room-ktx:2.7.1")
+    ksp("androidx.room:room-compiler:2.7.1")
 
 }

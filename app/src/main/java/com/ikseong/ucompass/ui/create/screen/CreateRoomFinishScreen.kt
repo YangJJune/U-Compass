@@ -76,7 +76,7 @@ fun CreateRoomFinishScreen(
             CreateRoomFinishContent()
             CreateRoomStatus(
                 roomTitle = roomTitle,
-                copyLink = copyLink
+                copyLink = uiState.roomNumber.toString()
             )
         }
         Row(

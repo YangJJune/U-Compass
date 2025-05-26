@@ -1,7 +1,13 @@
 package com.ikseong.ucompass.ui.room.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ikseong.ucompass.domain.DeleteRoomUseCase
+import com.ikseong.ucompass.domain.GetDeviceIdUseCase
+import com.ikseong.ucompass.domain.GetRoomItemUseCase
+import com.ikseong.ucompass.domain.LeaveRoomUseCase
+import com.ikseong.ucompass.ui.model.ParticipantInfo
 import com.ikseong.ucompass.ui.util.LocationUtil
 import com.naver.maps.geometry.LatLng
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -14,13 +20,20 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class RoomViewModel @Inject constructor() : ViewModel() {
+class RoomViewModel @Inject constructor(
+    private val getRoomItemUseCase: GetRoomItemUseCase,
+    private val deleteRoomUseCase: DeleteRoomUseCase,
+    private val leaveRoomUseCase: LeaveRoomUseCase,
+    private val getDeviceIdUseCase: GetDeviceIdUseCase
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(RoomUiState())
     val uiState = _uiState.asStateFlow()
 
     private val _uiEvent = Channel<RoomUiEvent>()
     val uiEvent = _uiEvent.receiveAsFlow()
+
+    private val _deviceId = MutableStateFlow("")
 
     // 현재 위치 정보
     private val _currentLocation = MutableStateFlow<LatLng?>(null)
@@ -46,16 +59,17 @@ class RoomViewModel @Inject constructor() : ViewModel() {
         _currentLocation.value = location
         updateParticipantsDistanceAndDirection(location)
     }
-    
+
     // 참가자들의 거리와 방향 업데이트
     private fun updateParticipantsDistanceAndDirection(currentLatLng: LatLng) {
         val updatedParticipants = _uiState.value.participantInfo.map { participant ->
             // 참가자의 위치 정보가 있을 경우에만 계산
             if (participant.latitude != 0.0 && participant.longitude != 0.0) {
                 val participantLatLng = LatLng(participant.latitude, participant.longitude)
-                val distance = LocationUtil.calculateDistanceInMeters(currentLatLng, participantLatLng)
+                val distance =
+                    LocationUtil.calculateDistanceInMeters(currentLatLng, participantLatLng)
                 val direction = LocationUtil.calculateDirection(currentLatLng, participantLatLng)
-                
+
                 participant.copy(
                     direction = direction,
                     distance = distance
@@ -64,7 +78,7 @@ class RoomViewModel @Inject constructor() : ViewModel() {
                 participant
             }
         }
-        
+
         _uiState.update { currentState ->
             currentState.copy(participantInfo = updatedParticipants)
         }
@@ -120,13 +134,65 @@ class RoomViewModel @Inject constructor() : ViewModel() {
     }
 
     private fun deleteRoom() {
-        // TODO : isHost 에 따라 방 나가기/삭제하기 API
-        setRoomDeleteDialogVisible(false)
+        viewModelScope.launch {
+            if (_uiState.value.isHost) {
+                deleteRoomUseCase(_uiState.value.roomId.toInt()).fold(
+                    onSuccess = {
+                        Log.d("RoomViewModel", "deleteRoom: $it")
+                        setRoomDeleteDialogVisible(false)
+                        _uiEvent.send(RoomUiEvent.NavigateToBack)
+                    },
+                    onFailure = {
+                        Log.e("RoomViewModel", "deleteRoom: $it")
+                    }
+                )
+            } else {
+                getDeviceIdUseCase().collect {
+                    _deviceId.value = it!!
+                    leaveRoomUseCase(
+                        deviceId = _deviceId.value,
+                        roomId = _uiState.value.roomId
+                    ).fold(
+                        onSuccess = {
+                            Log.d("RoomViewModel", "deleteRoom: $it")
+                            setRoomDeleteDialogVisible(false)
+                            _uiEvent.send(RoomUiEvent.NavigateToBack)
+                        },
+                        onFailure = {
+                            Log.e("RoomViewModel", "deleteRoom: $it")
+                        }
+                    )
+                }
+            }
+        }
     }
 
     private fun setRoomDeleteDialogVisible(flag: Boolean) {
         _uiState.update {
             it.copy(isRoomDeleteDialogVisible = flag)
+        }
+    }
+
+    fun getRoomItem(roomId: Long) {
+        viewModelScope.launch {
+            getRoomItemUseCase(roomId).fold(
+                onSuccess = { data ->
+                    _uiState.update {
+                        it.copy(
+                            roomId = data.id,
+                            roomName = data.title,
+                            participantInfo = data.participants.map { participantName ->
+                                ParticipantInfo(
+                                    name = participantName,
+                                )
+                            }
+                        )
+                    }
+                },
+                onFailure = {
+                    Log.e("getRoomItem", it.message.toString())
+                }
+            )
         }
     }
 }

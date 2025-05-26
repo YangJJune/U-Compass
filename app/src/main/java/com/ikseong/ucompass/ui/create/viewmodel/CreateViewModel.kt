@@ -1,20 +1,22 @@
 package com.ikseong.ucompass.ui.create.viewmodel
 
-import android.content.Context
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ikseong.ucompass.domain.CreateRoomUseCase
+import com.ikseong.ucompass.mapper.toRequest
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import javax.inject.Inject
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @HiltViewModel
 class CreateViewModel @Inject constructor(
-    @ApplicationContext private val context: Context
+    private val createRoomUseCase: CreateRoomUseCase,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CreateUiState())
@@ -23,12 +25,12 @@ class CreateViewModel @Inject constructor(
     private val _uiEvent = Channel<CreateUiEvent>()
     val uiEvent = _uiEvent.receiveAsFlow()
 
-    fun onCreateUiAction(action: com.ikseong.ucompass.ui.create.viewmodel.CreateUiAction) {
+    fun onCreateUiAction(action: CreateUiAction) {
         when (action) {
-            com.ikseong.ucompass.ui.create.viewmodel.CreateUiAction.OnConfirmClick -> navigateToFinishScreen()
-            com.ikseong.ucompass.ui.create.viewmodel.CreateUiAction.OnCreateClick -> navigateToHomeScreen()
-            com.ikseong.ucompass.ui.create.viewmodel.CreateUiAction.OnShareClick -> shareRoomInfo()
-            is com.ikseong.ucompass.ui.create.viewmodel.CreateUiAction.UpdateTitleField -> updateTitle(action.text)
+            CreateUiAction.OnConfirmClick -> navigateToHomeScreen()
+            CreateUiAction.OnCreateClick -> createRoom()
+            CreateUiAction.OnShareClick -> shareRoomInfo()
+            is CreateUiAction.UpdateTitleField -> updateTitle(action.text)
         }
     }
 
@@ -54,6 +56,28 @@ class CreateViewModel @Inject constructor(
         }
     }
 
+    private fun createRoom() {
+        viewModelScope.launch {
+            val request = _uiState.value.toRequest(
+                creator = "test"
+            )
+
+            createRoomUseCase(request).fold(
+                onSuccess = { data ->
+                    Log.d("CreateViewModel", "createRoom: $data")
+                    _uiState.update {
+                        it.copy(
+                            roomNumber = data.data
+                        )
+                    }
+                    navigateToFinishScreen()
+                },
+                onFailure = { error ->
+                    Log.e("CreateViewModel", "createRoom: $error")
+                }
+            )
+        }
+    }
 
 }
 

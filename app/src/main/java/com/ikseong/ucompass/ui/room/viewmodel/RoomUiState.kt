@@ -5,7 +5,7 @@ import com.ikseong.ucompass.ui.model.ParticipantInfo
 
 data class RoomUiState(
     val address: String = "서울특별시 장안동",
-    val roomId: String = "",
+    val roomId: Long = 0L,
     val roomName: String = "위치 찾기 방1",
     val participantInfo: List<ParticipantInfo> = listOf(
         ParticipantInfo(

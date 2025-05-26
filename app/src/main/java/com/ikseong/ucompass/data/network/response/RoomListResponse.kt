@@ -1,0 +1,17 @@
+package com.ikseong.ucompass.data.network.response
+
+
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class RoomListResponse(
+        @SerialName("creator")
+        val creator: String,
+        @SerialName("id")
+        val id: Long,
+        @SerialName("participants")
+        val participants: List<String>,
+        @SerialName("title")
+        val title: String
+    )
