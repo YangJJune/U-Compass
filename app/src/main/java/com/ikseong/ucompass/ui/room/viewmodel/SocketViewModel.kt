@@ -9,6 +9,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -18,12 +19,15 @@ class SocketViewModel @Inject constructor(
 ) : ViewModel() {
     private val _locationData = MutableStateFlow<Map<String, UserLocation>>(emptyMap())
     val locationData: StateFlow<Map<String, UserLocation>> = _locationData
+
     fun getLocationData() {
         viewModelScope.launch {
-            socketRepository.locationDto.collect { dto ->
-                _locationData.update { current ->
-                    //위치 갱신 및 유저 위치 추가
-                    current + (dto.deviceId to UserLocation(dto.lat, dto.lng))
+            while (isActive) {
+                socketRepository.flowConnect().collect { dto ->
+                    _locationData.update { current ->
+                        //위치 갱신 및 유저 위치 추가
+                        current + (dto.deviceId to UserLocation(dto.lat, dto.lng))
+                    }
                 }
             }
         }
