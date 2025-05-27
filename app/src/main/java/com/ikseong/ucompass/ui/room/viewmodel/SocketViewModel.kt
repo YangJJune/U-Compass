@@ -6,6 +6,9 @@ import androidx.lifecycle.viewModelScope
 import com.ikseong.ucompass.data.socket.repository.SocketRepository
 import com.ikseong.ucompass.data.socket.repository.UserLocation
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -13,14 +16,14 @@ import javax.inject.Inject
 class SocketViewModel @Inject constructor(
     private val socketRepository: SocketRepository
 ) : ViewModel() {
-
-    val data: MutableMap<String, UserLocation> = mutableMapOf()
+    private val _locationData = MutableStateFlow<Map<String, UserLocation>>(emptyMap())
+    val locationData: StateFlow<Map<String, UserLocation>> = _locationData
     fun getLocationData() {
         viewModelScope.launch {
-            //구독
             socketRepository.locationDto.collect { dto ->
-                if(!data.containsKey(dto.deviceId)){
-                    data.set(dto.deviceId, UserLocation(dto.lat,dto.lng))
+                _locationData.update { current ->
+                    //위치 갱신 및 유저 위치 추가
+                    current + (dto.deviceId to UserLocation(dto.lat, dto.lng))
                 }
             }
         }

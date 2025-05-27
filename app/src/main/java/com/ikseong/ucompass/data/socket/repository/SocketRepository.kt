@@ -30,7 +30,6 @@ class SocketRepository @Inject constructor() {
     // 데이터 받는 로직
     fun connect () {
         try {
-            Log.i("Socket",BuildConfig.HOST + BuildConfig.PORT.toString())
             socket = Socket(BuildConfig.HOST, BuildConfig.PORT)
             writer = PrintWriter(OutputStreamWriter(socket!!.getOutputStream()), true)
             reader = BufferedReader(InputStreamReader(socket!!.getInputStream()))
