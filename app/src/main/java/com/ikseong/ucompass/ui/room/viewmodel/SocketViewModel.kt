@@ -22,8 +22,9 @@ class SocketViewModel @Inject constructor(
 
     fun getLocationData() {
         viewModelScope.launch {
+            socketRepository.flowConnect()
             while (isActive) {
-                socketRepository.flowConnect().collect { dto ->
+                socketRepository.startReceiving().collect { dto ->
                     _locationData.update { current ->
                         //위치 갱신 및 유저 위치 추가
                         current + (dto.deviceId to UserLocation(dto.lat, dto.lng))

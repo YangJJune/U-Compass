@@ -12,7 +12,7 @@ data class SocketLocationReceiveDto(
     @SerialName("lng")
     val lng: Double
 ) {
-    private companion object {
+    companion object {
         const val JSON_LOCATION_RECEIVE = "location_broadcast"
     }
 }

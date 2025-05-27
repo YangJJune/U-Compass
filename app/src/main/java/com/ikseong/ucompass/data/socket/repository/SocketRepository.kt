@@ -1,8 +1,10 @@
 package com.ikseong.ucompass.data.socket.repository
 
 import android.util.Log
+import androidx.core.app.PendingIntentCompat.send
 import com.ikseong.ucompass.BuildConfig
 import com.ikseong.ucompass.data.network.socket.receive.SocketLocationReceiveDto
+import com.ikseong.ucompass.data.network.socket.receive.SocketLocationReceiveDto.Companion.JSON_LOCATION_RECEIVE
 import com.ikseong.ucompass.data.network.socket.write.SocketLocationWriteDto
 import com.ikseong.ucompass.data.network.socket.write.SocketLoginDto
 import kotlinx.coroutines.CoroutineScope
@@ -76,30 +78,29 @@ class SocketRepository @Inject constructor() {
         }
     }
 
-    fun flowConnect() = flow {
-//        mLocationDto = SocketLocationReceiveDto()
+    fun flowConnect() {
+        socket = Socket(BuildConfig.HOST, BuildConfig.PORT)
+        writer = PrintWriter(OutputStreamWriter(socket!!.getOutputStream()), true)
+        reader = BufferedReader(InputStreamReader(socket!!.getInputStream()))
+    }
+
+    fun startReceiving() = flow {
         try {
-            socket = Socket(BuildConfig.HOST, BuildConfig.PORT)
-            writer = PrintWriter(OutputStreamWriter(socket!!.getOutputStream()), true)
-            reader = BufferedReader(InputStreamReader(socket!!.getInputStream()))
+            if (!isConnected()) {
+                socket = Socket(BuildConfig.HOST, BuildConfig.PORT)
+                writer = PrintWriter(OutputStreamWriter(socket!!.getOutputStream()), true)
+                reader = BufferedReader(InputStreamReader(socket!!.getInputStream()))
+            }
 
             // 수신 루프 시작
             val line = reader?.readLine() ?: return@flow
             try {
-                val _json = JSONObject(line)
-                if (_json.has("type")) {
-                    when (_json.getString("type")) {
-                        "location_broadcast" -> {
-                            val dto = SocketLocationReceiveDto(
-                                deviceId = _json.getString("user_id"),
-                                lat = _json.getDouble("lat"),
-                                lng = _json.getDouble("lng")
-                            )
-                            _locationDto.emit(dto)
-                            emit(SocketLocationReceiveDto(deviceId = "1", lat = 1.0, lng = 1.0))
-                        }
-                        // 다른 타입들 처리
-                    }
+                val dto = Json.decodeFromString<SocketLocationReceiveDto>(line)
+
+                if (dto.type == JSON_LOCATION_RECEIVE) {
+                    emit(dto)
+                } else {
+                    return@flow
                 }
                 //type에 따라 처리
             } catch (e: Exception) {
