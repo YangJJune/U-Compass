@@ -35,49 +35,6 @@ class SocketRepository @Inject constructor() {
     private var receiveJob: Job? = null
     private val json = Json { encodeDefaults = true }
 
-    private val _locationDto = MutableSharedFlow<SocketLocationReceiveDto>()
-    val locationDto: SharedFlow<SocketLocationReceiveDto> = _locationDto
-
-    // 연결하는 로직
-    // 데이터 받는 로직
-    fun connect() {
-        try {
-            socket = Socket(BuildConfig.HOST, BuildConfig.PORT)
-            writer = PrintWriter(OutputStreamWriter(socket!!.getOutputStream()), true)
-            reader = BufferedReader(InputStreamReader(socket!!.getInputStream()))
-
-            // 수신 루프 시작
-            receiveJob = CoroutineScope(Dispatchers.IO).launch {
-                while (isActive) {
-                    val line = reader?.readLine() ?: break
-                    try {
-                        val _json = JSONObject(line)
-                        if (_json.has("type")) {
-                            when (_json.getString("type")) {
-                                "location_broadcast" -> {
-                                    val dto = SocketLocationReceiveDto(
-                                        deviceId = _json.getString("user_id"),
-                                        lat = _json.getDouble("lat"),
-                                        lng = _json.getDouble("lng")
-                                    )
-                                    _locationDto.emit(dto)
-                                }
-                                // 다른 타입들 처리
-                            }
-                        }
-                        //type에 따라 처리
-                    } catch (e: Exception) {
-                        Log.e("Socket", "JSON 파싱 오류: ${e.message}")
-                    }
-                }
-            }
-
-        } catch (e: Exception) {
-            Log.e("Socket", "서버 연결 실패: ${e.message}")
-            disconnect()
-        }
-    }
-
     fun flowConnect() {
         socket = Socket(BuildConfig.HOST, BuildConfig.PORT)
         writer = PrintWriter(OutputStreamWriter(socket!!.getOutputStream()), true)
