@@ -33,4 +33,9 @@ class SocketViewModel @Inject constructor(
             }
         }
     }
+
+    override fun onCleared() {
+        super.onCleared()
+        socketRepository.disconnect()
+    }
 }
