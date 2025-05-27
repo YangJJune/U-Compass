@@ -30,6 +30,8 @@ android {
         manifestPlaceholders["NAVER_MAP_CLIENT_ID"] = properties["NAVER_MAP_CLIENT_ID"].toString()
         // BASE URL
         buildConfigField("String", "BASE_URL", properties["BASE_URL"].toString())
+        buildConfigField("String", "HOST", properties["HOST"].toString())
+        buildConfigField("int", "PORT", properties["PORT"].toString())
     }
 
     buildTypes {

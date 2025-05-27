@@ -1,22 +1,37 @@
+package com.ikseong.ucompass.data.socket.repository
+
 import android.util.Log
+import com.ikseong.ucompass.BuildConfig
+import com.ikseong.ucompass.data.network.socket.receive.SocketLocationReceiveDto
+import com.ikseong.ucompass.data.network.socket.write.SocketLocationWriteDto
+import com.ikseong.ucompass.data.network.socket.write.SocketLoginDto
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.serialization.json.Json
 import org.json.JSONObject
 import java.io.*
 import java.net.Socket
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class SocketRepository(
-    private val host: String = "54.66.5.0",
-    private val port: Int = 9000,
-    private val onReceive: (JSONObject) -> Unit = {}
-) {
+@Singleton
+class SocketRepository @Inject constructor() {
     private var socket: Socket? = null
     private var writer: PrintWriter? = null
     private var reader: BufferedReader? = null
     private var receiveJob: Job? = null
+    private val json = Json { encodeDefaults = true }
 
-    suspend fun connect() = withContext(Dispatchers.IO) {
+    private val _locationDto = MutableSharedFlow<SocketLocationReceiveDto>()
+    val locationDto: SharedFlow<SocketLocationReceiveDto> = _locationDto
+
+    // 연결하는 로직
+    // 데이터 받는 로직
+    fun connect () {
         try {
-            socket = Socket(host, port)
+            Log.i("Socket",BuildConfig.HOST + BuildConfig.PORT.toString())
+            socket = Socket(BuildConfig.HOST, BuildConfig.PORT)
             writer = PrintWriter(OutputStreamWriter(socket!!.getOutputStream()), true)
             reader = BufferedReader(InputStreamReader(socket!!.getInputStream()))
 
@@ -25,9 +40,21 @@ class SocketRepository(
                 while (isActive) {
                     val line = reader?.readLine() ?: break
                     try {
-                        val json = JSONObject(line)
-                        Log.d("Socket",json.toString())
-                        onReceive(json)
+                        val _json = JSONObject(line)
+                        if(_json.has("type")){
+                            when (_json.getString("type")) {
+                                "location_broadcast" -> {
+                                    val dto = SocketLocationReceiveDto(
+                                        deviceId = _json.getString("user_id"),
+                                        lat = _json.getDouble("lat"),
+                                        lng = _json.getDouble("lng")
+                                    )
+                                    _locationDto.emit(dto)
+                                }
+                                // 다른 타입들 처리
+                            }
+                        }
+                        //type에 따라 처리
                     } catch (e: Exception) {
                         Log.e("Socket","JSON 파싱 오류: ${e.message}")
                     }
@@ -40,26 +67,7 @@ class SocketRepository(
         }
     }
 
-    suspend fun login(userId: String, roomId: Int) {
-        val loginData = JSONObject()
-            .put("type", "login")
-            .put("user_id", userId)
-            .put("room_id", roomId)
-        send(loginData)
-    }
-
-    suspend fun sendLocation(lat: Double, lng: Double) {
-        val locationData = JSONObject()
-            .put("type", "location_update")
-            .put("lat", lat)
-            .put("lng", lng)
-        send(locationData)
-    }
-
-    private suspend fun send(json: JSONObject) = withContext(Dispatchers.IO) {
-        writer?.println(json.toString())
-    }
-
+    // 디스커넥트 로직
     fun disconnect() {
         receiveJob?.cancel()
         writer?.close()
@@ -73,4 +81,34 @@ class SocketRepository(
     fun isConnected(): Boolean {
         return socket?.isConnected == true && socket?.isClosed == false
     }
+
+    suspend fun login(userId: String, roomId: Int) {
+        val loginDto = SocketLoginDto(
+            userId = userId,
+            roomId = roomId
+        )
+        val loginData = JSONObject(
+            json.encodeToString(loginDto)
+        )
+
+        send(loginData)
+    }
+
+    suspend fun sendLocation(lat: Double, lng: Double) {
+
+        val locationWriteDto = SocketLocationWriteDto(
+            lat = lat,
+            lng = lng
+        )
+        val locationData = JSONObject(
+            json.encodeToString(locationWriteDto)
+        )
+        send(locationData)
+    }
+
+    private suspend fun send(json: JSONObject) = withContext(Dispatchers.IO) {
+        writer?.println(json.toString())
+    }
+
+
 }
