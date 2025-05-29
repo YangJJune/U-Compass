@@ -15,10 +15,8 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -27,11 +25,14 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.ikseong.ucompass.R
 import com.ikseong.ucompass.ui.common.component.UCompassButton
 import com.ikseong.ucompass.ui.common.component.UCompassLogo
 import com.ikseong.ucompass.ui.common.component.UCompassTextField
+import com.ikseong.ucompass.ui.onboarding.viewmodel.OnboardingViewModel
 import com.ikseong.ucompass.ui.theme.UCompassTheme.typography
 import com.ikseong.ucompass.ui.util.viewutil.noRippleClickable
 
@@ -39,30 +40,43 @@ import com.ikseong.ucompass.ui.util.viewutil.noRippleClickable
 fun OnboardingInputRoute(
     padding: PaddingValues,
     navigateToHome: () -> Unit,
+    viewModel: OnboardingViewModel = hiltViewModel()
 ) {
+
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(uiState.isSuccess) {
+        if (uiState.isSuccess) {
+            navigateToHome()
+        }
+    }
+
     OnboardingInsertScreen(
         padding = padding,
-        navigateToHome = navigateToHome
+        name = uiState.name,
+        email = uiState.email,
+        updateName = { viewModel.updateName(it) },
+        updateEmail = { viewModel.updateEmail(it) },
+        onInsertClick = { viewModel.saveName() }
     )
 }
 
 @Composable
 fun OnboardingInsertScreen(
     padding: PaddingValues,
-    navigateToHome: () -> Unit,
+    name: String = "",
+    email: String = "",
+    updateName: (String) -> Unit = { },
+    updateEmail: (String) -> Unit = { },
     profileImgUrl: String = "",
     onEditProfileImgClick: () -> Unit = { },
-    onInsertClick: (String, String) -> Unit = { name, email ->
-        navigateToHome()
-    }
+    onInsertClick: (String) -> Unit = { }
 ) {
-
-    var name by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
-            .fillMaxSize(),
+            .fillMaxSize()
+            .padding(padding),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(Modifier.weight(32f))
@@ -154,7 +168,7 @@ fun OnboardingInsertScreen(
                     color = Color(0x80000000)
                 ),
                 placeholder = "이름을 입력해주세요.",
-                onValueChange = { name = it }
+                onValueChange = { updateName(it) }
             )
             Text(
                 modifier = Modifier
@@ -176,7 +190,7 @@ fun OnboardingInsertScreen(
                     color = Color(0x80000000)
                 ),
                 placeholder = "이메일을 입력해주세요.",
-                onValueChange = { email = it }
+                onValueChange = { updateEmail(it) }
             )
         }
         Spacer(Modifier.weight(105f))
@@ -188,7 +202,7 @@ fun OnboardingInsertScreen(
             fontSize = 20.sp,
             color = Color(0xFF00E397),
             contentPadding = PaddingValues(vertical = 19.dp),
-        ) { onInsertClick(name, email) }
+        ) { onInsertClick(name) }
     }
 }
 
@@ -197,9 +211,5 @@ fun OnboardingInsertScreen(
 private fun OnboardingInsertScreenPreview() {
     OnboardingInsertScreen(
         padding = PaddingValues(0.dp),
-        navigateToHome = { },
-        profileImgUrl = "https://example.com/profile.jpg",
-        onEditProfileImgClick = { },
-        onInsertClick = { _, _ -> }
     )
 }
