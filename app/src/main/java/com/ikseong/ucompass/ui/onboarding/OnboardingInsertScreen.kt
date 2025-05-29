@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -11,6 +12,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -29,7 +32,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.ikseong.ucompass.R
-import com.ikseong.ucompass.ui.common.component.UCompassButton
 import com.ikseong.ucompass.ui.common.component.UCompassLogo
 import com.ikseong.ucompass.ui.common.component.UCompassTextField
 import com.ikseong.ucompass.ui.onboarding.viewmodel.OnboardingViewModel
@@ -194,15 +196,31 @@ fun OnboardingInsertScreen(
             )
         }
         Spacer(Modifier.weight(105f))
-        UCompassButton(
+
+        Button(
+            enabled = name.isBlank(),
+            onClick = { onInsertClick(name) },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(22.dp),
-            text = "등록하기",
-            fontSize = 20.sp,
-            color = Color(0xFF00E397),
-            contentPadding = PaddingValues(vertical = 19.dp),
-        ) { onInsertClick(name) }
+            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00E397)),
+            contentPadding = PaddingValues(vertical = 19.dp)
+        ) {
+            Row {
+                Icon(
+                    painter = painterResource(R.drawable.ic_add_user),
+                    contentDescription = "등록 아이콘",
+                    tint = Color.Unspecified
+                )
+                Text(
+                    text = "등록하기",
+                    color = Color.White,
+                    style = typography.semiBold.copy(
+                        fontSize = 20.sp
+                    )
+                )
+            }
+        }
     }
 }
 

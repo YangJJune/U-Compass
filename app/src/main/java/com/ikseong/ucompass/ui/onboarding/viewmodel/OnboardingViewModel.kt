@@ -1,14 +1,21 @@
 package com.ikseong.ucompass.ui.onboarding.viewmodel
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.ikseong.ucompass.domain.GetUserNameUseCase
+import com.ikseong.ucompass.domain.SaveUserNameUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class OnboardingViewModel @Inject constructor() : ViewModel(){
+class OnboardingViewModel @Inject constructor(
+    private val saveUserNameUseCase: SaveUserNameUseCase,
+    private val getUserNameUseCase: GetUserNameUseCase
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(OnboardingUiState())
     val uiState = _uiState.asStateFlow()
@@ -26,6 +33,8 @@ class OnboardingViewModel @Inject constructor() : ViewModel(){
     }
 
     fun saveName() {
-
+        viewModelScope.launch {
+            saveUserNameUseCase(uiState.value.name)
+        }
     }
 }
