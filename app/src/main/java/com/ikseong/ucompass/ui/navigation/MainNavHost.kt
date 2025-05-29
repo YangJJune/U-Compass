@@ -28,6 +28,11 @@ fun MainNavHost(
             OnboardingScreen(
                 padding = padding,
                 navigateToOnboardingInput = { navController.navigate(Routes.OnboardingInsert) },
+                navigateToHome = {
+                    navController.navigate(Routes.Home) {
+                        popUpTo(Routes.Home) { inclusive = true }
+                    }
+                }
             )
         }
         composable<Routes.OnboardingInsert> {

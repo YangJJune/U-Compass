@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -22,6 +23,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
@@ -29,13 +32,23 @@ import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.ikseong.ucompass.R
 import com.ikseong.ucompass.ui.common.component.UCompassButton
+import com.ikseong.ucompass.ui.onboarding.viewmodel.OnboardingViewModel
 import com.ikseong.ucompass.ui.theme.UCompassTheme.typography
 
 @Composable
 fun OnboardingScreen(
     padding: PaddingValues,
-    navigateToOnboardingInput: () -> Unit = { }
+    navigateToOnboardingInput: () -> Unit = { },
+    navigateToHome: () -> Unit = { },
+    viewModel: OnboardingViewModel = hiltViewModel()
 ) {
+    val hasUserName by viewModel.hasUserName.collectAsStateWithLifecycle()
+
+    LaunchedEffect(hasUserName) {
+        if (hasUserName) {
+            navigateToHome()
+        }
+    }
 
     val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.lottie))
     val progress by animateLottieCompositionAsState(
@@ -45,7 +58,9 @@ fun OnboardingScreen(
     )
 
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(padding),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(Modifier.weight(118f))

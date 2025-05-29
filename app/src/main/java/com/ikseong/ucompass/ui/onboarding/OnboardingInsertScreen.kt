@@ -35,7 +35,7 @@ import coil3.compose.AsyncImage
 import com.ikseong.ucompass.R
 import com.ikseong.ucompass.ui.common.component.UCompassLogo
 import com.ikseong.ucompass.ui.common.component.UCompassTextField
-import com.ikseong.ucompass.ui.onboarding.viewmodel.OnboardingViewModel
+import com.ikseong.ucompass.ui.onboarding.viewmodel.OnboardingInsertViewModel
 import com.ikseong.ucompass.ui.theme.UCompassTheme.typography
 import com.ikseong.ucompass.ui.util.viewutil.noRippleClickable
 
@@ -43,7 +43,7 @@ import com.ikseong.ucompass.ui.util.viewutil.noRippleClickable
 fun OnboardingInputRoute(
     padding: PaddingValues,
     navigateToHome: () -> Unit,
-    viewModel: OnboardingViewModel = hiltViewModel()
+    viewModel: OnboardingInsertViewModel = hiltViewModel()
 ) {
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
