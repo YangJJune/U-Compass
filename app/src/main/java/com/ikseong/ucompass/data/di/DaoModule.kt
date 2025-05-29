@@ -1,7 +1,7 @@
 package com.ikseong.ucompass.data.di
 
-import com.ikseong.ucompass.data.local.DeviceIdDao
-import com.ikseong.ucompass.data.local.DeviceIdDatabase
+import com.ikseong.ucompass.data.local.UserDao
+import com.ikseong.ucompass.data.local.UserDatabase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -12,5 +12,5 @@ import dagger.hilt.components.SingletonComponent
 object DaoModule {
 
     @Provides
-    fun provideDeviceIdDao(db: DeviceIdDatabase): DeviceIdDao = db.deviceIdDao()
+    fun provideDeviceIdDao(db: UserDatabase): UserDao = db.deviceIdDao()
 }

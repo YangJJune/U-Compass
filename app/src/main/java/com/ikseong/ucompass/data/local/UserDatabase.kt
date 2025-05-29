@@ -4,6 +4,6 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 
 @Database(entities = [DeviceIdEntity::class], version = 1)
-abstract class DeviceIdDatabase : RoomDatabase() {
-    abstract fun deviceIdDao(): DeviceIdDao
+abstract class UserDatabase : RoomDatabase() {
+    abstract fun deviceIdDao(): UserDao
 }

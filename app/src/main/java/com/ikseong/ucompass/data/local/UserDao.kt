@@ -7,7 +7,7 @@ import androidx.room.Query
 import kotlinx.coroutines.flow.Flow
 
 @Dao
-interface DeviceIdDao {
+interface UserDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun saveDeviceId(deviceId: DeviceIdEntity)

@@ -2,8 +2,7 @@ package com.ikseong.ucompass.data.di
 
 import android.content.Context
 import androidx.room.Room
-import com.ikseong.ucompass.data.local.DeviceIdDao
-import com.ikseong.ucompass.data.local.DeviceIdDatabase
+import com.ikseong.ucompass.data.local.UserDatabase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -17,10 +16,10 @@ object DatabaseModule {
 
     @Provides
     @Singleton
-    fun provideDatabase(@ApplicationContext context: Context): DeviceIdDatabase {
+    fun provideDatabase(@ApplicationContext context: Context): UserDatabase {
         return Room.databaseBuilder(
             context.applicationContext,
-            DeviceIdDatabase::class.java,
+            UserDatabase::class.java,
             "device_id_db"
         ).build()
     }
