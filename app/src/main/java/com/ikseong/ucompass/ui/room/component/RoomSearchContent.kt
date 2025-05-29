@@ -72,12 +72,13 @@ fun RoomSearchContent(
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Icon(
-                modifier = Modifier.size(80.dp),
-                painter = painterResource(id = R.drawable.ic_user_direction),
-                contentDescription = "User Direction",
-                tint = Color.Unspecified
-            )
+//            Icon(
+//                modifier = Modifier.size(80.dp),
+//                painter = painterResource(id = R.drawable.ic_user_direction),
+//                contentDescription = "User Direction",
+//                tint = Color.Unspecified
+//            )
+            Spacer(Modifier.size(80.dp))
             Spacer(modifier = Modifier.size(42.dp))
 
             Row(

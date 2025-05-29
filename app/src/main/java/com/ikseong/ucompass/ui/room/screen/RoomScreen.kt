@@ -56,7 +56,10 @@ import com.naver.maps.map.compose.MapUiSettings
 import com.naver.maps.map.compose.rememberCameraPositionState
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.launch
-
+import kotlin.math.asin
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.sin
 
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
@@ -145,6 +148,28 @@ fun RoomRoute(
 
 
 
+fun offsetLatLng(
+    origin: LatLng,
+    distanceMeter: Double,
+    angleDegrees: Float
+): LatLng {
+    val R = 6378137.0 // Earth radius (m)
+    val bearingRad = Math.toRadians(angleDegrees.toDouble())
+    val lat1 = Math.toRadians(origin.latitude)
+    val lon1 = Math.toRadians(origin.longitude)
+
+    val lat2 = asin(
+        sin(lat1) * cos(distanceMeter / R) +
+                cos(lat1) * sin(distanceMeter / R) * cos(bearingRad)
+    )
+
+    val lon2 = lon1 + atan2(
+        sin(bearingRad) * sin(distanceMeter / R) * cos(lat1),
+        cos(distanceMeter / R) - sin(lat1) * sin(lat2)
+    )
+
+    return LatLng(Math.toDegrees(lat2), Math.toDegrees(lon2))
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -169,18 +194,18 @@ fun RoomScreen(
     ) {
         if (uiState.isMapVisible && currentLocation != null) {
             // 기기 방향 각도의 반대 방향으로 지도 회전 (기기가 시계방향으로 회전하면 지도는 반시계방향으로)
-            val mapBearing = deviceOrientation.value
-            val cameraLocation = LatLng(
-                currentLocation.latitude + 0.00083,
-                currentLocation.longitude
+            
+            val offsetLatLng = offsetLatLng(
+                currentLocation,
+                -90.0, // 90m 위쪽으로 이동 = 내 위치를 아래에 보이게
+                (deviceOrientation.value + 180) % 360 // 반대방향 bearing
             )
-            // 현재 카메라 위치 유지하면서 베어링(회전)만 업데이트
+
             cameraPositionState.position = CameraPosition(
-                cameraLocation,
+                offsetLatLng,
                 17.0,
                 0.0,
-//                cameraPositionState.position.tilt,
-                mapBearing.toDouble()
+                deviceOrientation.value.toDouble()
             )
         }
     }

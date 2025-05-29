@@ -1,10 +1,11 @@
 package com.ikseong.ucompass.ui.common.component
 
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import com.ikseong.ucompass.R
 import com.naver.maps.geometry.LatLng
-import com.naver.maps.map.CameraPosition
 import com.naver.maps.map.compose.CameraPositionState
 import com.naver.maps.map.compose.ExperimentalNaverMapApi
 import com.naver.maps.map.compose.LocationTrackingMode
@@ -14,6 +15,7 @@ import com.naver.maps.map.compose.Marker
 import com.naver.maps.map.compose.MarkerState
 import com.naver.maps.map.compose.NaverMap
 import com.naver.maps.map.compose.rememberCameraPositionState
+import com.naver.maps.map.overlay.OverlayImage
 import kotlinx.collections.immutable.ImmutableList
 
 /**
@@ -49,7 +51,7 @@ fun NaverMapComponent(
     uiSettings: MapUiSettings = MapUiSettings(),
 ) {
     NaverMap(
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier.fillMaxWidth(),
         cameraPositionState = cameraPositionState,
         properties = MapProperties(
             isIndoorEnabled = true,
@@ -64,7 +66,10 @@ fun NaverMapComponent(
     ) {
         // 현재 위치 마커
         Marker(
+            width = 40.dp,
+            height = 40.dp,
             state = MarkerState(position = currentLocation),
+            icon = OverlayImage.fromResource(R.drawable.ic_user_direction),
             captionText = "현재 위치"
         )
 
