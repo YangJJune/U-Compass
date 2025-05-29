@@ -1,7 +1,9 @@
 package com.ikseong.ucompass.data.di
 
+import com.ikseong.ucompass.data.repository.AddressRepository
 import com.ikseong.ucompass.data.repository.UserRepository
 import com.ikseong.ucompass.data.repository.UCompassRepository
+import com.ikseong.ucompass.data.repositoryImpl.AddressRepositoryImpl
 import com.ikseong.ucompass.data.repositoryImpl.UserRepositoryImpl
 import com.ikseong.ucompass.data.repositoryImpl.UCompassRepositoryImpl
 import dagger.Binds
@@ -25,5 +27,11 @@ abstract class RepositoryModule {
     abstract fun bindDeviceIdRepository(
         deviceIdRepository: UserRepositoryImpl
     ): UserRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindAddressRepository(
+        addressRepositoryImpl: AddressRepositoryImpl
+    ): AddressRepository
 
 }

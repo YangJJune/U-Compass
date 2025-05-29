@@ -27,7 +27,7 @@
 
         <meta-data
             android:name="com.naver.maps.map.NCP_KEY_ID"
-            android:value="arpjjc9s0t" />
+            android:value="${NAVER_MAP_CLIENT_ID}" />
 
         <activity
             android:name=".MainActivity"
