@@ -28,6 +28,86 @@ object GpsLocationUtil {
     }
     
     /**
+     * GPS 위치를 1회성으로 가져옵니다.
+     * 
+     * @param context 컨텍스트
+     * @param onLocationResult 위치 결과 콜백
+     */
+    @SuppressLint("MissingPermission")
+    fun getLocationOnce(context: Context, onLocationResult: (LatLng?) -> Unit) {
+        val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
+        
+        // 기존 콜백이 있다면 제거
+        stopLocationUpdates(context)
+        
+        // 먼저 마지막 알려진 위치 요청
+        fusedLocationClient.lastLocation
+            .addOnSuccessListener { location ->
+                if (location != null) {
+                    val latLng = LatLng(location.latitude, location.longitude)
+                    lastLocationAccuracy = location.accuracy
+                    onLocationResult(latLng)
+                } else {
+                    // 마지막 위치를 사용할 수 없는 경우 새 위치 요청
+                    requestNewLocation(context, onLocationResult)
+                }
+            }
+            .addOnFailureListener {
+                // 오류 발생 시 새 위치 요청
+                requestNewLocation(context, onLocationResult)
+            }
+    }
+    
+    /**
+     * 새 위치를 1회성으로 요청합니다.
+     */
+    @SuppressLint("MissingPermission")
+    private fun requestNewLocation(context: Context, onLocationResult: (LatLng?) -> Unit) {
+        val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
+        
+        // 위치 요청 설정 (고정밀도, 최대 5초 타임아웃)
+        val locationRequest = LocationRequest.Builder(5000)
+            .setPriority(Priority.PRIORITY_HIGH_ACCURACY)
+            .setMaxUpdates(1) // 1회만 업데이트
+            .build()
+        
+        // 1회성 콜백 생성
+        val singleLocationCallback = object : LocationCallback() {
+            override fun onLocationResult(result: LocationResult) {
+                // 콜백 제거 (더 이상 업데이트를 받지 않음)
+                fusedLocationClient.removeLocationUpdates(this)
+                
+                result.lastLocation?.let { location ->
+                    val latLng = LatLng(location.latitude, location.longitude)
+                    lastLocationAccuracy = location.accuracy
+                    onLocationResult(latLng)
+                } ?: run {
+                    onLocationResult(null)
+                }
+            }
+        }
+        
+        try {
+            // 위치 업데이트 요청
+            fusedLocationClient.requestLocationUpdates(
+                locationRequest,
+                singleLocationCallback,
+                Looper.getMainLooper()
+            )
+            
+            // 안전을 위해 5초 후에 콜백 제거 (타임아웃)
+            android.os.Handler(Looper.getMainLooper()).postDelayed({
+                fusedLocationClient.removeLocationUpdates(singleLocationCallback)
+                onLocationResult(null) // 타임아웃 시 null 반환
+            }, 5000)
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "위치 요청 오류: ${e.message}")
+            onLocationResult(null)
+        }
+    }
+
+    /**
      * GPS 위치 업데이트 시작
      */
     @SuppressLint("MissingPermission")
