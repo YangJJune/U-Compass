@@ -7,5 +7,7 @@ interface UserRepository {
 
     suspend fun setDeviceId(deviceId: String)
 
+    fun getUserName(): Flow<String?>
+
     suspend fun saveUserName(name: String)
 }
