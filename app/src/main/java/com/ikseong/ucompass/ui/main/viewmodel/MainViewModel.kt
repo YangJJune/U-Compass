@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.ikseong.ucompass.domain.DeleteRoomUseCase
 import com.ikseong.ucompass.domain.GetDeviceIdUseCase
 import com.ikseong.ucompass.domain.GetRoomListUseCase
+import com.ikseong.ucompass.domain.GetUserNameUseCase
 import com.ikseong.ucompass.domain.LeaveRoomUseCase
 import com.ikseong.ucompass.domain.SaveDeviceIdUseCase
 import com.ikseong.ucompass.mapper.toRoomInfo
@@ -27,7 +28,8 @@ class MainViewModel @Inject constructor(
     private val deleteRoomUseCase: DeleteRoomUseCase,
     private val leaveRoomUseCase: LeaveRoomUseCase,
     private val getDeviceIdUseCase: GetDeviceIdUseCase,
-    private val saveDeviceIdUseCase: SaveDeviceIdUseCase
+    private val saveDeviceIdUseCase: SaveDeviceIdUseCase,
+    private val getUserNameUseCase: GetUserNameUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(MainUiState.dummyDataState)
@@ -40,6 +42,17 @@ class MainViewModel @Inject constructor(
 
     init {
         saveDeviceId()
+        getUserName()
+    }
+
+    private fun getUserName() {
+        viewModelScope.launch {
+            getUserNameUseCase().collect { name ->
+                _uiState.update {
+                    it.copy(name = name ?: "Guest")
+                }
+            }
+        }
     }
 
     fun onMainUiAction(action: MainUiAction) {

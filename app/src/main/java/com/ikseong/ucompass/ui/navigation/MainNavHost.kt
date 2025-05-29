@@ -11,6 +11,8 @@ import androidx.navigation.toRoute
 import com.ikseong.ucompass.ui.create.navgraph.createNavGraph
 import com.ikseong.ucompass.ui.create.viewmodel.CreateViewModel
 import com.ikseong.ucompass.ui.main.screen.MainRoute
+import com.ikseong.ucompass.ui.onboarding.OnboardingInputRoute
+import com.ikseong.ucompass.ui.onboarding.OnboardingScreen
 import com.ikseong.ucompass.ui.room.screen.RoomRoute
 
 @Composable
@@ -20,8 +22,21 @@ fun MainNavHost(
 ) {
     NavHost(
         navController = navController,
-        startDestination = Routes.Home
+        startDestination = Routes.Onboarding
     ) {
+        composable<Routes.Onboarding> {
+            OnboardingScreen(
+                padding = padding,
+                navigateToOnboardingInput = { navController.navigate(Routes.OnboardingInsert) },
+            )
+        }
+        composable<Routes.OnboardingInsert> {
+            OnboardingInputRoute(
+                padding = padding,
+                navigateToHome = { navController.navigate(Routes.Home) },
+            )
+        }
+
         composable<Routes.Home> {
             MainRoute(
                 padding = padding,

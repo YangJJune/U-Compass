@@ -14,7 +14,6 @@ import javax.inject.Inject
 @HiltViewModel
 class OnboardingViewModel @Inject constructor(
     private val saveUserNameUseCase: SaveUserNameUseCase,
-    private val getUserNameUseCase: GetUserNameUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(OnboardingUiState())
@@ -35,6 +34,9 @@ class OnboardingViewModel @Inject constructor(
     fun saveName() {
         viewModelScope.launch {
             saveUserNameUseCase(uiState.value.name)
+            _uiState.update {
+                it.copy(isSuccess = true)
+            }
         }
     }
 }

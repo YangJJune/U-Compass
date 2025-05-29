@@ -1,6 +1,7 @@
 package com.ikseong.ucompass.ui.onboarding
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -69,12 +71,21 @@ fun OnboardingScreen(
             )
         }
         Spacer(Modifier.weight(56f))
-        LottieAnimation(
-            modifier = Modifier
-                .size(323.dp),
-            composition = composition,
-            progress = { progress },
-        )
+        Box {
+            LottieAnimation(
+                modifier = Modifier
+                    .size(323.dp),
+                composition = composition,
+                progress = { progress },
+            )
+            Icon(
+                painter = painterResource(R.drawable.ic_lottie_arrow),
+                contentDescription = null,
+                modifier = Modifier
+                    .align(Alignment.Center),
+                tint = Color.Unspecified
+            )
+        }
         Spacer(Modifier.weight(103f))
         UCompassButton(
             modifier = Modifier
