@@ -13,4 +13,10 @@ sealed interface Routes {
 
     @Serializable
     data class Room(val id: Long): Routes
+
+    @Serializable
+    data object Onboarding: Routes
+
+    @Serializable
+    data object OnboardingInsert : Routes
 }

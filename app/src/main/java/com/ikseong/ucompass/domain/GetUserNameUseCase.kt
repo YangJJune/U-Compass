@@ -5,8 +5,8 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class SaveDeviceIdUseCase @Inject constructor(
+class GetUserNameUseCase @Inject constructor(
     private val repository: UserRepository,
 ) {
-    suspend operator fun invoke(deviceId: String) = repository.setDeviceId(deviceId)
-}
+    operator fun invoke() = repository.getUserName()
+} 
