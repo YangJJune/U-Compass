@@ -3,6 +3,7 @@ package com.ikseong.ucompass.ui.common.component
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.ikseong.ucompass.R
 import com.naver.maps.geometry.LatLng
@@ -45,20 +46,35 @@ data class MapMarker(
 fun NaverMapComponent(
     modifier: Modifier = Modifier,
     markers: ImmutableList<MapMarker>,
+    isMapVisible: Boolean,
     currentLocation: LatLng = LatLng(37.5666805, 126.9784147), // 서울 중심 기본값
     cameraPositionState: CameraPositionState = rememberCameraPositionState(),
     onMapClick: (LatLng) -> Unit = {},
     uiSettings: MapUiSettings = MapUiSettings(),
 ) {
+    val properties = if (isMapVisible) {
+        MapProperties(
+            isBuildingLayerGroupEnabled = true,
+            locationTrackingMode = LocationTrackingMode.Face, // Face 모드로 변경 (위치와 방향 모두 추적)
+            isNightModeEnabled = false, // 주간 모드 유지,
+            isLiteModeEnabled = true,
+        )
+    } else {
+        MapProperties(
+            isBuildingLayerGroupEnabled = true,
+            locationTrackingMode = LocationTrackingMode.Face, // Face 모드로 변경 (위치와 방향 모두 추적)
+            isNightModeEnabled = false, // 주간 모드 유지,
+            isLiteModeEnabled = true,
+            isIndoorEnabled = true,
+            lightness = -1f,
+            backgroundColor = Color.Transparent,
+        )
+    }
+
     NaverMap(
         modifier = modifier.fillMaxWidth(),
         cameraPositionState = cameraPositionState,
-        properties = MapProperties(
-            isIndoorEnabled = true,
-            isBuildingLayerGroupEnabled = true,
-            locationTrackingMode = LocationTrackingMode.Face, // Face 모드로 변경 (위치와 방향 모두 추적)
-            isNightModeEnabled = false, // 주간 모드 유지
-        ),
+        properties = properties,
         uiSettings = uiSettings,
         onMapClick = { _, latLng ->
             onMapClick(latLng)

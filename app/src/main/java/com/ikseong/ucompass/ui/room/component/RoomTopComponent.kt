@@ -39,7 +39,7 @@ fun RoomTopComponent(
             Icon(
                 painter = painterResource(id = R.drawable.ic_arrow_left_fill_36),
                 contentDescription = "Back Icon",
-                tint = if (isMapVisible) Color(0xFF606060) else Color.White
+                tint = if (isMapVisible) Color.Black else Color.White
             )
         }
         Text(

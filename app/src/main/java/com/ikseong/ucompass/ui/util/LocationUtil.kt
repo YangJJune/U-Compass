@@ -12,6 +12,7 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import kotlin.coroutines.resume
+import kotlin.math.asin
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.roundToInt
@@ -294,4 +295,27 @@ object LocationUtil {
     // Double 값을 지정된 소수점 자릿수로 포맷팅하는 확장 함수
     private fun Double.format(digits: Int): String = String.format("%.${digits}f", this)
 
-} 
+    fun offsetLatLng(
+        origin: LatLng,
+        distanceMeter: Double,
+        angleDegrees: Float
+    ): LatLng {
+        val R = 6378137.0 // Earth radius (m)
+        val bearingRad = Math.toRadians(angleDegrees.toDouble())
+        val lat1 = Math.toRadians(origin.latitude)
+        val lon1 = Math.toRadians(origin.longitude)
+
+        val lat2 = asin(
+            sin(lat1) * cos(distanceMeter / R) +
+                    cos(lat1) * sin(distanceMeter / R) * cos(bearingRad)
+        )
+
+        val lon2 = lon1 + atan2(
+            sin(bearingRad) * sin(distanceMeter / R) * cos(lat1),
+            cos(distanceMeter / R) - sin(lat1) * sin(lat2)
+        )
+
+        return LatLng(Math.toDegrees(lat2), Math.toDegrees(lon2))
+    }
+
+}
