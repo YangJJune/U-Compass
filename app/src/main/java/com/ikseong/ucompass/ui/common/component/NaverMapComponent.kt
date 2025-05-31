@@ -56,14 +56,12 @@ fun NaverMapComponent(
         MapProperties(
             isBuildingLayerGroupEnabled = true,
             locationTrackingMode = LocationTrackingMode.Face, // Face 모드로 변경 (위치와 방향 모두 추적)
-            isNightModeEnabled = false, // 주간 모드 유지,
             isLiteModeEnabled = true,
         )
     } else {
         MapProperties(
             isBuildingLayerGroupEnabled = true,
             locationTrackingMode = LocationTrackingMode.Face, // Face 모드로 변경 (위치와 방향 모두 추적)
-            isNightModeEnabled = false, // 주간 모드 유지,
             isLiteModeEnabled = true,
             isIndoorEnabled = true,
             lightness = -1f,

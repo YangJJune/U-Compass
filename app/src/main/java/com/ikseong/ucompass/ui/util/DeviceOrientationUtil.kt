@@ -175,18 +175,10 @@ object DeviceOrientationUtil {
         val roundedAzimuth = round(azimuth * 10) / 10
 
         // 상태 업데이트
-        if (history.isEmpty()) {
+        if (history.size < 10) {
             // 최초값인 경우 바로 리턴하고 리스트에 추가
             history.add(roundedAzimuth)
             azimuthState.value = roundedAzimuth
-            return
-        }
-
-        // 리스트에 새 값 추가
-        history.add(roundedAzimuth)
-
-        // 10개 미만이면 리턴하지 않음
-        if (history.size < 10) {
             return
         }
 

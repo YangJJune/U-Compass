@@ -171,10 +171,6 @@ fun RoomScreen(
     // 카메라 상태 기억
     val cameraPositionState = rememberCameraPositionState()
 
-    // 기기 방향 각도 관찰 (0~360도)
-    val scope = rememberCoroutineScope()
-//    scope.launch {
-//    }
     val deviceOrientation = DeviceOrientationUtil.rememberDeviceOrientation()
 
     // 기기 방향이 변경될 때마다 지도 회전 업데이트
@@ -183,9 +179,8 @@ fun RoomScreen(
         currentLocation,
         deviceOrientation.value
     ) {
-        if (/*uiState.isMapVisible && */currentLocation != null) {
+        currentLocation?.let {
             // 기기 방향 각도의 반대 방향으로 지도 회전 (기기가 시계방향으로 회전하면 지도는 반시계방향으로)
-
             val offsetLatLng = offsetLatLng(
                 currentLocation,
                 -90.0, // 90m 위쪽으로 이동 = 내 위치를 아래에 보이게

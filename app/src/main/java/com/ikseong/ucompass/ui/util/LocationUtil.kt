@@ -61,7 +61,7 @@ object LocationUtil {
             }
         } catch (e: TimeoutCancellationException) {
             Log.e(TAG, "위치 가져오기 타임아웃: $e")
-            throw Exception("위치를 가져오는 데 시간이 너무 오래 걸립니다.")
+            throw e
         } catch (e: CancellationException) {
             Log.e(TAG, "위치 가져오기 취소됨: $e")
             throw e
