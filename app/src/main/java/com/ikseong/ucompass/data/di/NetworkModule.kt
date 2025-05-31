@@ -11,6 +11,7 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
+import javax.inject.Named
 import javax.inject.Singleton
 
 @Module
@@ -60,4 +61,19 @@ object NetworkModule {
             json.asConverterFactory("application/json".toMediaType())
         )
         .build()
+
+    @Provides
+    @Singleton
+    @Named("naverRetrofit")
+    fun providesNaverRetrofit(
+        client: OkHttpClient,
+        json: Json
+    ): Retrofit = Retrofit.Builder()
+        .baseUrl("https://maps.apigw.ntruss.com/")
+        .client(client)
+        .addConverterFactory(
+            json.asConverterFactory("application/json".toMediaType())
+        )
+        .build()
+
 }

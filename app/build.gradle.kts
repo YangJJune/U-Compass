@@ -32,6 +32,9 @@ android {
         buildConfigField("String", "BASE_URL", properties["BASE_URL"].toString())
         buildConfigField("String", "HOST", properties["HOST"].toString())
         buildConfigField("int", "PORT", properties["PORT"].toString())
+
+        buildConfigField("String", "NAVER_MAP_CLIENT_ID", properties["NAVER_MAP_CLIENT_ID"].toString())
+        buildConfigField("String", "NAVER_MAP_CLIENT_SECRET", properties["NAVER_MAP_CLIENT_SECRET"].toString())
     }
 
     buildTypes {
