@@ -2,20 +2,8 @@ package com.ikseong.ucompass.ui.model
 
 data class ParticipantInfo(
     val name: String = "",
-    val profileUrl: String = "",
-    val latitude: Double = 0.0,
-    val longitude: Double = 0.0,
-    var direction: Direction = Direction.NE,
-    var distance: Int = 0,
-    val isShown: Boolean = false,
-) {
-    fun ParticipantInfo.getDistanceType(): DistanceType =
-        when (this.distance) {
-            in 0..200 -> DistanceType.ZERO
-            in 201..500 -> DistanceType.TWO_HUNDRED
-            in 501..1000 -> DistanceType.FIVE_HUNDRED
-            in 1001..1500 -> DistanceType.ONE_THOUSAND
-            in 1501..2000 -> DistanceType.ONE_THOUSAND_FIVE_HUNDRED
-            else -> DistanceType.TWO_THOUSAND
-        }
-}
+    val email : String = "",
+    val id : Int = 0,
+    val deviceId: String = "",
+    val profileImage : String = "",
+)

@@ -50,13 +50,13 @@ import com.ikseong.ucompass.ui.common.component.MapMarker
 import com.ikseong.ucompass.ui.common.component.NaverMapComponent
 import com.ikseong.ucompass.ui.common.component.ObserveAsEvents
 import com.ikseong.ucompass.ui.model.Direction
-import com.ikseong.ucompass.ui.model.ParticipantInfo
 import com.ikseong.ucompass.ui.room.component.RoomBottomSheet
 import com.ikseong.ucompass.ui.room.component.RoomBottomSheetDragHandle
 import com.ikseong.ucompass.ui.room.component.RoomDefaultContent
 import com.ikseong.ucompass.ui.room.component.RoomDeleteDialog
 import com.ikseong.ucompass.ui.room.component.RoomSearchContent
 import com.ikseong.ucompass.ui.room.component.RoomTopComponent
+import com.ikseong.ucompass.ui.room.viewmodel.ParticipantState
 import com.ikseong.ucompass.ui.room.viewmodel.RoomUiAction
 import com.ikseong.ucompass.ui.room.viewmodel.RoomUiEvent
 import com.ikseong.ucompass.ui.room.viewmodel.RoomUiState
@@ -82,10 +82,10 @@ fun RoomRoute(
     id: Long,
     padding: PaddingValues,
     navigateBack: () -> Unit,
-    viewModel: RoomViewModel = hiltViewModel()
+    roomViewModel: RoomViewModel = hiltViewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val currentLocation by viewModel.currentLocation.collectAsStateWithLifecycle()
+    val uiState by roomViewModel.uiState.collectAsStateWithLifecycle()
+    val currentLocation by roomViewModel.currentLocation.collectAsStateWithLifecycle()
     val scaffoldState = rememberBottomSheetScaffoldState()
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -106,7 +106,7 @@ fun RoomRoute(
     )
 
     LaunchedEffect(Unit) {
-        viewModel.getRoomItem(id)
+        roomViewModel.getRoomItem(id)
     }
 
     // 앱 생명주기 관찰하여 위치 업데이트 관리
@@ -118,7 +118,7 @@ fun RoomRoute(
                     if (permissionsState.allPermissionsGranted) {
                         // 위치 업데이트 시작
                         startLocationUpdates(context) { location ->
-                            viewModel.onRoomUiAction(RoomUiAction.OnLocationUpdate(location))
+                            roomViewModel.onRoomUiAction(RoomUiAction.OnLocationUpdate(location))
                         }
                     } else {
                         permissionsState.launchMultiplePermissionRequest()
@@ -143,7 +143,7 @@ fun RoomRoute(
         }
     }
 
-    ObserveAsEvents(flow = viewModel.uiEvent) { event ->
+    ObserveAsEvents(flow = roomViewModel.uiEvent) { event ->
         when (event) {
             RoomUiEvent.NavigateToBack -> navigateBack()
             RoomUiEvent.ShowBottomSheet -> scope.launch { scaffoldState.bottomSheetState.expand() }
@@ -155,7 +155,7 @@ fun RoomRoute(
         uiState = uiState,
         currentLocation = currentLocation,
         scaffoldState = scaffoldState,
-        onAction = viewModel::onRoomUiAction
+        onAction = roomViewModel::onRoomUiAction
     )
 }
 
@@ -202,7 +202,7 @@ fun RoomScreen(
         sheetDragHandle = { RoomBottomSheetDragHandle() },
         sheetContent = {
             RoomBottomSheet(
-                participantInfo = uiState.participantInfo,
+                participantInfo = uiState.participantState,
                 onUserClick = { onAction(RoomUiAction.OnUserShownClick(it)) },
                 onAllClick = { onAction(RoomUiAction.OnAllUserShownClick) }
             )
@@ -219,7 +219,7 @@ fun RoomScreen(
                 // 네이버 지도 표시
                 currentLocation?.let { location ->
                     // 참가자 정보를 MapMarker로 변환
-                    val mapMarkers = uiState.participantInfo
+                    val mapMarkers = uiState.participantState
                         .filter { it.isShown }
                         .map { participant ->
                             MapMarker(
@@ -302,7 +302,7 @@ fun RoomScreen(
                         tint = Color(0x8000E397)
                     )
                     Text(
-                        text = "참가 인원 ${uiState.participantInfo.size}명",
+                        text = "참가 인원 ${uiState.participantCount}명",
                         style = typography.medium.copy(
                             fontSize = 18.sp,
                             color = Color(0xFF606060)
@@ -351,7 +351,7 @@ fun RoomScreen(
                         )
                         Spacer(modifier = Modifier.size(6.dp))
                         Text(
-                            text = "참가 인원 ${uiState.participantInfo.size}명",
+                            text = "참가 인원 ${uiState.participantCount}명",
                             style = typography.medium.copy(
                                 fontSize = 18.sp,
                                 color = Color(0xFF606060)
@@ -398,22 +398,22 @@ private fun RoomScreenPreview() {
         uiState = RoomUiState(
             roomName = "Room Name",
             address = "123 Main St, City, Country",
-            participantInfo = listOf(
-                ParticipantInfo(
+            participantState = listOf(
+                ParticipantState(
                     name = "John Doe",
                     profileUrl = "https://example.com/profile.jpg",
                     direction = Direction.E,
                     distance = 1000,
                     isShown = true,
                 ),
-                ParticipantInfo(
+                ParticipantState(
                     name = "Jane Smith",
                     profileUrl = "https://example.com/profile2.jpg",
                     direction = Direction.N,
                     distance = 1500,
                     isShown = false,
                 ),
-                ParticipantInfo(
+                ParticipantState(
                     name = "Alice Johnson",
                     profileUrl = "https://example.com/profile3.jpg",
                     direction = Direction.SE,

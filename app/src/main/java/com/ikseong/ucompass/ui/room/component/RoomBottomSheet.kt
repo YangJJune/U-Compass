@@ -30,7 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ikseong.ucompass.R
 import com.ikseong.ucompass.ui.model.Direction
-import com.ikseong.ucompass.ui.model.ParticipantInfo
+import com.ikseong.ucompass.ui.room.viewmodel.ParticipantState
 import com.ikseong.ucompass.ui.theme.UCompassTheme.typography
 import com.ikseong.ucompass.ui.util.viewutil.noRippleClickable
 
@@ -53,7 +53,7 @@ fun RoomBottomSheetDragHandle(
 @Composable
 fun RoomBottomSheet(
     modifier: Modifier = Modifier,
-    participantInfo: List<ParticipantInfo>,
+    participantInfo: List<ParticipantState>,
     onUserClick: (String) -> Unit = {},
     onAllClick: () -> Unit = {}
 ) {
@@ -92,7 +92,7 @@ fun RoomBottomSheet(
 @Composable
 fun ParticipantItem(
     modifier: Modifier = Modifier,
-    participant: ParticipantInfo,
+    participant: ParticipantState,
     onUserClick: (String) -> Unit = {},
 ) {
     Row(
@@ -150,7 +150,7 @@ fun ParticipantItem(
 private fun RoomBottomSheetPreview() {
     RoomBottomSheet(
         participantInfo = listOf(
-            ParticipantInfo(
+            ParticipantState(
                 "name",
                 "profileUrl",
                 0.0,
@@ -159,7 +159,7 @@ private fun RoomBottomSheetPreview() {
                 100,
                 true
             ),
-            ParticipantInfo(
+            ParticipantState(
                 "name",
                 "profileUrl",
                 0.0,
@@ -168,7 +168,7 @@ private fun RoomBottomSheetPreview() {
                 100,
                 false
             ),
-            ParticipantInfo(
+            ParticipantState(
                 "name",
                 "profileUrl",
                 0.0,
