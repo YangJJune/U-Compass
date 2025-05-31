@@ -1,3 +1,3 @@
 package com.ikseong.ucompass.data.network.socket
 
-data class UserLocation(val lat:Double, val lng: Double)
+data class UserLocation(var lat:Double , var lng:Double)
