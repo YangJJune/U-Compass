@@ -1,15 +1,11 @@
 package com.ikseong.ucompass.ui.room.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ikseong.ucompass.data.network.socket.UserLocation
 import com.ikseong.ucompass.data.socket.repository.SocketRepository
-import com.ikseong.ucompass.data.socket.repository.UserLocation
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -17,20 +13,23 @@ import javax.inject.Inject
 class SocketViewModel @Inject constructor(
     private val socketRepository: SocketRepository
 ) : ViewModel() {
-    private val _locationData = MutableStateFlow<Map<String, UserLocation>>(emptyMap())
-    val locationData: StateFlow<Map<String, UserLocation>> = _locationData
+    val userLocations: StateFlow<Map<String, UserLocation>> = socketRepository.locationDataFlow
 
-    fun getLocationData() {
+    fun connectSocket() {
         viewModelScope.launch {
-            socketRepository.flowConnect()
-            while (isActive) {
-                socketRepository.startReceiving().collect { dto ->
-                    _locationData.update { current ->
-                        //위치 갱신 및 유저 위치 추가
-                        current + (dto.deviceId to UserLocation(dto.lat, dto.lng))
-                    }
-                }
-            }
+            socketRepository.connect()
+        }
+    }
+
+    fun login(userId: String, roomId: Int) {
+        viewModelScope.launch {
+            socketRepository.login(userId, roomId)
+        }
+    }
+
+    fun sendLocation(lat: Double, lng: Double) {
+        viewModelScope.launch {
+            socketRepository.sendLocation(lat, lng)
         }
     }
 
