@@ -2,14 +2,22 @@ package com.ikseong.ucompass.data.socket.repository
 import android.util.Log
 import androidx.compose.runtime.mutableStateMapOf
 import com.ikseong.ucompass.BuildConfig
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.json.JSONObject
-import java.io.*
+import java.io.BufferedReader
+import java.io.InputStreamReader
+import java.io.OutputStreamWriter
+import java.io.PrintWriter
 import java.net.Socket
 
 class SocketRepositoryV1(
-    private val host: String = "54.66.5.0",
-    private val port: Int = 9000,
+    private val host: String = BuildConfig.HOST,
+    private val port: Int = BuildConfig.PORT,
 ) {
     private var socket: Socket? = null
     private var writer: PrintWriter? = null
