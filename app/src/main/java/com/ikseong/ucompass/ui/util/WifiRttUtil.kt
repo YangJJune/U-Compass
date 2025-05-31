@@ -43,6 +43,81 @@ object WifiRttUtil {
     }
     
     /**
+     * WiFi RTT 위치를 1회성으로 가져옵니다.
+     * 
+     * @param context 컨텍스트
+     * @param onLocationResult 위치 결과 콜백
+     */
+    @SuppressLint("MissingPermission")
+    fun getRttLocationOnce(context: Context, onLocationResult: (LatLng?) -> Unit) {
+        // RTT가 지원되지 않으면 null 반환
+        if (!isWifiRttSupported(context)) {
+            Log.d(TAG, "WiFi RTT가 지원되지 않습니다")
+            onLocationResult(null)
+            return
+        }
+        
+        // RTT 수행 및 위치 계산
+        try {
+            val wifiManager = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
+            val wifiRttManager = context.getSystemService(Context.WIFI_RTT_RANGING_SERVICE) as WifiRttManager
+            
+            // WiFi 스캔 시작
+            wifiManager.startScan()
+            
+            // 스캔 완료 대기 (약간의 지연 필요)
+            Handler(Looper.getMainLooper()).postDelayed({
+                // 스캔 결과 가져오기
+                val scanResults = wifiManager.scanResults.filter { 
+                    // RTT 지원 AP만 필터링
+                    it.is80211mcResponder
+                }
+                
+                if (scanResults.isEmpty()) {
+                    Log.d(TAG, "RTT를 지원하는 AP가 없습니다")
+                    onLocationResult(null)
+                    return@postDelayed
+                }
+                
+                // RTT 요청 준비
+                val rangingRequest = RangingRequest.Builder().apply {
+                    // 최대 허용된 AP 수 확인
+                    val maxRttPeers = RangingRequest.getMaxPeers()
+                    val apList = scanResults.take(maxRttPeers).toList()
+                    addAccessPoints(apList)
+                }.build()
+                
+                // RTT 측정 시작
+                wifiRttManager.startRanging(
+                    rangingRequest,
+                    context.mainExecutor,
+                    object : RangingResultCallback() {
+                        override fun onRangingResults(results: List<RangingResult>) {
+                            // RTT 결과로부터 위치 계산
+                            val rttLocation = calculatePositionFromRttScan(results, scanResults)
+                            
+                            // 마지막 RTT 액세스 포인트 개수 저장
+                            lastRttAccessPointCount = results.size
+                            
+                            // 결과 반환
+                            onLocationResult(rttLocation)
+                        }
+                        
+                        override fun onRangingFailure(code: Int) {
+                            Log.e(TAG, "RTT ranging failed: $code")
+                            onLocationResult(null)
+                        }
+                    }
+                )
+            }, 1000) // 1초 지연
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "WiFi RTT ranging error: ${e.message}")
+            onLocationResult(null)
+        }
+    }
+    
+    /**
      * WiFi RTT 측정을 정기적으로 수행하는 타이머 시작
      */
     fun startRttUpdateTimer(

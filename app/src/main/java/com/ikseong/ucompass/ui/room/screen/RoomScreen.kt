@@ -3,15 +3,26 @@ package com.ikseong.ucompass.ui.room.screen
 import android.Manifest
 import android.os.Build
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.BottomSheetScaffoldState
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -20,17 +31,21 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import com.ikseong.ucompass.R
 import com.ikseong.ucompass.ui.common.component.MapMarker
 import com.ikseong.ucompass.ui.common.component.NaverMapComponent
 import com.ikseong.ucompass.ui.common.component.ObserveAsEvents
@@ -46,9 +61,12 @@ import com.ikseong.ucompass.ui.room.viewmodel.RoomUiAction
 import com.ikseong.ucompass.ui.room.viewmodel.RoomUiEvent
 import com.ikseong.ucompass.ui.room.viewmodel.RoomUiState
 import com.ikseong.ucompass.ui.room.viewmodel.RoomViewModel
+import com.ikseong.ucompass.ui.theme.UCompassTheme.typography
 import com.ikseong.ucompass.ui.util.DeviceOrientationUtil
 import com.ikseong.ucompass.ui.util.GpsLocationUtil.startLocationUpdates
 import com.ikseong.ucompass.ui.util.GpsLocationUtil.stopLocationUpdates
+import com.ikseong.ucompass.ui.util.LocationUtil.offsetLatLng
+import com.ikseong.ucompass.ui.util.viewutil.noRippleClickable
 import com.ikseong.ucompass.ui.util.viewutil.plus
 import com.naver.maps.geometry.LatLng
 import com.naver.maps.map.CameraPosition
@@ -56,7 +74,6 @@ import com.naver.maps.map.compose.MapUiSettings
 import com.naver.maps.map.compose.rememberCameraPositionState
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.launch
-
 
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
@@ -142,10 +159,6 @@ fun RoomRoute(
     )
 }
 
-
-
-
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RoomScreen(
@@ -158,7 +171,6 @@ fun RoomScreen(
     // 카메라 상태 기억
     val cameraPositionState = rememberCameraPositionState()
 
-    // 기기 방향 각도 관찰 (0~360도)
     val deviceOrientation = DeviceOrientationUtil.rememberDeviceOrientation()
 
     // 기기 방향이 변경될 때마다 지도 회전 업데이트
@@ -167,20 +179,19 @@ fun RoomScreen(
         currentLocation,
         deviceOrientation.value
     ) {
-        if (uiState.isMapVisible && currentLocation != null) {
+        currentLocation?.let {
             // 기기 방향 각도의 반대 방향으로 지도 회전 (기기가 시계방향으로 회전하면 지도는 반시계방향으로)
-            val mapBearing = deviceOrientation.value
-            val cameraLocation = LatLng(
-                currentLocation.latitude + 0.00083,
-                currentLocation.longitude
+            val offsetLatLng = offsetLatLng(
+                currentLocation,
+                -90.0, // 90m 위쪽으로 이동 = 내 위치를 아래에 보이게
+                (deviceOrientation.value + 180) % 360 // 반대방향 bearing
             )
-            // 현재 카메라 위치 유지하면서 베어링(회전)만 업데이트
+
             cameraPositionState.position = CameraPosition(
-                cameraLocation,
+                offsetLatLng,
                 17.0,
                 0.0,
-//                cameraPositionState.position.tilt,
-                mapBearing.toDouble()
+                deviceOrientation.value.toDouble()
             )
         }
     }
@@ -200,13 +211,11 @@ fun RoomScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(
-                    if (uiState.isSearchMode) Color(0xFF090A38) else Color.White
-                )
+                .background(Color.White)
                 .padding(padding + additionalPadding)
         ) {
             // 먼저 지도를 렌더링 (가장 낮은 z-index)
-            if (uiState.isSearchMode && uiState.isMapVisible) {
+            if (uiState.isSearchMode) {
                 // 네이버 지도 표시
                 currentLocation?.let { location ->
                     // 참가자 정보를 MapMarker로 변환
@@ -227,6 +236,7 @@ fun RoomScreen(
                         markers = mapMarkers,
                         currentLocation = location,
                         cameraPositionState = cameraPositionState,
+                        isMapVisible = uiState.isMapVisible,
                         onMapClick = { /* 지도 클릭 이벤트 무시 */ },
                         uiSettings = MapUiSettings(
                             // 모든 제스처 비활성화
@@ -261,20 +271,107 @@ fun RoomScreen(
                 if (!uiState.isSearchMode) {
                     RoomDefaultContent(
                         address = uiState.address,
-                        participantCount = uiState.participantInfo.size,
                         onSearchClick = { onAction(RoomUiAction.OnLottieClick(it)) }
                     )
                 } else {
                     RoomSearchContent(
                         address = uiState.address,
-                        participantCount = uiState.participantInfo.size,
                         isMapVisible = uiState.isMapVisible,
-                        onMapToggleClick = { flag ->
-                            onAction(RoomUiAction.OnMapToggleClick(flag))
-                        },
-                        onDeleteClick = { onAction(RoomUiAction.OnDeleteClick) },
-                        onUserListClick = { onAction(RoomUiAction.OnUserListClick) },
                     )
+                }
+            }
+            if (!uiState.isSearchMode) {
+                Row(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 60.dp)
+                        .width(194.dp)
+                        .height(72.dp)
+                        .border(
+                            width = 2.dp,
+                            shape = RoundedCornerShape(25.dp),
+                            color = Color(0xFF00E397)
+                        )
+                        .clickable { },
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_room_participant_40),
+                        contentDescription = null,
+                        tint = Color(0x8000E397)
+                    )
+                    Text(
+                        text = "참가 인원 ${uiState.participantInfo.size}명",
+                        style = typography.medium.copy(
+                            fontSize = 18.sp,
+                            color = Color(0xFF606060)
+                        )
+                    )
+                }
+            } else {
+                Row(
+                    modifier = Modifier
+                        .padding(bottom = 21.dp)
+                        .align(Alignment.BottomCenter)
+                        .clip(RoundedCornerShape(25.dp))
+                        .background(Color.White)
+                        .padding(horizontal = 6.5.dp, vertical = 4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_map_toggle),
+                        contentDescription = "Map Toggle",
+                        tint = Color.Unspecified,
+                        modifier = Modifier.clickable {
+                            onAction(
+                                RoomUiAction.OnMapToggleClick(
+                                    uiState.isMapVisible
+                                )
+                            )
+                        }
+                    )
+                    Row(
+                        modifier = Modifier
+                            .height(64.dp)
+                            .noRippleClickable { onAction(RoomUiAction.OnUserListClick) }
+                            .clip(RoundedCornerShape(25.dp))
+                            .background(
+                                if (uiState.isMapVisible) Color(0xFFD8FCF0)
+                                else Color.White
+                            )
+                            .padding(start = 20.dp, end = 30.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_room_participant_40),
+                            contentDescription = null,
+                            tint = Color(0x8000E397)
+                        )
+                        Spacer(modifier = Modifier.size(6.dp))
+                        Text(
+                            text = "참가 인원 ${uiState.participantInfo.size}명",
+                            style = typography.medium.copy(
+                                fontSize = 18.sp,
+                                color = Color(0xFF606060)
+                            )
+                        )
+                    }
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(25.dp))
+                            .background(Color(0xFFD9D9D9))
+                            .size(64.dp)
+                            .clickable { onAction(RoomUiAction.OnDeleteClick) }
+                    ) {
+                        Icon(
+                            modifier = Modifier.align(Alignment.Center),
+                            painter = painterResource(id = R.drawable.ic_room_delete_36),
+                            contentDescription = "Map Toggle",
+                            tint = Color.Unspecified,
+                        )
+                    }
                 }
             }
         }

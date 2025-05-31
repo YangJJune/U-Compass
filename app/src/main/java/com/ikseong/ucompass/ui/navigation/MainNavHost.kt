@@ -30,7 +30,7 @@ fun MainNavHost(
                 navigateToOnboardingInput = { navController.navigate(Routes.OnboardingInsert) },
                 navigateToHome = {
                     navController.navigate(Routes.Home) {
-                        popUpTo(Routes.Home) { inclusive = true }
+                        popUpTo(Routes.Onboarding) { inclusive = true }
                     }
                 }
             )
