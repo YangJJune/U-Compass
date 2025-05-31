@@ -1,10 +1,12 @@
 package com.ikseong.ucompass.data.socket.repository
+
 import android.util.Log
-import androidx.compose.runtime.mutableStateMapOf
 import com.ikseong.ucompass.BuildConfig
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -23,7 +25,10 @@ class SocketRepositoryV1(
     private var writer: PrintWriter? = null
     private var reader: BufferedReader? = null
     private var receiveJob: Job? = null
-    val locationData = mutableStateMapOf<String, UserLocation>()
+
+    // 위치 정보 Flow로 관리
+    private val _locationDataFlow = MutableStateFlow<Map<String, UserLocation>>(emptyMap())
+    val locationDataFlow: StateFlow<Map<String, UserLocation>> = _locationDataFlow
 
     suspend fun connect() = withContext(Dispatchers.IO) {
         try {
@@ -37,33 +42,33 @@ class SocketRepositoryV1(
                     val line = reader?.readLine() ?: break
                     try {
                         val json = JSONObject(line)
-                        Log.d("Socket",json.toString())
-                        when(json.optString("type")){
+                        Log.d("Socket", json.toString())
+                        when (json.optString("type")) {
                             "location_broadcast" -> {
-                            val userId = json.optString("user_id")
-                            val lat = json.optDouble("lat")
-                            val lng = json.optDouble("lng")
-                            Log.d("Socket", "위치 수신: $userId at ($lat, $lng)")
-                            locationData[userId] = UserLocation(lat,lng)
-                        }
+                                val userId = json.optString("user_id")
+                                val lat = json.optDouble("lat")
+                                val lng = json.optDouble("lng")
+                                Log.d("Socket", "위치 수신: $userId at ($lat, $lng)")
+                                updateLocationData(userId, lat, lng)
+                            }
 
                             "status" -> {
-                            val status = json.optString("status")
-                            Log.d("Socket", "로그인 결과: $status")
-                        }
+                                val status = json.optString("status")
+                                Log.d("Socket", "로그인 결과: $status")
+                            }
 
                             else -> {
-                            Log.w("Socket", "알 수 없는 메시지: $json")
-                        }
+                                Log.w("Socket", "알 수 없는 메시지: $json")
+                            }
                         }
                     } catch (e: Exception) {
-                        Log.e("Socket","JSON 파싱 오류: ${e.message}")
+                        Log.e("Socket", "JSON 파싱 오류: ${e.message}")
                     }
                 }
             }
 
         } catch (e: Exception) {
-            Log.e("Socket","서버 연결 실패: ${e.message}")
+            Log.e("Socket", "서버 연결 실패: ${e.message}")
             disconnect()
         }
     }
@@ -81,14 +86,20 @@ class SocketRepositoryV1(
             .put("type", "location_update")
             .put("lat", lat)
             .put("lng", lng)
-        Log.d("Socket1",locationData.toString())
+        Log.d("Socket1", locationData.toString())
         send(locationData)
     }
 
     private suspend fun send(json: JSONObject) = withContext(Dispatchers.IO) {
-        Log.d("Socket2",json.toString())
-        Log.d("Socket3",writer.toString())
+        Log.d("Socket2", json.toString())
+        Log.d("Socket3", writer.toString())
         writer?.println(json.toString())
+    }
+
+    private fun updateLocationData(userId: String, lat: Double, lng: Double) {
+        val current = _locationDataFlow.value.toMutableMap()
+        current[userId] = UserLocation(lat, lng)
+        _locationDataFlow.value = current
     }
 
     fun disconnect() {
