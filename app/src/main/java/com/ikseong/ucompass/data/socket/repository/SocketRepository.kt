@@ -120,7 +120,6 @@ class SocketRepository @Inject constructor() {
         val current = _locationDataFlow.value.toMutableMap()
         current[userId] = UserLocation(lat, lng, name, profileImgUrl)
         _locationDataFlow.value = current
-        Log.d("SOCKET",_locationDataFlow.value.toString())
     }
 
     fun disconnect() {
