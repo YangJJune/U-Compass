@@ -64,6 +64,12 @@ class SocketRepository @Inject constructor() {
                                 Log.d("Socket", "로그인 결과: $status")
                             }
 
+                            "disconnect_broadcast" ->{
+                                val disconnectedUserId = json.optString("user_id")
+                                Log.d("Socket", "Disconnection 발생 : $disconnectedUserId")
+                                removeLocationData(disconnectedUserId)
+                            }
+
                             else -> {
                                 Log.w("Socket", "알 수 없는 메시지: $json")
                             }
@@ -100,7 +106,7 @@ class SocketRepository @Inject constructor() {
                         .put("type", "location_update")
                         .put("lat", lat)
                         .put("lng", lng)
-                    Log.d("Socket1", locationData.toString())
+                    Log.d("Socket", "위치 전송 : $locationData")
                     send(locationData)
                     delay(2000L) // 2초마다 위치 전송
                 }
@@ -111,14 +117,18 @@ class SocketRepository @Inject constructor() {
     }
 
     private suspend fun send(json: JSONObject) = withContext(Dispatchers.IO) {
-        Log.d("Socket2", json.toString())
-        Log.d("Socket3", writer.toString())
         writer?.println(json.toString())
     }
 
     private fun updateLocationData(userId: String, lat: Double, lng: Double, name:String, profileImgUrl:String) {
         val current = _locationDataFlow.value.toMutableMap()
         current[userId] = UserLocation(lat, lng, name, profileImgUrl)
+        _locationDataFlow.value = current
+    }
+
+    private fun removeLocationData(userId: String) {
+        val current = _locationDataFlow.value.toMutableMap()
+        current.remove(userId)
         _locationDataFlow.value = current
     }
 
