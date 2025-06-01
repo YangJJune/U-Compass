@@ -47,14 +47,16 @@ class SocketRepository @Inject constructor() {
                     val line = reader?.readLine() ?: break
                     try {
                         val json = JSONObject(line)
-                        Log.d("Socket", json.toString())
                         when (json.optString("type")) {
                             "location_broadcast" -> {
                                 val userId = json.optString("user_id")
                                 val lat = json.optDouble("lat")
                                 val lng = json.optDouble("lng")
-                                Log.d("Socket", "위치 수신: $userId at ($lat, $lng)")
-                                updateLocationData(userId, lat, lng)
+                                val userName = json.optString("name")
+                                val profileImg = json.optString("profileImg")
+
+                                Log.d("Socket", "위치 수신: $userName -> $userId at ($lat, $lng)")
+                                updateLocationData(userId, lat, lng, userName, profileImg)
                             }
 
                             "status" -> {
@@ -114,10 +116,11 @@ class SocketRepository @Inject constructor() {
         writer?.println(json.toString())
     }
 
-    private fun updateLocationData(userId: String, lat: Double, lng: Double) {
+    private fun updateLocationData(userId: String, lat: Double, lng: Double, name:String, profileImgUrl:String) {
         val current = _locationDataFlow.value.toMutableMap()
-        current[userId] = UserLocation(lat, lng)
+        current[userId] = UserLocation(lat, lng, name, profileImgUrl)
         _locationDataFlow.value = current
+        Log.d("SOCKET",_locationDataFlow.value.toString())
     }
 
     fun disconnect() {
