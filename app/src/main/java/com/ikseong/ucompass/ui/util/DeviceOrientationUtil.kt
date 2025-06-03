@@ -173,13 +173,11 @@ object DeviceOrientationUtil {
 
         // 값을 반올림하여 미세한 변화로 인한 과도한 업데이트 방지
         val roundedAzimuth = round(azimuth * 10) / 10
-        Log.d(TAG, "원본 방위각: $roundedAzimuth")
         // 상태 업데이트
         if (history.size <= 10) {
             // 최초값인 경우 바로 리턴하고 리스트에 추가
             history.add(roundedAzimuth)
             azimuthState.value = roundedAzimuth
-            Log.d(TAG, "방위각: ${azimuthState.value}")
             return
         }
 
@@ -188,8 +186,6 @@ object DeviceOrientationUtil {
 
         // 최근 10개 데이터의 평균 계산
         val averageAzimuth = history.average().toFloat()
-        Log.d(TAG, "최근 10개 방위각: $history")
-        Log.d(TAG, "평균 방위각: $averageAzimuth")
 
         // 기존 값과의 차이를 확인하여 변화가 충분할 때만 업데이트
         if (kotlin.math.abs(azimuthState.value - averageAzimuth) >= 3f) {

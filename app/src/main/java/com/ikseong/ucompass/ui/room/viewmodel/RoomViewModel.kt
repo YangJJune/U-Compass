@@ -8,7 +8,10 @@ import com.ikseong.ucompass.domain.DeleteRoomUseCase
 import com.ikseong.ucompass.domain.GetDeviceIdUseCase
 import com.ikseong.ucompass.domain.GetRoomItemUseCase
 import com.ikseong.ucompass.domain.LeaveRoomUseCase
+import com.ikseong.ucompass.ui.common.component.MapMarker
 import com.ikseong.ucompass.ui.util.LocationUtil
+import com.ikseong.ucompass.ui.util.LocationUtil.calculateDistanceInMeters
+import com.ikseong.ucompass.ui.util.MapParticipantUtil.getRelativeBearing
 import com.naver.maps.geometry.LatLng
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
@@ -52,18 +55,18 @@ class RoomViewModel @Inject constructor(
             is RoomUiAction.OnUserShownClick -> setUserShown(action.userName)
             is RoomUiAction.OnAllUserShownClick -> setAllUserShown()
             is RoomUiAction.OnLottieClick -> startSearch(action.isSearching)
-            is RoomUiAction.OnLocationUpdate -> updateCurrentLocation(action.location)
+            is RoomUiAction.OnLocationUpdate -> updateCurrentLocation(action.location, action.orientation)
         }
     }
 
     // 현재 위치 업데이트
-    fun updateCurrentLocation(location: LatLng) {
+    fun updateCurrentLocation(location: LatLng, orientation: Float) {
         _currentLocation.value = location
-        updateParticipantsDistanceAndDirection(location)
+        updateParticipantsDistanceAndDirection(location, orientation)
     }
 
     // 참가자들의 거리와 방향 업데이트
-    private fun updateParticipantsDistanceAndDirection(currentLatLng: LatLng) {
+    private fun updateParticipantsDistanceAndDirection(currentLatLng: LatLng, orientation: Float) {
         val updatedParticipants = _uiState.value.participantState.map { participant ->
             // 참가자의 위치 정보가 있을 경우에만 계산
             val participantLatLng = LatLng(participant.latitude, participant.longitude)
@@ -78,8 +81,35 @@ class RoomViewModel @Inject constructor(
 
         }
 
+        val nMapMarkers = _uiState.value.participantState
+            .filter { it.isShown }
+            .map { participant ->
+                val distance = calculateDistanceInMeters(
+                    currentLatLng,
+                    LatLng(participant.latitude, participant.longitude)
+                )
+                MapMarker(
+                    name = participant.name,
+                    latitude = participant.latitude,
+                    longitude = participant.longitude,
+                    isVisible = participant.isShown,
+                    distance = distance,
+                ).apply {
+                    angle = getRelativeBearing(
+                        currentLatLng.latitude,
+                        currentLatLng.longitude,
+                        orientation.toDouble(),
+                        this.latitude,
+                        this.longitude
+                    ).toFloat()
+                }
+            }
+
         _uiState.update { currentState ->
-            currentState.copy(participantState = updatedParticipants)
+            currentState.copy(
+                participantState = updatedParticipants,
+                mapMarkers = nMapMarkers
+            )
         }
     }
 
@@ -198,7 +228,7 @@ class RoomViewModel @Inject constructor(
             socketRepository.connect()
             socketRepository.login(
                 userId = getDeviceIdUseCase().firstOrNull().toString(),
-                roomId = _uiState.value.roomId.toInt()
+                roomId = /*_uiState.value.roomId.toInt()*/2
             )
             socketRepository.sendLocation(
                 _currentLocation.value?.latitude ?: 0.0,
@@ -207,12 +237,11 @@ class RoomViewModel @Inject constructor(
         }
         viewModelScope.launch {
             socketRepository.locationDataFlow.collect { locations ->
-                Log.d("Socket", "Received locations: $locations")
                 _uiState.update { currentState ->
                     currentState.copy(
                         participantState = locations.map { location ->
                             ParticipantState(
-                                name = location.key,
+                                name = location.value.name,
                                 latitude = location.value.lat,
                                 longitude = location.value.lng,
                                 distance = _currentLocation.value?.let {
@@ -236,7 +265,7 @@ class RoomViewModel @Inject constructor(
     }
 
     override fun onCleared() {
-        super.onCleared()
         socketRepository.disconnect()
+        super.onCleared()
     }
 }

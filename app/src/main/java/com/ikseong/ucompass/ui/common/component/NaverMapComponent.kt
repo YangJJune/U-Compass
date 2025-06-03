@@ -6,6 +6,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.ikseong.ucompass.R
+import com.ikseong.ucompass.ui.model.DistanceType
+import com.ikseong.ucompass.ui.model.DistanceType.Companion.fromDistance
 import com.naver.maps.geometry.LatLng
 import com.naver.maps.map.compose.CameraPositionState
 import com.naver.maps.map.compose.ExperimentalNaverMapApi
@@ -17,19 +19,34 @@ import com.naver.maps.map.compose.MarkerState
 import com.naver.maps.map.compose.NaverMap
 import com.naver.maps.map.compose.rememberCameraPositionState
 import com.naver.maps.map.overlay.OverlayImage
-import kotlinx.collections.immutable.ImmutableList
 
 /**
  * 네이버 지도에 표시할 마커 정보
  */
 data class MapMarker(
-    val id: String = "",
     val name: String = "",
     val latitude: Double = 0.0,
     val longitude: Double = 0.0,
     val isVisible: Boolean = true,
-    val distanceText: String? = null
-)
+    val distance: Int = 0,
+    val type: DistanceType,
+    var angle: Float = 0f
+) {
+    constructor(
+        name: String,
+        latitude: Double,
+        longitude: Double,
+        isVisible: Boolean = true,
+        distance: Int = 0
+    ) : this(
+        name = name,
+        latitude = latitude,
+        longitude = longitude,
+        isVisible = isVisible,
+        distance = distance,
+        type = fromDistance(distance),
+    )
+}
 
 /**
  * 네이버 지도 컴포넌트
@@ -45,7 +62,7 @@ data class MapMarker(
 @Composable
 fun NaverMapComponent(
     modifier: Modifier = Modifier,
-    markers: ImmutableList<MapMarker>,
+    markers: List<MapMarker>,
     isMapVisible: Boolean,
     currentLocation: LatLng = LatLng(37.5666805, 126.9784147), // 서울 중심 기본값
     cameraPositionState: CameraPositionState = rememberCameraPositionState(),
@@ -76,7 +93,7 @@ fun NaverMapComponent(
         uiSettings = uiSettings,
         onMapClick = { _, latLng ->
             onMapClick(latLng)
-        }
+        },
     ) {
         // 현재 위치 마커
         Marker(
@@ -91,11 +108,7 @@ fun NaverMapComponent(
         markers.forEach { marker ->
             if (marker.isVisible) {
                 val markerLocation = LatLng(marker.latitude, marker.longitude)
-                val captionText = if (marker.distanceText != null) {
-                    "${marker.name} (${marker.distanceText})"
-                } else {
-                    marker.name
-                }
+                val captionText = "${marker.name} (${marker.distance})"
 
                 Marker(
                     state = MarkerState(position = markerLocation),

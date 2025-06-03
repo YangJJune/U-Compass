@@ -16,4 +16,10 @@ enum class DistanceType(
     FIVE_HUNDRED(500, 66.dp, R.drawable.ic_participant_pin_3),
     TWO_HUNDRED(200, 74.dp, R.drawable.ic_participant_pin_2),
     ZERO(0, 82.dp, R.drawable.ic_participant_pin_1);
+
+    companion object {
+        fun fromDistance(distance: Int): DistanceType {
+            return entries.firstOrNull { distance >= it.minDistance } ?: ZERO
+        }
+    }
 }
