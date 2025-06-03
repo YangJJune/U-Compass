@@ -22,8 +22,8 @@ data class ParticipantState(
     val profileUrl: String = "",
     val latitude: Double = 0.0,
     val longitude: Double = 0.0,
-    var direction: Direction = Direction.NE,
-    var distance: Int = 0,
+    var direction: Direction? = null,
+    var distance: Int? = null,
     val isShown: Boolean = false,
 ) {
     companion object {

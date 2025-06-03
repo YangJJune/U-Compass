@@ -14,6 +14,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -71,6 +72,8 @@ class RoomViewModel @Inject constructor(
             val direction = LocationUtil.calculateDirection(currentLatLng, participantLatLng)
 
             participant.copy(
+                distance = distance,
+                direction = direction
             )
 
         }
@@ -145,6 +148,7 @@ class RoomViewModel @Inject constructor(
                 )
             } else {
                 getDeviceIdUseCase().collect {
+                    Log.d("RoomViewModel", "deleteRoom: $it")
                     _deviceId.value = it!!
                     leaveRoomUseCase(
                         deviceId = _deviceId.value,
@@ -190,10 +194,10 @@ class RoomViewModel @Inject constructor(
     }
 
     private fun connectSocket() {
-        viewModelScope.launch {
+        viewModelScope.launch() {
             socketRepository.connect()
             socketRepository.login(
-                userId = getDeviceIdUseCase().toString(),
+                userId = getDeviceIdUseCase().firstOrNull().toString(),
                 roomId = _uiState.value.roomId.toInt()
             )
             socketRepository.sendLocation(
@@ -203,6 +207,7 @@ class RoomViewModel @Inject constructor(
         }
         viewModelScope.launch {
             socketRepository.locationDataFlow.collect { locations ->
+                Log.d("Socket", "Received locations: $locations")
                 _uiState.update { currentState ->
                     currentState.copy(
                         participantState = locations.map { location ->
@@ -210,14 +215,18 @@ class RoomViewModel @Inject constructor(
                                 name = location.key,
                                 latitude = location.value.lat,
                                 longitude = location.value.lng,
-                                distance = LocationUtil.calculateDistanceInMeters(
-                                    _currentLocation.value ?: LatLng(0.0, 0.0),
-                                    LatLng(location.value.lat, location.value.lng)
-                                ),
-                                direction = LocationUtil.calculateDirection(
-                                    _currentLocation.value ?: LatLng(0.0, 0.0),
-                                    LatLng(location.value.lat, location.value.lng)
-                                )
+                                distance = _currentLocation.value?.let {
+                                    LocationUtil.calculateDistanceInMeters(
+                                        it,
+                                        LatLng(location.value.lat, location.value.lng)
+                                    )
+                                },
+                                direction = _currentLocation.value?.let {
+                                    LocationUtil.calculateDirection(
+                                        it,
+                                        LatLng(location.value.lat, location.value.lng)
+                                    )
+                                }
                             )
                         }
                     )

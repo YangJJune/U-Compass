@@ -25,6 +25,7 @@ fun ParticipantPin(
 ) {
     Column(
         modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
             text = name,
@@ -56,7 +57,7 @@ fun ParticipantPin(
 private fun ParticipantPinPreview() {
     ParticipantPin(
         name = "홍길동",
-        direction = Direction.N,
+        direction = Direction.NE,
         distance = 500,
         type = DistanceType.ZERO,
     )

@@ -186,3 +186,4 @@ fabric.properties
 
 # End of https://www.toptal.com/developers/gitignore/api/android,androidstudio,kotlin
 /app/src/main/res/xml/network_security_config.xml
+github-deploy
