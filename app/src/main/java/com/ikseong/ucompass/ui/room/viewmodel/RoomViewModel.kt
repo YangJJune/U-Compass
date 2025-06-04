@@ -1,8 +1,10 @@
 package com.ikseong.ucompass.ui.room.viewmodel
 
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ikseong.ucompass.data.repository.AddressRepository
 import com.ikseong.ucompass.data.socket.repository.SocketRepository
 import com.ikseong.ucompass.domain.DeleteRoomUseCase
 import com.ikseong.ucompass.domain.GetDeviceIdUseCase
@@ -11,9 +13,11 @@ import com.ikseong.ucompass.domain.LeaveRoomUseCase
 import com.ikseong.ucompass.ui.common.component.MapMarker
 import com.ikseong.ucompass.ui.util.LocationUtil
 import com.ikseong.ucompass.ui.util.LocationUtil.calculateDistanceInMeters
+import com.ikseong.ucompass.ui.util.LocationUtil.getCurrentLocation
 import com.ikseong.ucompass.ui.util.MapParticipantUtil.getRelativeBearing
 import com.naver.maps.geometry.LatLng
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -29,7 +33,9 @@ class RoomViewModel @Inject constructor(
     private val deleteRoomUseCase: DeleteRoomUseCase,
     private val leaveRoomUseCase: LeaveRoomUseCase,
     private val getDeviceIdUseCase: GetDeviceIdUseCase,
-    private val socketRepository: SocketRepository
+    private val socketRepository: SocketRepository,
+    private val addressRepository: AddressRepository,
+    @ApplicationContext private val context: Context,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(RoomUiState())
@@ -55,7 +61,45 @@ class RoomViewModel @Inject constructor(
             is RoomUiAction.OnUserShownClick -> setUserShown(action.userName)
             is RoomUiAction.OnAllUserShownClick -> setAllUserShown()
             is RoomUiAction.OnLottieClick -> startSearch(action.isSearching)
-            is RoomUiAction.OnLocationUpdate -> updateCurrentLocation(action.location, action.orientation)
+            is RoomUiAction.OnLocationUpdate -> updateCurrentLocation(
+                action.location,
+                action.orientation
+            )
+        }
+    }
+
+    init {
+        getLocationAndAddress()
+    }
+
+    private fun getLocationAndAddress() {
+        viewModelScope.launch {
+            try {
+                val location = getCurrentLocation(context = context)
+                // 위치 정보를 가져온 후 주소 변환
+                addressRepository.getAddressFromCoordinates(
+                    latitude = location.latitude,
+                    longitude = location.longitude
+                ).fold(
+                    onSuccess = { address ->
+                        _uiState.update {
+                            it.copy(address = address)
+                        }
+                        Log.d("MainViewModel", "현재 주소: $address")
+                    },
+                    onFailure = { exception ->
+                        Log.e("MainViewModel", "주소 변환 실패: ${exception.message}")
+                        _uiState.update {
+                            it.copy(address = "주소를 불러올 수 없습니다")
+                        }
+                    }
+                )
+            } catch (e: Exception) {
+                Log.e("MainViewModel", "위치 정보 가져오기 실패: ${e.message}")
+                _uiState.update {
+                    it.copy(address = "위치를 불러올 수 없습니다")
+                }
+            }
         }
     }
 
@@ -237,27 +281,29 @@ class RoomViewModel @Inject constructor(
         }
         viewModelScope.launch {
             socketRepository.locationDataFlow.collect { locations ->
-                _uiState.update { currentState ->
-                    currentState.copy(
-                        participantState = locations.map { location ->
-                            ParticipantState(
-                                name = location.value.name,
-                                latitude = location.value.lat,
-                                longitude = location.value.lng,
-                                distance = _currentLocation.value?.let {
-                                    LocationUtil.calculateDistanceInMeters(
-                                        it,
-                                        LatLng(location.value.lat, location.value.lng)
-                                    )
-                                },
-                                direction = _currentLocation.value?.let {
-                                    LocationUtil.calculateDirection(
-                                        it,
-                                        LatLng(location.value.lat, location.value.lng)
-                                    )
-                                }
+                val participants = locations.map { location ->
+                    ParticipantState(
+                        name = location.value.name,
+                        latitude = location.value.lat,
+                        longitude = location.value.lng,
+                        distance = _currentLocation.value?.let {
+                            LocationUtil.calculateDistanceInMeters(
+                                it,
+                                LatLng(location.value.lat, location.value.lng)
+                            )
+                        },
+                        direction = _currentLocation.value?.let {
+                            LocationUtil.calculateDirection(
+                                it,
+                                LatLng(location.value.lat, location.value.lng)
                             )
                         }
+                    )
+                }
+                _uiState.update { currentState ->
+                    currentState.copy(
+                        participantState = participants,
+                        participantCount = participants.size,
                     )
                 }
             }
