@@ -2,7 +2,6 @@ package com.ikseong.ucompass.ui.room.screen
 
 import android.Manifest
 import android.os.Build
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -181,7 +180,7 @@ fun RoomScreen(
     // 카메라 상태 기억
     val cameraPositionState = rememberCameraPositionState()
 
-        var mapMarkers = remember { mutableStateOf<List<MapMarker>>(emptyList()) }
+    var mapMarkers = remember { mutableStateOf<List<MapMarker>>(emptyList()) }
 
     // 기기 방향이 변경될 때마다 지도 회전 업데이트
     LaunchedEffect(
@@ -212,6 +211,7 @@ fun RoomScreen(
         sheetDragHandle = { RoomBottomSheetDragHandle() },
         sheetContent = {
             RoomBottomSheet(
+//                modifier = Modifier.padding(padding),
                 participantInfo = uiState.participantState,
                 onUserClick = { onAction(RoomUiAction.OnUserShownClick(it)) },
                 onAllClick = { onAction(RoomUiAction.OnAllUserShownClick) }
@@ -293,7 +293,7 @@ fun RoomScreen(
                             shape = RoundedCornerShape(25.dp),
                             color = Color(0xFF00E397)
                         )
-                        .clickable { },
+                        .noRippleClickable { onAction(RoomUiAction.OnUserListClick) },
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
