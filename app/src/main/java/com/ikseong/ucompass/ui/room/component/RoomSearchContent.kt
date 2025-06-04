@@ -3,6 +3,7 @@ package com.ikseong.ucompass.ui.room.component
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -48,14 +49,15 @@ fun RoomSearchContent(
     var widthPx by remember { mutableIntStateOf(0) }
     var heightPx by remember { mutableIntStateOf(0) }
 
-    Box(
+    Column(
         modifier = modifier
             .fillMaxSize()
             .padding(top = 12.dp)
             .onGloballyPositioned { coordinates ->
                 widthPx = coordinates.size.width
                 heightPx = coordinates.size.height
-            }
+            },
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Row(
             modifier = Modifier
@@ -64,7 +66,6 @@ fun RoomSearchContent(
                 .background(
                     color = if (isMapVisible) Color.White else Color.White.copy(alpha = 0.8f)
                 )
-                .align(Alignment.TopCenter)
                 .padding(horizontal = 20.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceEvenly
@@ -84,7 +85,7 @@ fun RoomSearchContent(
             )
         }
         Box(
-            modifier = Modifier.matchParentSize()
+            modifier = Modifier.fillMaxSize()
         ) {
             mapMarkers.forEach { mapMarker ->
                 if (mapMarker.isVisible && mapMarker.distance >= 400) {
