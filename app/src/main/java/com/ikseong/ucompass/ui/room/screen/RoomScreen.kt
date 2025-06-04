@@ -28,6 +28,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -50,13 +52,13 @@ import com.ikseong.ucompass.ui.common.component.MapMarker
 import com.ikseong.ucompass.ui.common.component.NaverMapComponent
 import com.ikseong.ucompass.ui.common.component.ObserveAsEvents
 import com.ikseong.ucompass.ui.model.Direction
-import com.ikseong.ucompass.ui.model.ParticipantInfo
 import com.ikseong.ucompass.ui.room.component.RoomBottomSheet
 import com.ikseong.ucompass.ui.room.component.RoomBottomSheetDragHandle
 import com.ikseong.ucompass.ui.room.component.RoomDefaultContent
 import com.ikseong.ucompass.ui.room.component.RoomDeleteDialog
 import com.ikseong.ucompass.ui.room.component.RoomSearchContent
 import com.ikseong.ucompass.ui.room.component.RoomTopComponent
+import com.ikseong.ucompass.ui.room.viewmodel.ParticipantState
 import com.ikseong.ucompass.ui.room.viewmodel.RoomUiAction
 import com.ikseong.ucompass.ui.room.viewmodel.RoomUiEvent
 import com.ikseong.ucompass.ui.room.viewmodel.RoomUiState
@@ -72,7 +74,6 @@ import com.naver.maps.geometry.LatLng
 import com.naver.maps.map.CameraPosition
 import com.naver.maps.map.compose.MapUiSettings
 import com.naver.maps.map.compose.rememberCameraPositionState
-import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.launch
 
 
@@ -82,13 +83,14 @@ fun RoomRoute(
     id: Long,
     padding: PaddingValues,
     navigateBack: () -> Unit,
-    viewModel: RoomViewModel = hiltViewModel()
+    roomViewModel: RoomViewModel = hiltViewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val currentLocation by viewModel.currentLocation.collectAsStateWithLifecycle()
+    val uiState by roomViewModel.uiState.collectAsStateWithLifecycle()
+    val currentLocation by roomViewModel.currentLocation.collectAsStateWithLifecycle()
     val scaffoldState = rememberBottomSheetScaffoldState()
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+    val deviceOrientation = DeviceOrientationUtil.rememberDeviceOrientation()
 
     // 필요한 모든 권한 상태 관리
     val permissionsState = rememberMultiplePermissionsState(
@@ -106,7 +108,7 @@ fun RoomRoute(
     )
 
     LaunchedEffect(Unit) {
-        viewModel.getRoomItem(id)
+        roomViewModel.getRoomItem(id)
     }
 
     // 앱 생명주기 관찰하여 위치 업데이트 관리
@@ -118,7 +120,12 @@ fun RoomRoute(
                     if (permissionsState.allPermissionsGranted) {
                         // 위치 업데이트 시작
                         startLocationUpdates(context) { location ->
-                            viewModel.onRoomUiAction(RoomUiAction.OnLocationUpdate(location))
+                            roomViewModel.onRoomUiAction(
+                                RoomUiAction.OnLocationUpdate(
+                                    location,
+                                    deviceOrientation.value
+                                )
+                            )
                         }
                     } else {
                         permissionsState.launchMultiplePermissionRequest()
@@ -143,7 +150,7 @@ fun RoomRoute(
         }
     }
 
-    ObserveAsEvents(flow = viewModel.uiEvent) { event ->
+    ObserveAsEvents(flow = roomViewModel.uiEvent) { event ->
         when (event) {
             RoomUiEvent.NavigateToBack -> navigateBack()
             RoomUiEvent.ShowBottomSheet -> scope.launch { scaffoldState.bottomSheetState.expand() }
@@ -155,7 +162,8 @@ fun RoomRoute(
         uiState = uiState,
         currentLocation = currentLocation,
         scaffoldState = scaffoldState,
-        onAction = viewModel::onRoomUiAction
+        deviceOrientation = deviceOrientation.value,
+        onAction = roomViewModel::onRoomUiAction
     )
 }
 
@@ -166,32 +174,33 @@ fun RoomScreen(
     scaffoldState: BottomSheetScaffoldState,
     uiState: RoomUiState,
     currentLocation: LatLng?,
+    deviceOrientation: Double,
     onAction: (RoomUiAction) -> Unit,
 ) {
     // 카메라 상태 기억
     val cameraPositionState = rememberCameraPositionState()
 
-    val deviceOrientation = DeviceOrientationUtil.rememberDeviceOrientation()
+    var mapMarkers = remember { mutableStateOf<List<MapMarker>>(emptyList()) }
 
     // 기기 방향이 변경될 때마다 지도 회전 업데이트
     LaunchedEffect(
         uiState.isMapVisible,
         currentLocation,
-        deviceOrientation.value
+        deviceOrientation
     ) {
         currentLocation?.let {
             // 기기 방향 각도의 반대 방향으로 지도 회전 (기기가 시계방향으로 회전하면 지도는 반시계방향으로)
             val offsetLatLng = offsetLatLng(
                 currentLocation,
                 -90.0, // 90m 위쪽으로 이동 = 내 위치를 아래에 보이게
-                (deviceOrientation.value + 180) % 360 // 반대방향 bearing
+                (deviceOrientation + 180) % 360 // 반대방향 bearing
             )
 
             cameraPositionState.position = CameraPosition(
                 offsetLatLng,
                 17.0,
                 0.0,
-                deviceOrientation.value.toDouble()
+                deviceOrientation.toDouble()
             )
         }
     }
@@ -202,7 +211,8 @@ fun RoomScreen(
         sheetDragHandle = { RoomBottomSheetDragHandle() },
         sheetContent = {
             RoomBottomSheet(
-                participantInfo = uiState.participantInfo,
+//                modifier = Modifier.padding(padding),
+                participantInfo = uiState.participantState,
                 onUserClick = { onAction(RoomUiAction.OnUserShownClick(it)) },
                 onAllClick = { onAction(RoomUiAction.OnAllUserShownClick) }
             )
@@ -219,21 +229,10 @@ fun RoomScreen(
                 // 네이버 지도 표시
                 currentLocation?.let { location ->
                     // 참가자 정보를 MapMarker로 변환
-                    val mapMarkers = uiState.participantInfo
-                        .filter { it.isShown }
-                        .map { participant ->
-                            MapMarker(
-                                id = participant.name,
-                                name = participant.name,
-                                latitude = participant.latitude,
-                                longitude = participant.longitude,
-                                isVisible = participant.isShown,
-                                distanceText = "${participant.distance}m"
-                            )
-                        }.toImmutableList()
+                    onAction(RoomUiAction.OnLocationUpdate(location, deviceOrientation))
 
                     NaverMapComponent(
-                        markers = mapMarkers,
+                        markers = uiState.mapMarkers,
                         currentLocation = location,
                         cameraPositionState = cameraPositionState,
                         isMapVisible = uiState.isMapVisible,
@@ -277,6 +276,8 @@ fun RoomScreen(
                     RoomSearchContent(
                         address = uiState.address,
                         isMapVisible = uiState.isMapVisible,
+                        myLocation = currentLocation,
+                        mapMarkers = uiState.mapMarkers,
                     )
                 }
             }
@@ -292,7 +293,7 @@ fun RoomScreen(
                             shape = RoundedCornerShape(25.dp),
                             color = Color(0xFF00E397)
                         )
-                        .clickable { },
+                        .noRippleClickable { onAction(RoomUiAction.OnUserListClick) },
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
@@ -302,7 +303,7 @@ fun RoomScreen(
                         tint = Color(0x8000E397)
                     )
                     Text(
-                        text = "참가 인원 ${uiState.participantInfo.size}명",
+                        text = "참가 인원 ${uiState.participantCount}명",
                         style = typography.medium.copy(
                             fontSize = 18.sp,
                             color = Color(0xFF606060)
@@ -351,7 +352,7 @@ fun RoomScreen(
                         )
                         Spacer(modifier = Modifier.size(6.dp))
                         Text(
-                            text = "참가 인원 ${uiState.participantInfo.size}명",
+                            text = "참가 인원 ${uiState.participantCount}명",
                             style = typography.medium.copy(
                                 fontSize = 18.sp,
                                 color = Color(0xFF606060)
@@ -398,22 +399,22 @@ private fun RoomScreenPreview() {
         uiState = RoomUiState(
             roomName = "Room Name",
             address = "123 Main St, City, Country",
-            participantInfo = listOf(
-                ParticipantInfo(
+            participantState = listOf(
+                ParticipantState(
                     name = "John Doe",
                     profileUrl = "https://example.com/profile.jpg",
                     direction = Direction.E,
                     distance = 1000,
                     isShown = true,
                 ),
-                ParticipantInfo(
+                ParticipantState(
                     name = "Jane Smith",
                     profileUrl = "https://example.com/profile2.jpg",
                     direction = Direction.N,
                     distance = 1500,
                     isShown = false,
                 ),
-                ParticipantInfo(
+                ParticipantState(
                     name = "Alice Johnson",
                     profileUrl = "https://example.com/profile3.jpg",
                     direction = Direction.SE,
@@ -423,6 +424,7 @@ private fun RoomScreenPreview() {
             ),
         ),
         currentLocation = LatLng(37.5666805, 126.9784147),
-        onAction = {}
+        onAction = {},
+        deviceOrientation = 0.0 // 임시 값, 실제로는 기기 방향에 따라 변경되어야 함
     )
 }

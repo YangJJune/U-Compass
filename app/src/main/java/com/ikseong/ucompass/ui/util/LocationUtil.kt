@@ -298,7 +298,7 @@ object LocationUtil {
     fun offsetLatLng(
         origin: LatLng,
         distanceMeter: Double,
-        angleDegrees: Float
+        angleDegrees: Double
     ): LatLng {
         val R = 6378137.0 // Earth radius (m)
         val bearingRad = Math.toRadians(angleDegrees.toDouble())

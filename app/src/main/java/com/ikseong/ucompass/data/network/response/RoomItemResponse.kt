@@ -10,7 +10,21 @@ data class RoomItemResponse(
     @SerialName("id")
     val id: Long,
     @SerialName("participants")
-    val participants: List<String>,
+    val participants: List<ParticipantInfoResponse>,
     @SerialName("title")
     val title: String
+)
+
+@Serializable
+data class ParticipantInfoResponse(
+    @SerialName("name")
+    val name: String = "",
+    @SerialName("email")
+    val email : String = "",
+    @SerialName("id")
+    val id : Int = 0,
+    @SerialName("deviceId")
+    val deviceId: String = "",
+    @SerialName("profileImage")
+    val profileImage : String = "",
 )

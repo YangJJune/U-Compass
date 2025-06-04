@@ -7,6 +7,6 @@ import kotlinx.serialization.Serializable
 data class CreateRoomRequest(
     @SerialName("title")
     val title: String,
-    @SerialName("creator")
+    @SerialName("deviceId")
     val creator: String,
 )

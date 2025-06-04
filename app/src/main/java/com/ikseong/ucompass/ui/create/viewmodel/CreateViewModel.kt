@@ -4,11 +4,13 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ikseong.ucompass.domain.CreateRoomUseCase
+import com.ikseong.ucompass.domain.GetDeviceIdUseCase
 import com.ikseong.ucompass.mapper.toRequest
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -17,6 +19,7 @@ import javax.inject.Inject
 @HiltViewModel
 class CreateViewModel @Inject constructor(
     private val createRoomUseCase: CreateRoomUseCase,
+    private val getDeviceIdUseCase: GetDeviceIdUseCase,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CreateUiState())
@@ -58,8 +61,10 @@ class CreateViewModel @Inject constructor(
 
     private fun createRoom() {
         viewModelScope.launch {
+            val deviceId = getDeviceIdUseCase().first()
+
             val request = _uiState.value.toRequest(
-                creator = "test"
+                creator = deviceId ?: "",
             )
 
             createRoomUseCase(request).fold(

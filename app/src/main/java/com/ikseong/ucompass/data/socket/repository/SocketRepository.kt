@@ -1,23 +1,17 @@
 package com.ikseong.ucompass.data.socket.repository
 
 import android.util.Log
-import androidx.core.app.PendingIntentCompat.send
 import com.ikseong.ucompass.BuildConfig
-import com.ikseong.ucompass.data.network.socket.receive.SocketLocationReceiveDto
-import com.ikseong.ucompass.data.network.socket.receive.SocketLocationReceiveDto.Companion.JSON_LOCATION_RECEIVE
-import com.ikseong.ucompass.data.network.socket.write.SocketLocationWriteDto
-import com.ikseong.ucompass.data.network.socket.write.SocketLoginDto
+import com.ikseong.ucompass.data.network.socket.UserLocation
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.json.Json
 import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -26,92 +20,165 @@ import java.io.PrintWriter
 import java.net.Socket
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.math.absoluteValue
 
 @Singleton
 class SocketRepository @Inject constructor() {
+    private val host: String = BuildConfig.HOST
+    private val port: Int = BuildConfig.PORT
     private var socket: Socket? = null
     private var writer: PrintWriter? = null
     private var reader: BufferedReader? = null
     private var receiveJob: Job? = null
-    private val json = Json { encodeDefaults = true }
+    private var sendJob: Job? = null
 
-    fun flowConnect() {
-        socket = Socket(BuildConfig.HOST, BuildConfig.PORT)
-        writer = PrintWriter(OutputStreamWriter(socket!!.getOutputStream()), true)
-        reader = BufferedReader(InputStreamReader(socket!!.getInputStream()))
+    // 위치 정보 Flow로 관리
+    private val _locationDataFlow = MutableStateFlow<Map<String, UserLocation>>(emptyMap())
+    val locationDataFlow: StateFlow<Map<String, UserLocation>> = _locationDataFlow
+
+    init {
+        CoroutineScope(Dispatchers.IO).launch {
+            locationDataFlow.collect {
+                Log.d("Socket", "위치 데이터 업데이트: $it")
+            }
+        }
     }
 
-    fun startReceiving() = flow {
+    suspend fun connect() = withContext(Dispatchers.IO) {
         try {
-            if (!isConnected()) {
-                socket = Socket(BuildConfig.HOST, BuildConfig.PORT)
-                writer = PrintWriter(OutputStreamWriter(socket!!.getOutputStream()), true)
-                reader = BufferedReader(InputStreamReader(socket!!.getInputStream()))
-            }
+            socket = Socket(host, port)
+            writer = PrintWriter(OutputStreamWriter(socket!!.getOutputStream()), true)
+            reader = BufferedReader(InputStreamReader(socket!!.getInputStream()))
 
-            // 수신 루프 시작
-            val line = reader?.readLine() ?: return@flow
-            try {
-                val dto = Json.decodeFromString<SocketLocationReceiveDto>(line)
+            receiveJob = CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    while (isActive) {
+                        if (!isConnected()) {
+                            Log.w("Socket", "수신 중단: 소켓이 연결되어 있지 않습니다.")
+                            break
+                        }
 
-                if (dto.type == JSON_LOCATION_RECEIVE) {
-                    emit(dto)
-                } else {
-                    return@flow
+                        var line = reader?.readLine().toString()
+                        if (line == "null") {
+                            Log.w("Socket", "서버에서 null 수신됨 또는 예외 발생. 연결 종료로 간주합니다.")
+                            break
+                        }
+
+                        try {
+                            val json = JSONObject(line)
+                            Log.d("Socket", "수신된 JSON: $json")
+                            when (json.optString("type")) {
+                                "location_broadcast" -> {
+                                    val userId = json.optString("user_id")
+                                    val lat = json.optDouble("lat")
+                                    val lng = json.optDouble("lng")
+                                    val userName = json.optString("name")
+                                    Log.d("Socket", "위치 수신: $userName -> $userId at ($lat, $lng)")
+                                    updateLocationData(userId, lat, lng, userName)
+                                }
+
+                                "status" -> {
+                                    Log.d("Socket", "로그인 결과: ${json.optString("status")}")
+                                }
+
+                                "disconnect_broadcast" -> {
+                                    val disconnectedUserId = json.optString("user_id")
+                                    Log.d("Socket", "Disconnection 발생: $disconnectedUserId")
+                                    removeLocationData(disconnectedUserId)
+                                }
+
+                                else -> {
+                                    Log.w("Socket", "알 수 없는 메시지: $json")
+                                }
+                            }
+                        } catch (e: Exception) {
+                            Log.e("Socket", "JSON 파싱 오류: ${e.toString()}")
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.e("Socket", "수신 루프 전체 오류: ${e.message}")
+                } finally {
+                    disconnect()
                 }
-                //type에 따라 처리
-            } catch (e: Exception) {
-                Log.e("Socket", "JSON 파싱 오류: ${e.message}")
             }
+
         } catch (e: Exception) {
             Log.e("Socket", "서버 연결 실패: ${e.message}")
             disconnect()
         }
     }
-        .flowOn(Dispatchers.IO)
 
-    // 디스커넥트 로직
+    suspend fun login(userId: String, roomId: Int) {
+        val loginData = JSONObject()
+            .put("type", "login")
+            .put("user_id", userId)
+            .put("room_id", roomId)
+        Log.d("Socket", "로그인 데이터: $loginData")
+        send(loginData)
+    }
+
+    suspend fun sendLocation(lat: Double, lng: Double) = withContext(Dispatchers.IO) {
+        if (socket == null || !isConnected()) {
+            Log.e("Socket", "소켓이 연결되어 있지 않습니다.")
+            return@withContext
+        }
+        sendJob = CoroutineScope(Dispatchers.IO).launch {
+            try {
+                while (isActive) {
+                    val locationData = JSONObject()
+                        .put("type", "location_update")
+                        .put("lat", lat)
+                        .put("lng", lng.absoluteValue)
+                    Log.d("Socket", "위치 전송 : $locationData")
+                    send(locationData)
+                    delay(7000L)
+                }
+            } catch (e: Exception) {
+                Log.e("Socket", "위치 전송 실패: ${e.message}")
+            }
+        }
+    }
+
+    private suspend fun send(json: JSONObject) = withContext(Dispatchers.IO) {
+        socket ?: run {
+            socket = Socket(host, port)
+            writer = PrintWriter(OutputStreamWriter(socket!!.getOutputStream()), true)
+            reader = BufferedReader(InputStreamReader(socket!!.getInputStream()))
+        }
+        writer?.println(json.toString())
+    }
+
+    private fun updateLocationData(
+        userId: String,
+        lat: Double,
+        lng: Double,
+        name: String,
+    ) {
+        val current = _locationDataFlow.value.toMutableMap()
+        Log.d("Socket", "updateLocationData: $userId, $lat, $lng, $name")
+        current[userId] = UserLocation(lat, lng, name)
+        _locationDataFlow.value = current
+    }
+
+    private fun removeLocationData(userId: String) {
+        val current = _locationDataFlow.value.toMutableMap()
+        current.remove(userId)
+        _locationDataFlow.value = current
+    }
+
     fun disconnect() {
         receiveJob?.cancel()
+        sendJob?.cancel()
         writer?.close()
         reader?.close()
         socket?.close()
         writer = null
         reader = null
         socket = null
+        Log.d("Socket", "소켓 연결 종료")
     }
 
     fun isConnected(): Boolean {
         return socket?.isConnected == true && socket?.isClosed == false
     }
-
-    suspend fun login(userId: String, roomId: Int) {
-        val loginDto = SocketLoginDto(
-            userId = userId,
-            roomId = roomId
-        )
-        val loginData = JSONObject(
-            json.encodeToString(loginDto)
-        )
-
-        send(loginData)
-    }
-
-    suspend fun sendLocation(lat: Double, lng: Double) {
-
-        val locationWriteDto = SocketLocationWriteDto(
-            lat = lat,
-            lng = lng
-        )
-        val locationData = JSONObject(
-            json.encodeToString(locationWriteDto)
-        )
-        send(locationData)
-    }
-
-    private suspend fun send(json: JSONObject) = withContext(Dispatchers.IO) {
-        writer?.println(json.toString())
-    }
-
-
 }

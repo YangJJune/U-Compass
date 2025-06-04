@@ -27,6 +27,8 @@ fun RoomTopComponent(
     isMapVisible: Boolean,
     roomName: String,
 ) {
+    val color = if (!isMapVisible && isSearchMode) Color.White else Color.Black
+
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -39,14 +41,14 @@ fun RoomTopComponent(
             Icon(
                 painter = painterResource(id = R.drawable.ic_arrow_left_fill_36),
                 contentDescription = "Back Icon",
-                tint = if (isMapVisible) Color.Black else Color.White
+                tint = color
             )
         }
         Text(
             text = roomName,
             style = typography.semiBold.copy(
                 fontSize = 24.sp,
-                color = if (isMapVisible) Color.Black else Color.White
+                color = color
             )
         )
 

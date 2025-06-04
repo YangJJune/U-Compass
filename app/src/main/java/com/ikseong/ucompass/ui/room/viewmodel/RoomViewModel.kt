@@ -1,19 +1,27 @@
 package com.ikseong.ucompass.ui.room.viewmodel
 
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ikseong.ucompass.data.repository.AddressRepository
+import com.ikseong.ucompass.data.socket.repository.SocketRepository
 import com.ikseong.ucompass.domain.DeleteRoomUseCase
 import com.ikseong.ucompass.domain.GetDeviceIdUseCase
 import com.ikseong.ucompass.domain.GetRoomItemUseCase
 import com.ikseong.ucompass.domain.LeaveRoomUseCase
-import com.ikseong.ucompass.ui.model.ParticipantInfo
+import com.ikseong.ucompass.ui.common.component.MapMarker
 import com.ikseong.ucompass.ui.util.LocationUtil
+import com.ikseong.ucompass.ui.util.LocationUtil.calculateDistanceInMeters
+import com.ikseong.ucompass.ui.util.LocationUtil.getCurrentLocation
+import com.ikseong.ucompass.ui.util.MapParticipantUtil.getRelativeBearing
 import com.naver.maps.geometry.LatLng
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -24,7 +32,10 @@ class RoomViewModel @Inject constructor(
     private val getRoomItemUseCase: GetRoomItemUseCase,
     private val deleteRoomUseCase: DeleteRoomUseCase,
     private val leaveRoomUseCase: LeaveRoomUseCase,
-    private val getDeviceIdUseCase: GetDeviceIdUseCase
+    private val getDeviceIdUseCase: GetDeviceIdUseCase,
+    private val socketRepository: SocketRepository,
+    private val addressRepository: AddressRepository,
+    @ApplicationContext private val context: Context,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(RoomUiState())
@@ -49,38 +60,100 @@ class RoomViewModel @Inject constructor(
             RoomUiAction.OnUserListClick -> showUserListBottomSheet()
             is RoomUiAction.OnUserShownClick -> setUserShown(action.userName)
             is RoomUiAction.OnAllUserShownClick -> setAllUserShown()
-            is RoomUiAction.OnLottieClick -> setSearchMode(action.isSearching)
-            is RoomUiAction.OnLocationUpdate -> updateCurrentLocation(action.location)
+            is RoomUiAction.OnLottieClick -> startSearch(action.isSearching)
+            is RoomUiAction.OnLocationUpdate -> updateCurrentLocation(
+                action.location,
+                action.orientation
+            )
+        }
+    }
+
+    init {
+        getLocationAndAddress()
+    }
+
+    private fun getLocationAndAddress() {
+        viewModelScope.launch {
+            try {
+                val location = getCurrentLocation(context = context)
+                // 위치 정보를 가져온 후 주소 변환
+                addressRepository.getAddressFromCoordinates(
+                    latitude = location.latitude,
+                    longitude = location.longitude
+                ).fold(
+                    onSuccess = { address ->
+                        _uiState.update {
+                            it.copy(address = address)
+                        }
+                        Log.d("MainViewModel", "현재 주소: $address")
+                    },
+                    onFailure = { exception ->
+                        Log.e("MainViewModel", "주소 변환 실패: ${exception.message}")
+                        _uiState.update {
+                            it.copy(address = "주소를 불러올 수 없습니다")
+                        }
+                    }
+                )
+            } catch (e: Exception) {
+                Log.e("MainViewModel", "위치 정보 가져오기 실패: ${e.message}")
+                _uiState.update {
+                    it.copy(address = "위치를 불러올 수 없습니다")
+                }
+            }
         }
     }
 
     // 현재 위치 업데이트
-    fun updateCurrentLocation(location: LatLng) {
+    fun updateCurrentLocation(location: LatLng, orientation: Double) {
         _currentLocation.value = location
-        updateParticipantsDistanceAndDirection(location)
+        updateParticipantsDistanceAndDirection(location, orientation)
     }
 
     // 참가자들의 거리와 방향 업데이트
-    private fun updateParticipantsDistanceAndDirection(currentLatLng: LatLng) {
-        val updatedParticipants = _uiState.value.participantInfo.map { participant ->
+    private fun updateParticipantsDistanceAndDirection(currentLatLng: LatLng, orientation: Double) {
+        val updatedParticipants = _uiState.value.participantState.map { participant ->
             // 참가자의 위치 정보가 있을 경우에만 계산
-            if (participant.latitude != 0.0 && participant.longitude != 0.0) {
-                val participantLatLng = LatLng(participant.latitude, participant.longitude)
-                val distance =
-                    LocationUtil.calculateDistanceInMeters(currentLatLng, participantLatLng)
-                val direction = LocationUtil.calculateDirection(currentLatLng, participantLatLng)
+            val participantLatLng = LatLng(participant.latitude, participant.longitude)
+            val distance =
+                LocationUtil.calculateDistanceInMeters(currentLatLng, participantLatLng)
+            val direction = LocationUtil.calculateDirection(currentLatLng, participantLatLng)
 
-                participant.copy(
-                    direction = direction,
-                    distance = distance
-                )
-            } else {
-                participant
-            }
+            participant.copy(
+                distance = distance,
+                direction = direction
+            )
+
         }
 
+        val nMapMarkers = _uiState.value.participantState
+            .filter { it.isShown }
+            .map { participant ->
+                val distance = calculateDistanceInMeters(
+                    currentLatLng,
+                    LatLng(participant.latitude, participant.longitude)
+                )
+                MapMarker(
+                    name = participant.name,
+                    latitude = participant.latitude,
+                    longitude = participant.longitude,
+                    isVisible = participant.isShown,
+                    distance = distance,
+                ).apply {
+                    angle = getRelativeBearing(
+                        currentLatLng.latitude,
+                        currentLatLng.longitude,
+                        orientation,
+                        this.latitude,
+                        this.longitude
+                    ).toFloat()
+                }
+            }
+
         _uiState.update { currentState ->
-            currentState.copy(participantInfo = updatedParticipants)
+            currentState.copy(
+                participantState = updatedParticipants,
+                mapMarkers = nMapMarkers
+            )
         }
     }
 
@@ -91,11 +164,11 @@ class RoomViewModel @Inject constructor(
     }
 
     private fun setAllUserShown() {
-        val isAllShown = _uiState.value.participantInfo.all { it.isShown }
+        val isAllShown = _uiState.value.participantState.all { it.isShown }
 
         _uiState.update { currentState ->
             currentState.copy(
-                participantInfo = currentState.participantInfo.map { info ->
+                participantState = currentState.participantState.map { info ->
                     info.copy(isShown = !isAllShown)
                 })
         }
@@ -104,7 +177,7 @@ class RoomViewModel @Inject constructor(
     private fun setUserShown(userName: String) {
         _uiState.update {
             it.copy(
-                participantInfo = it.participantInfo.map { info ->
+                participantState = it.participantState.map { info ->
                     if (info.name == userName) {
                         info.copy(isShown = !info.isShown)
                     } else {
@@ -121,10 +194,11 @@ class RoomViewModel @Inject constructor(
         }
     }
 
-    private fun setSearchMode(flag: Boolean) {
+    private fun startSearch(flag: Boolean) {
         _uiState.update {
             it.copy(isSearchMode = flag)
         }
+        connectSocket()
     }
 
     private fun setMapVisible(flag: Boolean) {
@@ -148,6 +222,7 @@ class RoomViewModel @Inject constructor(
                 )
             } else {
                 getDeviceIdUseCase().collect {
+                    Log.d("RoomViewModel", "deleteRoom: $it")
                     _deviceId.value = it!!
                     leaveRoomUseCase(
                         deviceId = _deviceId.value,
@@ -181,11 +256,7 @@ class RoomViewModel @Inject constructor(
                         it.copy(
                             roomId = data.id,
                             roomName = data.title,
-                            participantInfo = data.participants.map { participantName ->
-                                ParticipantInfo(
-                                    name = participantName,
-                                )
-                            }
+                            participantCount = data.participants.size
                         )
                     }
                 },
@@ -194,5 +265,53 @@ class RoomViewModel @Inject constructor(
                 }
             )
         }
+    }
+
+    private fun connectSocket() {
+        viewModelScope.launch() {
+            socketRepository.connect()
+            socketRepository.login(
+                userId = getDeviceIdUseCase().firstOrNull().toString(),
+                roomId = /*_uiState.value.roomId.toInt()*/2
+            )
+            socketRepository.sendLocation(
+                _currentLocation.value?.latitude ?: 0.0,
+                _currentLocation.value?.longitude ?: 0.0
+            )
+        }
+        viewModelScope.launch {
+            socketRepository.locationDataFlow.collect { locations ->
+                val participants = locations.map { location ->
+                    ParticipantState(
+                        name = location.value.name,
+                        latitude = location.value.lat,
+                        longitude = location.value.lng,
+                        distance = _currentLocation.value?.let {
+                            LocationUtil.calculateDistanceInMeters(
+                                it,
+                                LatLng(location.value.lat, location.value.lng)
+                            )
+                        },
+                        direction = _currentLocation.value?.let {
+                            LocationUtil.calculateDirection(
+                                it,
+                                LatLng(location.value.lat, location.value.lng)
+                            )
+                        }
+                    )
+                }
+                _uiState.update { currentState ->
+                    currentState.copy(
+                        participantState = participants,
+                        participantCount = participants.size,
+                    )
+                }
+            }
+        }
+    }
+
+    override fun onCleared() {
+        socketRepository.disconnect()
+        super.onCleared()
     }
 }
