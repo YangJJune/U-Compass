@@ -60,13 +60,13 @@ class RoomViewModel @Inject constructor(
     }
 
     // 현재 위치 업데이트
-    fun updateCurrentLocation(location: LatLng, orientation: Float) {
+    fun updateCurrentLocation(location: LatLng, orientation: Double) {
         _currentLocation.value = location
         updateParticipantsDistanceAndDirection(location, orientation)
     }
 
     // 참가자들의 거리와 방향 업데이트
-    private fun updateParticipantsDistanceAndDirection(currentLatLng: LatLng, orientation: Float) {
+    private fun updateParticipantsDistanceAndDirection(currentLatLng: LatLng, orientation: Double) {
         val updatedParticipants = _uiState.value.participantState.map { participant ->
             // 참가자의 위치 정보가 있을 경우에만 계산
             val participantLatLng = LatLng(participant.latitude, participant.longitude)
@@ -98,7 +98,7 @@ class RoomViewModel @Inject constructor(
                     angle = getRelativeBearing(
                         currentLatLng.latitude,
                         currentLatLng.longitude,
-                        orientation.toDouble(),
+                        orientation,
                         this.latitude,
                         this.longitude
                     ).toFloat()

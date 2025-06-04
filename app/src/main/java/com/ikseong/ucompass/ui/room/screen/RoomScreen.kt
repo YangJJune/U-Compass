@@ -2,6 +2,7 @@ package com.ikseong.ucompass.ui.room.screen
 
 import android.Manifest
 import android.os.Build
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -120,7 +121,12 @@ fun RoomRoute(
                     if (permissionsState.allPermissionsGranted) {
                         // 위치 업데이트 시작
                         startLocationUpdates(context) { location ->
-                            roomViewModel.onRoomUiAction(RoomUiAction.OnLocationUpdate(location, deviceOrientation.value))
+                            roomViewModel.onRoomUiAction(
+                                RoomUiAction.OnLocationUpdate(
+                                    location,
+                                    deviceOrientation.value
+                                )
+                            )
                         }
                     } else {
                         permissionsState.launchMultiplePermissionRequest()
@@ -169,13 +175,13 @@ fun RoomScreen(
     scaffoldState: BottomSheetScaffoldState,
     uiState: RoomUiState,
     currentLocation: LatLng?,
-    deviceOrientation : Float,
+    deviceOrientation: Double,
     onAction: (RoomUiAction) -> Unit,
 ) {
     // 카메라 상태 기억
     val cameraPositionState = rememberCameraPositionState()
 
-    var mapMarkers = remember { mutableStateOf<List<MapMarker>>(emptyList()) }
+        var mapMarkers = remember { mutableStateOf<List<MapMarker>>(emptyList()) }
 
     // 기기 방향이 변경될 때마다 지도 회전 업데이트
     LaunchedEffect(
@@ -419,6 +425,6 @@ private fun RoomScreenPreview() {
         ),
         currentLocation = LatLng(37.5666805, 126.9784147),
         onAction = {},
-        deviceOrientation = 0f // 임시 값, 실제로는 기기 방향에 따라 변경되어야 함
+        deviceOrientation = 0.0 // 임시 값, 실제로는 기기 방향에 따라 변경되어야 함
     )
 }

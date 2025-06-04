@@ -10,7 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
-import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -32,11 +32,11 @@ object DeviceOrientationUtil {
      * 현재 기기의 방향 각도를 Composable 함수에서 관찰 가능한 State로 제공
      */
     @Composable
-    fun rememberDeviceOrientation(): State<Float> {
+    fun rememberDeviceOrientation(): State<Double> {
         val context = LocalContext.current
         val lifecycleOwner = LocalLifecycleOwner.current
-        val azimuthState = remember { mutableFloatStateOf(0f) }
-        val history = remember { mutableListOf<Float>() }
+        val azimuthState = remember { mutableDoubleStateOf(0.0) }
+        val history = remember { mutableListOf<Double>() }
 
         DisposableEffect(lifecycleOwner) {
             val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
@@ -152,8 +152,8 @@ object DeviceOrientationUtil {
         magnetometerReading: FloatArray,
         rotationMatrix: FloatArray,
         orientationAngles: FloatArray,
-        azimuthState: MutableState<Float>,
-        history: MutableList<Float>
+        azimuthState: MutableState<Double>,
+        history: MutableList<Double>
     ) {
         // 회전 행렬 계산
         SensorManager.getRotationMatrix(
@@ -168,13 +168,13 @@ object DeviceOrientationUtil {
 
         // 라디안을 도(degree)로 변환 (0~360도)
         val azimuthInRadians = orientationAngles[0]
-        val azimuthInDegrees = Math.toDegrees(azimuthInRadians.toDouble()).toFloat()
+        val azimuthInDegrees = Math.toDegrees(azimuthInRadians.toDouble())
         val azimuth = (azimuthInDegrees + 360) % 360
 
         // 값을 반올림하여 미세한 변화로 인한 과도한 업데이트 방지
         val roundedAzimuth = round(azimuth * 10) / 10
         // 상태 업데이트
-        if (history.size <= 10) {
+        if (history.size <= 5) {
             // 최초값인 경우 바로 리턴하고 리스트에 추가
             history.add(roundedAzimuth)
             azimuthState.value = roundedAzimuth
@@ -185,7 +185,7 @@ object DeviceOrientationUtil {
         history.removeAt(0)
 
         // 최근 10개 데이터의 평균 계산
-        val averageAzimuth = history.average().toFloat()
+        val averageAzimuth = history.average()
 
         // 기존 값과의 차이를 확인하여 변화가 충분할 때만 업데이트
         if (kotlin.math.abs(azimuthState.value - averageAzimuth) >= 3f) {

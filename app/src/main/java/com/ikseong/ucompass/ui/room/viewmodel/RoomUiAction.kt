@@ -12,5 +12,5 @@ interface RoomUiAction {
     data class OnUserShownClick(val userName: String) : RoomUiAction
     data object OnAllUserShownClick : RoomUiAction
     data class OnLottieClick(val isSearching: Boolean) : RoomUiAction
-    data class OnLocationUpdate(val location: LatLng, val orientation: Float) : RoomUiAction
+    data class OnLocationUpdate(val location: LatLng, val orientation: Double) : RoomUiAction
 }
