@@ -97,8 +97,8 @@ fun NaverMapComponent(
     ) {
         // 현재 위치 마커
         Marker(
-            width = 40.dp,
-            height = 40.dp,
+            width = 60.dp,
+            height = 60.dp,
             state = MarkerState(position = currentLocation),
             icon = OverlayImage.fromResource(R.drawable.ic_user_direction),
             captionText = "현재 위치"

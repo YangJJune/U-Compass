@@ -1,10 +1,8 @@
 package com.ikseong.ucompass.ui.room.component
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -59,86 +57,96 @@ fun RoomSearchContent(
                 heightPx = coordinates.size.height
             }
     ) {
-        Column(
-            modifier = modifier
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.SpaceBetween
+        Row(
+            modifier = Modifier
+                .height(46.dp)
+                .clip(RoundedCornerShape(25.dp))
+                .background(
+                    color = if (isMapVisible) Color.White else Color.White.copy(alpha = 0.8f)
+                )
+                .align(Alignment.TopCenter)
+                .padding(horizontal = 20.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            Row(
-                modifier = Modifier
-                    .height(46.dp)
-                    .clip(RoundedCornerShape(25.dp))
-                    .background(
-                        color = if (isMapVisible) Color.White else Color.White.copy(alpha = 0.8f)
-                    )
-                    .padding(horizontal = 20.dp, vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_location_main),
-                    contentDescription = null,
-                    tint = Color(0xFF606060)
+            Icon(
+                painter = painterResource(id = R.drawable.ic_location_main),
+                contentDescription = null,
+                tint = Color(0xFF606060)
+            )
+            Spacer(modifier = Modifier.size(12.dp))
+            Text(
+                text = address,
+                style = typography.medium.copy(
+                    fontSize = 16.sp,
+                    color = Color(0xFF606060)
                 )
-                Spacer(modifier = Modifier.size(12.dp))
-                Text(
-                    text = address,
-                    style = typography.medium.copy(
-                        fontSize = 16.sp,
-                        color = Color(0xFF606060)
-                    )
-                )
-            }
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Icon(
-                    modifier = Modifier.size(40.dp),
-                    painter = painterResource(id = R.drawable.ic_user_direction),
-                    contentDescription = "User Direction",
-                    tint = Color.Unspecified
-                )
-                Spacer(modifier = Modifier.size(42.dp))
-            }
+            )
         }
-        mapMarkers.forEach { mapMarker ->
-            if (mapMarker.isVisible && mapMarker.distance >= 400) {
-                myLocation?.let {
+        Box(
+            modifier = Modifier.matchParentSize()
+        ) {
+            mapMarkers.forEach { mapMarker ->
+                if (mapMarker.isVisible && mapMarker.distance >= 400) {
+                    myLocation?.let {
 
-                    val (direction, padding) = rectangleSideAndDistance(
-                        widthPx.toDouble(),
-                        heightPx.toDouble(),
-                        mapMarker.angle.toDouble()
-                    )
-                    Box(
-                        modifier = Modifier
-                            .align(
-                                when (direction) {
-                                    Direction.N -> Alignment.TopCenter
-                                    Direction.E -> Alignment.CenterEnd
-                                    Direction.S -> Alignment.BottomCenter
-                                    Direction.W -> Alignment.CenterStart
-                                    else -> Alignment.TopCenter
-                                }
-                            )
-                            .then(
-                                when (direction) {
-                                    Direction.N -> Modifier.offset { IntOffset(padding.roundToInt(), 0) }
-                                    Direction.E -> Modifier.offset { IntOffset(0, padding.roundToInt()) }
-                                    Direction.S -> Modifier.offset { IntOffset(padding.roundToInt(), 0) }
-                                    else -> Modifier.offset { IntOffset(0, padding.roundToInt()) }
-                                }
-                            )
-                            .background(Color.Transparent)
-                    ) {
-                        ParticipantPin(
-                            name = mapMarker.name,
-                            isMapVisible = isMapVisible,
-                            direction = direction,
-                            distance = mapMarker.distance,
-                            type = mapMarker.type
+                        val (direction, padding) = rectangleSideAndDistance(
+                            widthPx.toDouble(),
+                            heightPx.toDouble(),
+                            mapMarker.angle.toDouble()
                         )
+                        Box(
+                            modifier = Modifier
+                                .align(
+                                    when (direction) {
+                                        Direction.N -> Alignment.TopCenter
+                                        Direction.E -> Alignment.CenterEnd
+                                        Direction.S -> Alignment.BottomCenter
+                                        Direction.W -> Alignment.CenterStart
+                                        else -> Alignment.TopCenter
+                                    }
+                                )
+                                .then(
+                                    when (direction) {
+                                        Direction.N -> Modifier.offset {
+                                            IntOffset(
+                                                padding.roundToInt(),
+                                                0
+                                            )
+                                        }
+
+                                        Direction.E -> Modifier.offset {
+                                            IntOffset(
+                                                0,
+                                                padding.roundToInt()
+                                            )
+                                        }
+
+                                        Direction.S -> Modifier.offset {
+                                            IntOffset(
+                                                padding.roundToInt(),
+                                                0
+                                            )
+                                        }
+
+                                        else -> Modifier.offset {
+                                            IntOffset(
+                                                0,
+                                                padding.roundToInt()
+                                            )
+                                        }
+                                    }
+                                )
+                                .background(Color.Transparent)
+                        ) {
+                            ParticipantPin(
+                                name = mapMarker.name,
+                                isMapVisible = isMapVisible,
+                                direction = direction,
+                                distance = mapMarker.distance,
+                                type = mapMarker.type
+                            )
+                        }
                     }
                 }
             }
