@@ -20,7 +20,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -47,6 +49,7 @@ fun OnboardingInputRoute(
 ) {
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val enabled by remember { derivedStateOf { uiState.name.isNotBlank() } }
 
     LaunchedEffect(uiState.isSuccess) {
         if (uiState.isSuccess) {
@@ -58,9 +61,10 @@ fun OnboardingInputRoute(
         padding = padding,
         name = uiState.name,
         email = uiState.email,
+        enabled = enabled,
         updateName = { viewModel.updateName(it) },
         updateEmail = { viewModel.updateEmail(it) },
-        onInsertClick = { viewModel.saveName() }
+        onInsertClick = { viewModel.register() }
     )
 }
 
@@ -69,6 +73,7 @@ fun OnboardingInsertScreen(
     padding: PaddingValues,
     name: String = "",
     email: String = "",
+    enabled: Boolean = false,
     updateName: (String) -> Unit = { },
     updateEmail: (String) -> Unit = { },
     profileImgUrl: String = "",
@@ -199,7 +204,7 @@ fun OnboardingInsertScreen(
         Spacer(Modifier.weight(105f))
 
         Button(
-            enabled = name.isNotBlank(),
+            enabled = enabled,
             onClick = { onInsertClick(name) },
             modifier = Modifier
                 .fillMaxWidth()

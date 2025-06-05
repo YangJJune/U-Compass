@@ -1,13 +1,16 @@
 package com.ikseong.ucompass.data.repositoryImpl
 
 import com.ikseong.ucompass.data.local.UserPreferences
+import com.ikseong.ucompass.data.network.request.UserRegisterRequest
+import com.ikseong.ucompass.data.network.service.UCompassService
 import com.ikseong.ucompass.data.repository.UserRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import javax.inject.Inject
 
 class UserRepositoryImpl @Inject constructor(
-    private val userPreferences: UserPreferences
+    private val userPreferences: UserPreferences,
+    private val service: UCompassService,
 ) : UserRepository {
 
     override fun getDeviceId(): Flow<String?> = userPreferences.getDeviceId()
@@ -25,4 +28,18 @@ class UserRepositoryImpl @Inject constructor(
     override suspend fun saveUserName(name: String) {
         userPreferences.saveUserName(name)
     }
+
+    override suspend fun registerUser(
+        name: String,
+        deviceId: String
+    ): Result<Unit> = runCatching {
+        val requestBody = UserRegisterRequest(
+            deviceId = deviceId,
+            email = "",
+            profileImage = "",
+            userName = name
+        )
+        service.registerUser(requestBody)
+    }
+
 }

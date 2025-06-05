@@ -3,6 +3,7 @@ package com.ikseong.ucompass.data.network.service
 import com.ikseong.ucompass.data.network.request.CreateRoomRequest
 import com.ikseong.ucompass.data.network.request.JoinRoomRequest
 import com.ikseong.ucompass.data.network.request.LeaveRoomRequest
+import com.ikseong.ucompass.data.network.request.UserRegisterRequest
 import com.ikseong.ucompass.data.network.response.RoomDataResponse
 import com.ikseong.ucompass.data.network.response.RoomItemResponse
 import com.ikseong.ucompass.data.network.response.RoomListResponse
@@ -45,4 +46,9 @@ interface UCompassService {
     suspend fun leaveRoom(
         @Body request: LeaveRoomRequest
     ): RoomResultResponse
+
+    @POST("/user")
+    suspend fun registerUser(
+        @Body request: UserRegisterRequest
+    ): Unit
 }

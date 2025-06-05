@@ -10,4 +10,6 @@ interface UserRepository {
     fun getUserName(): Flow<String?>
 
     suspend fun saveUserName(name: String)
+
+    suspend fun registerUser(name: String, deviceId: String): Result<Unit>
 }
