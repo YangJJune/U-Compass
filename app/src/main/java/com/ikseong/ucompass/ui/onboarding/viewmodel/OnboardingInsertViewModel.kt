@@ -10,7 +10,6 @@ import com.ikseong.ucompass.domain.SaveUserNameUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -28,23 +27,15 @@ class OnboardingInsertViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(OnboardingUiState())
     val uiState = _uiState.asStateFlow()
 
-    private val _deviceId = MutableStateFlow("")
-
 
     @OptIn(ExperimentalUuidApi::class)
-    private fun saveDeviceId() {
+    private fun saveDeviceId(): String {
         val uuid = Uuid.random().toString()
 
         viewModelScope.launch {
             saveDeviceIdUseCase(uuid)
-            getDeviceIdUseCase().collect { deviceId ->
-                if (deviceId != null) {
-                    _deviceId.value = deviceId
-                } else {
-                    _deviceId.value = uuid
-                }
-            }
         }
+        return uuid
     }
 
     fun updateName(name: String) {
@@ -61,10 +52,9 @@ class OnboardingInsertViewModel @Inject constructor(
 
     fun register() {
         saveName()
-        saveDeviceId()
 
         viewModelScope.launch {
-            val deviceId = _deviceId.first()
+            val deviceId = saveDeviceId()
             registerUserUseCase(name = uiState.value.name, deviceId = deviceId.toString()).fold(
                 onSuccess = {
                     _uiState.update { state ->
