@@ -88,7 +88,7 @@ fun RoomSearchContent(
             modifier = Modifier.fillMaxSize()
         ) {
             mapMarkers.forEach { mapMarker ->
-                if (mapMarker.isVisible && mapMarker.distance >= 400) {
+                if (mapMarker.isVisible /*&& mapMarker.distance >= 400*/) {
                     myLocation?.let {
 
                         val (direction, padding) = rectangleSideAndDistance(

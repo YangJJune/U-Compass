@@ -28,8 +28,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -48,7 +46,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.ikseong.ucompass.R
-import com.ikseong.ucompass.ui.common.component.MapMarker
 import com.ikseong.ucompass.ui.common.component.NaverMapComponent
 import com.ikseong.ucompass.ui.common.component.ObserveAsEvents
 import com.ikseong.ucompass.ui.model.Direction
@@ -180,18 +177,16 @@ fun RoomScreen(
     // 카메라 상태 기억
     val cameraPositionState = rememberCameraPositionState()
 
-    var mapMarkers = remember { mutableStateOf<List<MapMarker>>(emptyList()) }
-
     // 기기 방향이 변경될 때마다 지도 회전 업데이트
     LaunchedEffect(
         uiState.isMapVisible,
         currentLocation,
         deviceOrientation
     ) {
-        currentLocation?.let {
+        currentLocation?.let { location ->
             // 기기 방향 각도의 반대 방향으로 지도 회전 (기기가 시계방향으로 회전하면 지도는 반시계방향으로)
             val offsetLatLng = offsetLatLng(
-                currentLocation,
+                location,
                 -90.0, // 90m 위쪽으로 이동 = 내 위치를 아래에 보이게
                 (deviceOrientation + 180) % 360 // 반대방향 bearing
             )
@@ -246,7 +241,7 @@ fun RoomScreen(
                             isStopGesturesEnabled = false,// 애니메이션 중 탭으로 중지 불가
 
                             // UI 컨트롤 비활성화
-                            isCompassEnabled = true,// 나침반 활성화
+                            isCompassEnabled = false,// 나침반 비활성화
                             isScaleBarEnabled = true,// 축척 바는 유지 (거리감 제공)
                             isZoomControlEnabled = false,// 줌 컨트롤 비활성화
                             isIndoorLevelPickerEnabled = false, // 실내지도 층 피커 비활성화

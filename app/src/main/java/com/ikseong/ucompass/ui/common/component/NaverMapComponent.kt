@@ -8,6 +8,8 @@ import androidx.compose.ui.unit.dp
 import com.ikseong.ucompass.R
 import com.ikseong.ucompass.ui.model.DistanceType
 import com.ikseong.ucompass.ui.model.DistanceType.Companion.fromDistance
+import com.ikseong.ucompass.ui.room.component.ParticipantPin
+import com.ikseong.ucompass.ui.util.MapParticipantUtil.getCardinalDirectionFromRelative
 import com.naver.maps.geometry.LatLng
 import com.naver.maps.map.compose.CameraPositionState
 import com.naver.maps.map.compose.ExperimentalNaverMapApi
@@ -15,6 +17,7 @@ import com.naver.maps.map.compose.LocationTrackingMode
 import com.naver.maps.map.compose.MapProperties
 import com.naver.maps.map.compose.MapUiSettings
 import com.naver.maps.map.compose.Marker
+import com.naver.maps.map.compose.MarkerComposable
 import com.naver.maps.map.compose.MarkerState
 import com.naver.maps.map.compose.NaverMap
 import com.naver.maps.map.compose.rememberCameraPositionState
@@ -54,6 +57,7 @@ data class MapMarker(
  * @param markers 지도에 표시할 마커 정보 리스트
  * @param currentLocation 현재 위치 (위도, 경도)
  * @param cameraPositionState 카메라 위치 상태 (외부에서 관리)
+ * @param deviceOrientation 기기 방향 (도 단위)
  * @param onMapClick 지도 클릭 이벤트 콜백
  * @param modifier Modifier
  * @param uiSettings 지도 UI 설정 콜백
@@ -64,7 +68,7 @@ fun NaverMapComponent(
     modifier: Modifier = Modifier,
     markers: List<MapMarker>,
     isMapVisible: Boolean,
-    currentLocation: LatLng = LatLng(37.5666805, 126.9784147), // 서울 중심 기본값
+    currentLocation: LatLng,
     cameraPositionState: CameraPositionState = rememberCameraPositionState(),
     onMapClick: (LatLng) -> Unit = {},
     uiSettings: MapUiSettings = MapUiSettings(),
@@ -109,12 +113,28 @@ fun NaverMapComponent(
             if (marker.isVisible) {
                 val markerLocation = LatLng(marker.latitude, marker.longitude)
                 val captionText = "${marker.name} (${marker.distance})"
+                if (marker.distance >= 400) {
+                    Marker(
+                        state = MarkerState(position = markerLocation),
+                        captionText = captionText
+                    )
+                } else {
+                    val direction = getCardinalDirectionFromRelative(marker.angle.toDouble())
 
-                Marker(
-                    state = MarkerState(position = markerLocation),
-                    captionText = captionText
-                )
+                    MarkerComposable(
+                        state = MarkerState(position = markerLocation),
+                        captionText = captionText
+                    ) {
+                        ParticipantPin(
+                            name = marker.name,
+                            isMapVisible = isMapVisible,
+                            direction = direction,
+                            distance = marker.distance,
+                            type = marker.type
+                        )
+                    }
+                }
             }
         }
     }
-} 
+}

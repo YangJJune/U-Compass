@@ -113,7 +113,7 @@ object GpsLocationUtil {
     @SuppressLint("MissingPermission")
     fun startLocationUpdates(
         context: Context,
-        intervalMs: Long = 10000, // 기본 10초
+        intervalMs: Long = 5000, // 기본 5초로 변경
         onLocationUpdate: (LatLng) -> Unit
     ) {
         val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
