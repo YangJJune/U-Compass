@@ -19,11 +19,13 @@ import com.naver.maps.geometry.LatLng
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -106,6 +108,7 @@ class RoomViewModel @Inject constructor(
     // 현재 위치 업데이트
     fun updateCurrentLocation(location: LatLng, orientation: Double) {
         _currentLocation.value = location
+        getLocationAndAddress()
         updateParticipantsDistanceAndDirection(location, orientation)
     }
 
@@ -274,10 +277,13 @@ class RoomViewModel @Inject constructor(
                 userId = getDeviceIdUseCase().firstOrNull().toString(),
                 roomId = /*_uiState.value.roomId.toInt()*/2
             )
-            socketRepository.sendLocation(
-                _currentLocation.value?.latitude ?: 0.0,
-                _currentLocation.value?.longitude ?: 0.0
-            )
+            while (isActive) {
+                socketRepository.sendLocation(
+                    _currentLocation.value?.latitude ?: 0.0,
+                    _currentLocation.value?.longitude ?: 0.0
+                )
+                delay(5000L)
+            }
         }
         viewModelScope.launch {
             socketRepository.locationDataFlow.collect { locations ->

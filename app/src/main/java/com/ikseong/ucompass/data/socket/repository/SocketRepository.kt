@@ -124,15 +124,12 @@ class SocketRepository @Inject constructor() {
         }
         sendJob = CoroutineScope(Dispatchers.IO).launch {
             try {
-                while (isActive) {
-                    val locationData = JSONObject()
-                        .put("type", "location_update")
-                        .put("lat", lat)
-                        .put("lng", lng.absoluteValue)
-                    Log.d("Socket", "위치 전송 : $locationData")
-                    send(locationData)
-                    delay(7000L)
-                }
+                val locationData = JSONObject()
+                    .put("type", "location_update")
+                    .put("lat", lat)
+                    .put("lng", lng.absoluteValue)
+                Log.d("Socket", "위치 전송 : $locationData")
+                send(locationData)
             } catch (e: Exception) {
                 Log.e("Socket", "위치 전송 실패: ${e.message}")
             }
