@@ -108,7 +108,7 @@ class RoomViewModel @Inject constructor(
     // 현재 위치 업데이트
     fun updateCurrentLocation(location: LatLng, orientation: Double) {
         _currentLocation.value = location
-        getLocationAndAddress()
+//        getLocationAndAddress()
         updateParticipantsDistanceAndDirection(location, orientation)
     }
 
@@ -257,7 +257,7 @@ class RoomViewModel @Inject constructor(
                 onSuccess = { data ->
                     _uiState.update {
                         it.copy(
-                            roomId = data.id,
+                            roomId = data.id.toLong(),
                             roomName = data.title,
                             participantCount = data.participants.size
                         )

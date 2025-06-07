@@ -5,14 +5,13 @@ import com.ikseong.ucompass.data.network.request.JoinRoomRequest
 import com.ikseong.ucompass.data.network.request.LeaveRoomRequest
 import com.ikseong.ucompass.data.network.response.RoomDataResponse
 import com.ikseong.ucompass.data.network.response.RoomItemResponse
-import com.ikseong.ucompass.data.network.response.RoomListResponse
 import com.ikseong.ucompass.data.network.response.RoomResultResponse
 import com.ikseong.ucompass.data.network.response.RootResponse
 
 interface UCompassRepository {
     suspend fun getRootApi(): Result<RootResponse>
 
-    suspend fun getRoomList(): Result<List<RoomListResponse>>
+    suspend fun getRoomList(): Result<List<RoomItemResponse>>
 
     suspend fun getRoomItem(id: Long): Result<RoomItemResponse>
 

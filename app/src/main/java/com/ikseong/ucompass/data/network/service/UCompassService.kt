@@ -6,7 +6,6 @@ import com.ikseong.ucompass.data.network.request.LeaveRoomRequest
 import com.ikseong.ucompass.data.network.request.UserRegisterRequest
 import com.ikseong.ucompass.data.network.response.RoomDataResponse
 import com.ikseong.ucompass.data.network.response.RoomItemResponse
-import com.ikseong.ucompass.data.network.response.RoomListResponse
 import com.ikseong.ucompass.data.network.response.RoomResultResponse
 import com.ikseong.ucompass.data.network.response.RootResponse
 import retrofit2.http.Body
@@ -20,7 +19,7 @@ interface UCompassService {
     suspend fun getRootApi(): RootResponse
 
     @GET("/rooms")
-    suspend fun getRoomList(): List<RoomListResponse>
+    suspend fun getRoomList(): List<RoomItemResponse>
 
     @GET("/room/{room_id}")
     suspend fun getRoomItem(
