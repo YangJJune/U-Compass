@@ -1,5 +1,6 @@
 package com.ikseong.ucompass.ui.room.component
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -91,15 +92,19 @@ fun RoomSearchContent(
                 if (mapMarker.isVisible /*&& mapMarker.distance >= 400*/) {
                     myLocation?.let {
 
-                        val (direction, padding) = rectangleSideAndDistance(
+                        val (pinDirection, alignDirection, padding) = rectangleSideAndDistance(
                             widthPx.toDouble(),
                             heightPx.toDouble(),
                             mapMarker.angle.toDouble()
                         )
+                        Log.d(
+                            "RoomSearchContent",
+                            "Pin Direction: $pinDirection, Align Direction: $alignDirection, Padding: $padding"
+                        )
                         Box(
                             modifier = Modifier
                                 .align(
-                                    when (direction) {
+                                    when (alignDirection) {
                                         Direction.N -> Alignment.TopCenter
                                         Direction.E -> Alignment.CenterEnd
                                         Direction.S -> Alignment.BottomCenter
@@ -108,7 +113,7 @@ fun RoomSearchContent(
                                     }
                                 )
                                 .then(
-                                    when (direction) {
+                                    when (alignDirection) {
                                         Direction.N -> Modifier.offset {
                                             IntOffset(
                                                 padding.roundToInt(),
@@ -143,7 +148,7 @@ fun RoomSearchContent(
                             ParticipantPin(
                                 name = mapMarker.name,
                                 isMapVisible = isMapVisible,
-                                direction = direction,
+                                direction = pinDirection,
                                 distance = mapMarker.distance,
                                 type = mapMarker.type
                             )

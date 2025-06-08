@@ -1,5 +1,6 @@
 package com.ikseong.ucompass.ui.util
 
+import android.util.Log
 import com.ikseong.ucompass.ui.model.Direction
 import kotlin.math.atan2
 import kotlin.math.cos
@@ -78,13 +79,13 @@ object MapParticipantUtil {
      * @param W           직사각형의 전체 가로 길이 (>0)
      * @param H           직사각형의 전체 세로 길이 (>0)
      * @param bearingDeg  진북 기준 방위각 (단위: 도, 0°=북, 90°=동, 180°=남, 270°=서)
-     * @return Pair(면: "N"/"E"/"S"/"W", 거리: 면 중점까지의 거리)
+     * @return Triple(핀 방향 Direction, Align 기준 Direction, 거리: 면 중점까지의 거리)
      */
     fun rectangleSideAndDistance(
         W: Double,
         H: Double,
         bearingDeg: Double
-    ): Pair<Direction, Double> {
+    ): Triple<Direction, Direction, Double> {
         require(W > 0 && H > 0)
 
         val halfW = W / 2.0
@@ -130,6 +131,38 @@ object MapParticipantUtil {
             else -> (iy)
         }
 
-        return side to distance
+        val finalSide = when (side) {
+            Direction.N -> when {
+                ix > halfW / 2 -> Direction.NE
+                ix < -(halfW / 2) -> Direction.NW
+                else -> Direction.N
+            }
+
+            Direction.E -> when {
+                iy > halfH / 2 -> Direction.SE
+                iy < -(halfH / 2) -> Direction.NE
+                else -> Direction.E
+            }
+
+            Direction.S -> when {
+                ix > halfW / 2 -> Direction.SE
+                ix < -(halfW / 2) -> Direction.SW
+                else -> Direction.S
+            }
+
+            Direction.W -> when {
+                iy > halfH / 2 -> Direction.SW
+                iy < -(halfH / 2) -> Direction.NW
+                else -> Direction.W
+            }
+
+            else -> throw IllegalArgumentException("Invalid side: $side")
+        }
+        Log.d(
+            "MapParticipantUtil",
+            "rectangleSideAndDistance: iy = $iy, halfH = $halfH, side=$finalSide, distance=$distance"
+        )
+
+        return Triple(finalSide, side, distance)
     }
 }
