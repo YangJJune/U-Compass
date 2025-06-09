@@ -13,4 +13,8 @@ interface RoomUiAction {
     data object OnAllUserShownClick : RoomUiAction
     data class OnLottieClick(val isSearching: Boolean) : RoomUiAction
     data class OnLocationUpdate(val location: LatLng, val orientation: Double) : RoomUiAction
+    data class OnUpdateWidthHeight(
+        val widthPx: Int,
+        val heightPx: Int
+    ) : RoomUiAction
 }

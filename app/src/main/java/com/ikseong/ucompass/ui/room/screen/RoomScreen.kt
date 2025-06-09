@@ -273,6 +273,11 @@ fun RoomScreen(
                         isMapVisible = uiState.isMapVisible,
                         myLocation = currentLocation,
                         mapMarkers = uiState.mapMarkers,
+                        updateWidthHeight = { widthPx, heightPx ->
+                            onAction(
+                                RoomUiAction.OnUpdateWidthHeight(widthPx, heightPx)
+                            )
+                        }
                     )
                 }
             }

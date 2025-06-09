@@ -6,9 +6,9 @@ import com.ikseong.ucompass.ui.model.DistanceType
 import com.ikseong.ucompass.ui.model.ParticipantInfo
 
 data class RoomUiState(
-    val address: String = "서울특별시 장안동",
+    val address: String = "주소를 불러오는 중입니다.",
     val roomId: Long = 1L,
-    val roomName: String = "위치 찾기 방1",
+    val roomName: String = "",
     val participantInfo: List<ParticipantInfo> = listOf(),
     val participantCount: Int = 0,
     val participantState: List<ParticipantState> = listOf(),
@@ -16,7 +16,9 @@ data class RoomUiState(
     val isHost: Boolean = false,
     val isSearchMode: Boolean = false,
     val isMapVisible: Boolean = false,
-    val isRoomDeleteDialogVisible: Boolean = false
+    val isRoomDeleteDialogVisible: Boolean = false,
+    val contentWidthPx: Int = 0,
+    val contentHeightPx: Int = 0,
 )
 
 data class ParticipantState(

@@ -15,6 +15,7 @@ import com.ikseong.ucompass.ui.util.LocationUtil
 import com.ikseong.ucompass.ui.util.LocationUtil.calculateDistanceInMeters
 import com.ikseong.ucompass.ui.util.LocationUtil.getCurrentLocation
 import com.ikseong.ucompass.ui.util.MapParticipantUtil.getRelativeBearing
+import com.ikseong.ucompass.ui.util.MapParticipantUtil.rectangleSideAndDistance
 import com.naver.maps.geometry.LatLng
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -67,6 +68,15 @@ class RoomViewModel @Inject constructor(
                 action.location,
                 action.orientation
             )
+
+            is RoomUiAction.OnUpdateWidthHeight -> {
+                _uiState.update {
+                    it.copy(
+                        contentWidthPx = action.widthPx,
+                        contentHeightPx = action.heightPx
+                    )
+                }
+            }
         }
     }
 
@@ -142,13 +152,22 @@ class RoomViewModel @Inject constructor(
                     isVisible = participant.isShown,
                     distance = distance,
                 ).apply {
-                    angle = getRelativeBearing(
+                    val angle = getRelativeBearing(
                         currentLatLng.latitude,
                         currentLatLng.longitude,
                         orientation,
                         this.latitude,
                         this.longitude
                     ).toFloat()
+                    val (pinDirection, alignDirection, padding) = rectangleSideAndDistance(
+                        uiState.value.contentWidthPx.toDouble(),
+                        uiState.value.contentHeightPx.toDouble(),
+                        angle.toDouble()
+                    )
+                    this.angle = angle
+                    this.pinDirection = pinDirection
+                    this.alignDirection = alignDirection
+                    this.padding = padding
                 }
             }
 

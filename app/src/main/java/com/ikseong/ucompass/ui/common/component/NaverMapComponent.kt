@@ -1,15 +1,18 @@
 package com.ikseong.ucompass.ui.common.component
 
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.ikseong.ucompass.R
+import com.ikseong.ucompass.ui.model.Direction
 import com.ikseong.ucompass.ui.model.DistanceType
 import com.ikseong.ucompass.ui.model.DistanceType.Companion.fromDistance
-import com.ikseong.ucompass.ui.room.component.ParticipantPin
-import com.ikseong.ucompass.ui.util.MapParticipantUtil.getCardinalDirectionFromRelative
 import com.naver.maps.geometry.LatLng
 import com.naver.maps.map.compose.CameraPositionState
 import com.naver.maps.map.compose.ExperimentalNaverMapApi
@@ -33,7 +36,10 @@ data class MapMarker(
     val isVisible: Boolean = true,
     val distance: Int = 0,
     val type: DistanceType,
-    var angle: Float = 0f
+    var angle: Float = 0f,
+    var pinDirection: Direction = Direction.N,
+    var alignDirection: Direction = Direction.N,
+    var padding: Double = 0.0,
 ) {
     constructor(
         name: String,
@@ -110,7 +116,7 @@ fun NaverMapComponent(
 
         // 마커 표시
         markers.forEach { marker ->
-            if (marker.isVisible) {
+            if (marker.isVisible && marker.distance <= 500) {
                 val markerLocation = LatLng(marker.latitude, marker.longitude)
                 val captionText = "${marker.name} (${marker.distance})"
                 if (marker.distance >= 400) {
@@ -119,18 +125,17 @@ fun NaverMapComponent(
                         captionText = captionText
                     )
                 } else {
-                    val direction = getCardinalDirectionFromRelative(marker.angle.toDouble())
-
                     MarkerComposable(
                         state = MarkerState(position = markerLocation),
-                        captionText = captionText
+                        captionText = captionText,
                     ) {
-                        ParticipantPin(
-                            name = marker.name,
-                            isMapVisible = isMapVisible,
-                            direction = direction,
-                            distance = marker.distance,
-                            type = marker.type
+                        Icon(
+                            modifier = Modifier
+                                .size(marker.type.size)
+                                .rotate(180f),
+                            painter = painterResource(id = marker.type.iconRes),
+                            contentDescription = "Participant Pin",
+                            tint = Color.Unspecified
                         )
                     }
                 }

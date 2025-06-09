@@ -1,6 +1,5 @@
 package com.ikseong.ucompass.ui.room.component
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -8,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -35,7 +35,6 @@ import com.ikseong.ucompass.ui.common.component.MapMarker
 import com.ikseong.ucompass.ui.model.Direction
 import com.ikseong.ucompass.ui.model.DistanceType
 import com.ikseong.ucompass.ui.theme.UCompassTheme.typography
-import com.ikseong.ucompass.ui.util.MapParticipantUtil.rectangleSideAndDistance
 import com.naver.maps.geometry.LatLng
 import kotlin.math.roundToInt
 
@@ -46,6 +45,7 @@ fun RoomSearchContent(
     isMapVisible: Boolean = false,
     myLocation: LatLng? = null,
     mapMarkers: List<MapMarker> = emptyList(),
+    updateWidthHeight: (Int, Int) -> Unit = { _, _ -> }
 ) {
     var widthPx by remember { mutableIntStateOf(0) }
     var heightPx by remember { mutableIntStateOf(0) }
@@ -87,25 +87,17 @@ fun RoomSearchContent(
                 .onGloballyPositioned { coordinates ->
                     widthPx = coordinates.size.width
                     heightPx = coordinates.size.height
+                    updateWidthHeight(widthPx, heightPx)
                 }
         ) {
             mapMarkers.forEach { mapMarker ->
-                if (mapMarker.isVisible /*&& mapMarker.distance >= 400*/) {
+                if (mapMarker.isVisible && mapMarker.distance >= 90) {
                     myLocation?.let {
 
-                        val (pinDirection, alignDirection, padding) = rectangleSideAndDistance(
-                            widthPx.toDouble(),
-                            heightPx.toDouble(),
-                            mapMarker.angle.toDouble()
-                        )
-                        Log.d(
-                            "RoomSearchContent",
-                            "Pin Direction: $pinDirection, Align Direction: $alignDirection, Padding: $padding"
-                        )
                         Box(
                             modifier = Modifier
                                 .align(
-                                    when (alignDirection) {
+                                    when (mapMarker.alignDirection) {
                                         Direction.N -> Alignment.TopCenter
                                         Direction.E -> Alignment.CenterEnd
                                         Direction.S -> Alignment.BottomCenter
@@ -114,10 +106,10 @@ fun RoomSearchContent(
                                     }
                                 )
                                 .then(
-                                    when (alignDirection) {
+                                    when (mapMarker.alignDirection) {
                                         Direction.N -> Modifier.offset {
                                             IntOffset(
-                                                padding.roundToInt(),
+                                                mapMarker.padding.roundToInt(),
                                                 0
                                             )
                                         }
@@ -125,13 +117,13 @@ fun RoomSearchContent(
                                         Direction.E -> Modifier.offset {
                                             IntOffset(
                                                 0,
-                                                padding.roundToInt()
+                                                mapMarker.padding.roundToInt()
                                             )
                                         }
 
                                         Direction.S -> Modifier.offset {
                                             IntOffset(
-                                                padding.roundToInt(),
+                                                mapMarker.padding.roundToInt(),
                                                 0
                                             )
                                         }
@@ -139,7 +131,7 @@ fun RoomSearchContent(
                                         else -> Modifier.offset {
                                             IntOffset(
                                                 0,
-                                                padding.roundToInt()
+                                                mapMarker.padding.roundToInt()
                                             )
                                         }
                                     }
@@ -149,7 +141,7 @@ fun RoomSearchContent(
                             ParticipantPin(
                                 name = mapMarker.name,
                                 isMapVisible = isMapVisible,
-                                direction = pinDirection,
+                                direction = mapMarker.pinDirection,
                                 distance = mapMarker.distance,
                                 type = mapMarker.type
                             )
