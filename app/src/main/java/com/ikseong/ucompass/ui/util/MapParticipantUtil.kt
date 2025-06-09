@@ -1,6 +1,5 @@
 package com.ikseong.ucompass.ui.util
 
-import android.util.Log
 import com.ikseong.ucompass.ui.model.Direction
 import kotlin.math.atan2
 import kotlin.math.cos
@@ -158,10 +157,14 @@ object MapParticipantUtil {
 
             else -> throw IllegalArgumentException("Invalid side: $side")
         }
-        Log.d(
-            "MapParticipantUtil",
-            "rectangleSideAndDistance: iy = $iy, halfH = $halfH, side=$finalSide, distance=$distance"
-        )
+//        Log.d(
+//            "MapParticipantUtil",
+//            "rectangleSideAndDistance: iy = $iy, halfH = $halfH, side=$finalSide, distance=$distance"
+//        )
+//        Log.d(
+//            "MapParticipantUtil",
+//            "rectangleSideAndDistance: ix = $ix, halfH = $halfW, side=$finalSide, distance=$distance"
+//        )
 
         return Triple(finalSide, side, distance)
     }

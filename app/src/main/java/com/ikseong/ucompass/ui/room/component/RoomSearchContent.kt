@@ -1,5 +1,6 @@
 package com.ikseong.ucompass.ui.room.component
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -7,7 +8,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -23,6 +23,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.res.painterResource
@@ -47,13 +48,22 @@ fun RoomSearchContent(
     mapMarkers: List<MapMarker> = emptyList(),
     updateWidthHeight: (Int, Int) -> Unit = { _, _ -> }
 ) {
-    var widthPx by remember { mutableIntStateOf(0) }
-    var heightPx by remember { mutableIntStateOf(0) }
+    var pinWidthPx by remember { mutableIntStateOf(0) }
+    var pinHeightPx by remember { mutableIntStateOf(0) }
+
+    var contentWidthPx by remember { mutableIntStateOf(0) }
+    var contentHeightPx by remember { mutableIntStateOf(0) }
 
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(top = 12.dp),
+            .padding(top = 12.dp)
+            .onGloballyPositioned {
+                Log.d(
+                    "RoomSearchContent1",
+                    "Width: ${it.size.width}, Height: ${it.size.height}"
+                )
+            },
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Row(
@@ -84,15 +94,19 @@ fun RoomSearchContent(
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .weight(1f)
+                .clipToBounds()
                 .onGloballyPositioned { coordinates ->
-                    widthPx = coordinates.size.width
-                    heightPx = coordinates.size.height
-                    updateWidthHeight(widthPx, heightPx)
+                    contentWidthPx = coordinates.size.width
+                    contentHeightPx = coordinates.size.height
+                    updateWidthHeight(contentWidthPx, contentHeightPx)
                 }
         ) {
             mapMarkers.forEach { mapMarker ->
                 if (mapMarker.isVisible && mapMarker.distance >= 90) {
                     myLocation?.let {
+                        val a = 10
+                        a.coerceIn(10, 100)
 
                         Box(
                             modifier = Modifier
@@ -109,7 +123,11 @@ fun RoomSearchContent(
                                     when (mapMarker.alignDirection) {
                                         Direction.N -> Modifier.offset {
                                             IntOffset(
-                                                mapMarker.padding.roundToInt(),
+
+                                                mapMarker.padding.roundToInt().coerceIn(
+                                                    -(contentWidthPx / 2) + pinWidthPx/2,
+                                                    contentWidthPx / 2 - pinWidthPx/2,
+                                                ),
                                                 0
                                             )
                                         }
@@ -117,13 +135,19 @@ fun RoomSearchContent(
                                         Direction.E -> Modifier.offset {
                                             IntOffset(
                                                 0,
-                                                mapMarker.padding.roundToInt()
+                                                mapMarker.padding.roundToInt().coerceIn(
+                                                    -(contentHeightPx / 2) + pinHeightPx/2,
+                                                    contentHeightPx / 2 - pinHeightPx/2,
+                                                )
                                             )
                                         }
 
                                         Direction.S -> Modifier.offset {
                                             IntOffset(
-                                                mapMarker.padding.roundToInt(),
+                                                mapMarker.padding.roundToInt().coerceIn(
+                                                    -(contentWidthPx / 2) + pinWidthPx/2,
+                                                    contentWidthPx / 2 - pinWidthPx/2,
+                                                ),
                                                 0
                                             )
                                         }
@@ -131,11 +155,18 @@ fun RoomSearchContent(
                                         else -> Modifier.offset {
                                             IntOffset(
                                                 0,
-                                                mapMarker.padding.roundToInt()
+                                                mapMarker.padding.roundToInt().coerceIn(
+                                                    -(contentHeightPx / 2) + pinHeightPx/2,
+                                                    contentHeightPx / 2 - pinHeightPx/2,
+                                                )
                                             )
                                         }
                                     }
                                 )
+                                .onGloballyPositioned { coordinates ->
+                                    pinWidthPx = coordinates.size.width
+                                    pinHeightPx = coordinates.size.height
+                                }
                                 .background(Color.Transparent)
                         ) {
                             ParticipantPin(
@@ -167,7 +198,9 @@ private fun RoomSearchContentPreview() {
                 name = "홍길동",
                 type = DistanceType.FIVE_HUNDRED,
                 distance = 2000,
-                isVisible = true
+                isVisible = true,
+                pinDirection = Direction.NE,
+                alignDirection = Direction.E,
             ),
             MapMarker(
                 latitude = 37.5670,
