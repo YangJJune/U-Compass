@@ -38,7 +38,7 @@ object GpsLocationUtil {
         val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
         
         // 기존 콜백이 있다면 제거
-        stopLocationUpdates(context)
+//        stopLocationUpdates(context)
         
         // 먼저 마지막 알려진 위치 요청
         fusedLocationClient.lastLocation
@@ -133,6 +133,7 @@ object GpsLocationUtil {
                     val latLng = LatLng(location.latitude, location.longitude)
                     lastLocationAccuracy = location.accuracy
                     onLocationUpdate(latLng)
+                    Log.d("RoomRoute", "위치 업데이트: ${latLng.latitude}, ${latLng.longitude}, 정확도: $lastLocationAccuracy")
                 }
             }
         }

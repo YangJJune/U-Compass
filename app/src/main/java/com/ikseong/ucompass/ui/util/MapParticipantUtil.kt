@@ -85,7 +85,6 @@ object MapParticipantUtil {
         H: Double,
         bearingDeg: Double
     ): Triple<Direction, Direction, Double> {
-        require(W > 0 && H > 0)
 
         val halfW = W / 2.0
         val halfH = H / 2.0
