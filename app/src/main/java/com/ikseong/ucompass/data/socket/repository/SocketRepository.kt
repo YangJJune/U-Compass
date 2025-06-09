@@ -6,7 +6,6 @@ import com.ikseong.ucompass.data.network.socket.UserLocation
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.isActive
@@ -97,8 +96,6 @@ class SocketRepository @Inject constructor() {
                     }
                 } catch (e: Exception) {
                     Log.e("Socket", "수신 루프 전체 오류: ${e.message}")
-                } finally {
-                    disconnect()
                 }
             }
 
