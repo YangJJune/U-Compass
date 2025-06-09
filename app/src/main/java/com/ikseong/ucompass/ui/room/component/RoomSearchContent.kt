@@ -53,11 +53,7 @@ fun RoomSearchContent(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(top = 12.dp)
-            .onGloballyPositioned { coordinates ->
-                widthPx = coordinates.size.width
-                heightPx = coordinates.size.height
-            },
+            .padding(top = 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Row(
@@ -86,7 +82,12 @@ fun RoomSearchContent(
             )
         }
         Box(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
+                .onGloballyPositioned { coordinates ->
+                    widthPx = coordinates.size.width
+                    heightPx = coordinates.size.height
+                }
         ) {
             mapMarkers.forEach { mapMarker ->
                 if (mapMarker.isVisible /*&& mapMarker.distance >= 400*/) {
