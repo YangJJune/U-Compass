@@ -128,6 +128,7 @@ fun NaverMapComponent(
                     MarkerComposable(
                         state = MarkerState(position = markerLocation),
                         captionText = captionText,
+                        captionColor = Color.Black
                     ) {
                         Icon(
                             modifier = Modifier

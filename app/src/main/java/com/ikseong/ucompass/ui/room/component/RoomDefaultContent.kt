@@ -4,8 +4,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -34,29 +35,35 @@ fun ColumnScope.RoomDefaultContent(
         isPlaying = true,
         iterations = LottieConstants.IterateForever
     )
-    RoomGuideComponent(
-        modifier = Modifier
-            .padding(top = 64.dp),
-        address = address,
-    )
-    Box(
-        modifier = Modifier
-            .padding(top = 48.dp)
-            .clickable { onSearchClick(true) }
+    Column(
+        modifier = modifier.weight(1f)
     ) {
-        LottieAnimation(
+        RoomGuideComponent(
             modifier = Modifier
-                .size(323.dp),
-            composition = composition,
-            progress = { progress },
+                .padding(top = 64.dp),
+            address = address,
         )
-        Icon(
-            painter = painterResource(R.drawable.ic_lottie_arrow),
-            contentDescription = null,
+        Box(
             modifier = Modifier
-                .align(Alignment.Center),
-            tint = Color.Unspecified
-        )
+                .padding(top = 48.dp)
+                .clickable { onSearchClick(true) }
+        ) {
+            LottieAnimation(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 22.dp)
+                    .aspectRatio(1f),
+                composition = composition,
+                progress = { progress },
+            )
+            Icon(
+                painter = painterResource(R.drawable.ic_lottie_arrow),
+                contentDescription = null,
+                modifier = Modifier
+                    .align(Alignment.Center),
+                tint = Color.Unspecified
+            )
+        }
     }
 
 }
@@ -64,5 +71,5 @@ fun ColumnScope.RoomDefaultContent(
 @Preview
 @Composable
 private fun RoomDefaultContentPreview() {
-    Column { RoomDefaultContent(address = "서울특별시 장안동",) }
+    Column { RoomDefaultContent(address = "서울특별시 장안동") }
 }

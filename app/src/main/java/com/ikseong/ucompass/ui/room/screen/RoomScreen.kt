@@ -187,7 +187,7 @@ fun RoomScreen(
             // 기기 방향 각도의 반대 방향으로 지도 회전 (기기가 시계방향으로 회전하면 지도는 반시계방향으로)
             val offsetLatLng = offsetLatLng(
                 location,
-                -90.0, // 90m 위쪽으로 이동 = 내 위치를 아래에 보이게
+                -60.0, // 90m 위쪽으로 이동 = 내 위치를 아래에 보이게
                 (deviceOrientation + 180) % 360 // 반대방향 bearing
             )
 
@@ -253,7 +253,8 @@ fun RoomScreen(
 
             Column(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.SpaceBetween
             ) {
                 RoomTopComponent(
                     onBackClick = { onAction(RoomUiAction.OnBackClick) },
@@ -280,68 +281,18 @@ fun RoomScreen(
                         }
                     )
                 }
-            }
-            if (!uiState.isSearchMode) {
-                Row(
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(bottom = 60.dp)
-                        .width(194.dp)
-                        .height(72.dp)
-                        .border(
-                            width = 2.dp,
-                            shape = RoundedCornerShape(25.dp),
-                            color = Color(0xFF00E397)
-                        )
-                        .noRippleClickable { onAction(RoomUiAction.OnUserListClick) },
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_room_participant_40),
-                        contentDescription = null,
-                        tint = Color(0x8000E397)
-                    )
-                    Text(
-                        text = "참가 인원 ${uiState.participantCount}명",
-                        style = typography.medium.copy(
-                            fontSize = 18.sp,
-                            color = Color(0xFF606060)
-                        )
-                    )
-                }
-            } else {
-                Row(
-                    modifier = Modifier
-                        .padding(bottom = 21.dp)
-                        .align(Alignment.BottomCenter)
-                        .clip(RoundedCornerShape(25.dp))
-                        .background(Color.White)
-                        .padding(horizontal = 6.5.dp, vertical = 4.dp),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_map_toggle),
-                        contentDescription = "Map Toggle",
-                        tint = Color.Unspecified,
-                        modifier = Modifier.clickable {
-                            onAction(
-                                RoomUiAction.OnMapToggleClick(
-                                    uiState.isMapVisible
-                                )
-                            )
-                        }
-                    )
+                if (!uiState.isSearchMode) {
                     Row(
                         modifier = Modifier
-                            .height(64.dp)
-                            .noRippleClickable { onAction(RoomUiAction.OnUserListClick) }
-                            .clip(RoundedCornerShape(25.dp))
-                            .background(
-                                if (uiState.isMapVisible) Color(0xFFD8FCF0)
-                                else Color.White
+                            .padding(bottom = 60.dp)
+                            .width(194.dp)
+                            .height(72.dp)
+                            .border(
+                                width = 2.dp,
+                                shape = RoundedCornerShape(25.dp),
+                                color = Color(0xFF00E397)
                             )
-                            .padding(start = 20.dp, end = 30.dp),
+                            .noRippleClickable { onAction(RoomUiAction.OnUserListClick) },
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
@@ -350,7 +301,6 @@ fun RoomScreen(
                             contentDescription = null,
                             tint = Color(0x8000E397)
                         )
-                        Spacer(modifier = Modifier.size(6.dp))
                         Text(
                             text = "참가 인원 ${uiState.participantCount}명",
                             style = typography.medium.copy(
@@ -359,19 +309,68 @@ fun RoomScreen(
                             )
                         )
                     }
-                    Box(
+                } else {
+                    Row(
                         modifier = Modifier
+                            .padding(bottom = 21.dp)
                             .clip(RoundedCornerShape(25.dp))
-                            .background(Color(0xFFD9D9D9))
-                            .size(64.dp)
-                            .clickable { onAction(RoomUiAction.OnDeleteClick) }
+                            .background(Color.White)
+                            .padding(horizontal = 6.5.dp, vertical = 4.dp),
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         Icon(
-                            modifier = Modifier.align(Alignment.Center),
-                            painter = painterResource(id = R.drawable.ic_room_delete_36),
+                            painter = painterResource(id = R.drawable.ic_map_toggle),
                             contentDescription = "Map Toggle",
                             tint = Color.Unspecified,
+                            modifier = Modifier.clickable {
+                                onAction(
+                                    RoomUiAction.OnMapToggleClick(
+                                        uiState.isMapVisible
+                                    )
+                                )
+                            }
                         )
+                        Row(
+                            modifier = Modifier
+                                .height(64.dp)
+                                .noRippleClickable { onAction(RoomUiAction.OnUserListClick) }
+                                .clip(RoundedCornerShape(25.dp))
+                                .background(
+                                    if (uiState.isMapVisible) Color(0xFFD8FCF0)
+                                    else Color.White
+                                )
+                                .padding(start = 20.dp, end = 30.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceEvenly
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_room_participant_40),
+                                contentDescription = null,
+                                tint = Color(0x8000E397)
+                            )
+                            Spacer(modifier = Modifier.size(6.dp))
+                            Text(
+                                text = "참가 인원 ${uiState.participantCount}명",
+                                style = typography.medium.copy(
+                                    fontSize = 18.sp,
+                                    color = Color(0xFF606060)
+                                )
+                            )
+                        }
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(25.dp))
+                                .background(Color(0xFFD9D9D9))
+                                .size(64.dp)
+                                .clickable { onAction(RoomUiAction.OnDeleteClick) }
+                        ) {
+                            Icon(
+                                modifier = Modifier.align(Alignment.Center),
+                                painter = painterResource(id = R.drawable.ic_room_delete_36),
+                                contentDescription = "Map Toggle",
+                                tint = Color.Unspecified,
+                            )
+                        }
                     }
                 }
             }

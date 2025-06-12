@@ -1,13 +1,14 @@
 package com.ikseong.ucompass.ui.room.component
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -40,7 +41,7 @@ import com.naver.maps.geometry.LatLng
 import kotlin.math.roundToInt
 
 @Composable
-fun RoomSearchContent(
+fun ColumnScope.RoomSearchContent(
     modifier: Modifier = Modifier,
     address: String,
     isMapVisible: Boolean = false,
@@ -56,14 +57,9 @@ fun RoomSearchContent(
 
     Column(
         modifier = modifier
-            .fillMaxSize()
-            .padding(top = 12.dp)
-            .onGloballyPositioned {
-                Log.d(
-                    "RoomSearchContent1",
-                    "Width: ${it.size.width}, Height: ${it.size.height}"
-                )
-            },
+            .fillMaxWidth()
+            .weight(1f)
+            .padding(top = 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Row(
@@ -104,78 +100,82 @@ fun RoomSearchContent(
         ) {
             mapMarkers.forEach { mapMarker ->
                 if (mapMarker.isVisible && mapMarker.distance >= 90) {
-                    myLocation?.let {
-                        val a = 10
-                        a.coerceIn(10, 100)
+                    val northDirectionList = listOf(
+                        Direction.N, Direction.NE, Direction.NW, Direction.E, Direction.W
+                    )
+                    if (mapMarker.distance > 135 || mapMarker.alignDirection !in northDirectionList) {
+                        // 150 M 이내 북쪽 방향의 핀은 표시하지 않음
 
-                        Box(
-                            modifier = Modifier
-                                .align(
-                                    when (mapMarker.alignDirection) {
-                                        Direction.N -> Alignment.TopCenter
-                                        Direction.E -> Alignment.CenterEnd
-                                        Direction.S -> Alignment.BottomCenter
-                                        Direction.W -> Alignment.CenterStart
-                                        else -> Alignment.TopCenter
-                                    }
-                                )
-                                .then(
-                                    when (mapMarker.alignDirection) {
-                                        Direction.N -> Modifier.offset {
-                                            IntOffset(
-
-                                                mapMarker.padding.roundToInt().coerceIn(
-                                                    -(contentWidthPx / 2) + pinWidthPx/2,
-                                                    contentWidthPx / 2 - pinWidthPx/2,
-                                                ),
-                                                0
-                                            )
+                        myLocation?.let {
+                            Box(
+                                modifier = Modifier
+                                    .align(
+                                        when (mapMarker.alignDirection) {
+                                            Direction.N -> Alignment.TopCenter
+                                            Direction.E -> Alignment.CenterEnd
+                                            Direction.S -> Alignment.BottomCenter
+                                            Direction.W -> Alignment.CenterStart
+                                            else -> Alignment.TopCenter
                                         }
+                                    )
+                                    .then(
+                                        when (mapMarker.alignDirection) {
+                                            Direction.N -> Modifier.offset {
+                                                IntOffset(
 
-                                        Direction.E -> Modifier.offset {
-                                            IntOffset(
-                                                0,
-                                                mapMarker.padding.roundToInt().coerceIn(
-                                                    -(contentHeightPx / 2) + pinHeightPx/2,
-                                                    contentHeightPx / 2 - pinHeightPx/2,
+                                                    mapMarker.padding.roundToInt().coerceIn(
+                                                        -(contentWidthPx / 2) + pinWidthPx / 2,
+                                                        contentWidthPx / 2 - pinWidthPx / 2,
+                                                    ),
+                                                    0
                                                 )
-                                            )
-                                        }
+                                            }
 
-                                        Direction.S -> Modifier.offset {
-                                            IntOffset(
-                                                mapMarker.padding.roundToInt().coerceIn(
-                                                    -(contentWidthPx / 2) + pinWidthPx/2,
-                                                    contentWidthPx / 2 - pinWidthPx/2,
-                                                ),
-                                                0
-                                            )
-                                        }
-
-                                        else -> Modifier.offset {
-                                            IntOffset(
-                                                0,
-                                                mapMarker.padding.roundToInt().coerceIn(
-                                                    -(contentHeightPx / 2) + pinHeightPx/2,
-                                                    contentHeightPx / 2 - pinHeightPx/2,
+                                            Direction.E -> Modifier.offset {
+                                                IntOffset(
+                                                    0,
+                                                    mapMarker.padding.roundToInt().coerceIn(
+                                                        -(contentHeightPx / 2) + pinHeightPx / 2,
+                                                        contentHeightPx / 2 - pinHeightPx / 2,
+                                                    )
                                                 )
-                                            )
+                                            }
+
+                                            Direction.S -> Modifier.offset {
+                                                IntOffset(
+                                                    mapMarker.padding.roundToInt().coerceIn(
+                                                        -(contentWidthPx / 2) + pinWidthPx / 2,
+                                                        contentWidthPx / 2 - pinWidthPx / 2,
+                                                    ),
+                                                    0
+                                                )
+                                            }
+
+                                            else -> Modifier.offset {
+                                                IntOffset(
+                                                    0,
+                                                    mapMarker.padding.roundToInt().coerceIn(
+                                                        -(contentHeightPx / 2) + pinHeightPx / 2,
+                                                        contentHeightPx / 2 - pinHeightPx / 2,
+                                                    )
+                                                )
+                                            }
                                         }
+                                    )
+                                    .onGloballyPositioned { coordinates ->
+                                        pinWidthPx = coordinates.size.width
+                                        pinHeightPx = coordinates.size.height
                                     }
+                                    .background(Color.Transparent)
+                            ) {
+                                ParticipantPin(
+                                    name = mapMarker.name,
+                                    isMapVisible = isMapVisible,
+                                    direction = mapMarker.pinDirection,
+                                    distance = mapMarker.distance,
+                                    type = mapMarker.type
                                 )
-                                .onGloballyPositioned { coordinates ->
-                                    pinWidthPx = coordinates.size.width
-                                    pinHeightPx = coordinates.size.height
-                                }
-                                .background(Color.Transparent)
-                        ) {
-                            ParticipantPin(
-                                name = mapMarker.name,
-                                isMapVisible = isMapVisible,
-                                direction = mapMarker.pinDirection,
-                                distance = mapMarker.distance,
-                                type = mapMarker.type
-                            )
+                            }
                         }
                     }
                 }
@@ -187,37 +187,39 @@ fun RoomSearchContent(
 @Preview
 @Composable
 private fun RoomSearchContentPreview() {
-    RoomSearchContent(
-        address = "123 Main St, City, Country",
-        isMapVisible = true,
-        myLocation = LatLng(37.5665, 126.978),
-        mapMarkers = listOf(
-            MapMarker(
-                latitude = 39.8665,
-                longitude = 129.978,
-                name = "홍길동",
-                type = DistanceType.FIVE_HUNDRED,
-                distance = 2000,
-                isVisible = true,
-                pinDirection = Direction.NE,
-                alignDirection = Direction.E,
-            ),
-            MapMarker(
-                latitude = 37.5670,
-                longitude = 127.479,
-                name = "김철수",
-                type = DistanceType.TWO_THOUSAND,
-                distance = 1000,
-                isVisible = true
-            ),
-            MapMarker(
-                latitude = 37.5664,
-                longitude = 126.977,
-                name = "박창수",
-                type = DistanceType.TWO_THOUSAND,
-                distance = 400,
-                isVisible = true
+    Column {
+        RoomSearchContent(
+            address = "123 Main St, City, Country",
+            isMapVisible = true,
+            myLocation = LatLng(37.5665, 126.978),
+            mapMarkers = listOf(
+                MapMarker(
+                    latitude = 39.8665,
+                    longitude = 129.978,
+                    name = "홍길동",
+                    type = DistanceType.FIVE_HUNDRED,
+                    distance = 2000,
+                    isVisible = true,
+                    pinDirection = Direction.NE,
+                    alignDirection = Direction.E,
+                ),
+                MapMarker(
+                    latitude = 37.5670,
+                    longitude = 127.479,
+                    name = "김철수",
+                    type = DistanceType.TWO_THOUSAND,
+                    distance = 1000,
+                    isVisible = true
+                ),
+                MapMarker(
+                    latitude = 37.5664,
+                    longitude = 126.977,
+                    name = "박창수",
+                    type = DistanceType.TWO_THOUSAND,
+                    distance = 400,
+                    isVisible = true
+                )
             )
         )
-    )
+    }
 }
