@@ -12,4 +12,5 @@ interface UserRepository {
     suspend fun saveUserName(name: String)
 
     suspend fun registerUser(name: String, deviceId: String): Result<Unit>
+    suspend fun editUser(name: String, deviceId: String): Result<Unit>
 }

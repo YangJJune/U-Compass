@@ -3,6 +3,7 @@ package com.ikseong.ucompass.data.network.service
 import com.ikseong.ucompass.data.network.request.CreateRoomRequest
 import com.ikseong.ucompass.data.network.request.JoinRoomRequest
 import com.ikseong.ucompass.data.network.request.LeaveRoomRequest
+import com.ikseong.ucompass.data.network.request.UserEditRequest
 import com.ikseong.ucompass.data.network.request.UserRegisterRequest
 import com.ikseong.ucompass.data.network.response.RoomDataResponse
 import com.ikseong.ucompass.data.network.response.RoomItemResponse
@@ -11,6 +12,7 @@ import com.ikseong.ucompass.data.network.response.RootResponse
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
+import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.Path
 
@@ -49,5 +51,11 @@ interface UCompassService {
     @POST("/user")
     suspend fun registerUser(
         @Body request: UserRegisterRequest
+    ): Unit
+
+    @PATCH("/user/{device_id}")
+    suspend fun editUser(
+        @Path("device_id") deviceId: String,
+        @Body request: UserEditRequest
     ): Unit
 }

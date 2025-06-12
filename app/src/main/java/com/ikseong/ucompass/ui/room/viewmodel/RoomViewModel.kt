@@ -118,7 +118,7 @@ class RoomViewModel @Inject constructor(
     // 현재 위치 업데이트
     fun updateCurrentLocation(location: LatLng, orientation: Double) {
         _currentLocation.value = location
-//        getLocationAndAddress()
+        // getLocationAndAddress()
         updateParticipantsDistanceAndDirection(location, orientation)
     }
 

@@ -6,11 +6,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ikseong.ucompass.data.repository.AddressRepository
 import com.ikseong.ucompass.domain.DeleteRoomUseCase
+import com.ikseong.ucompass.domain.EditUserUseCase
 import com.ikseong.ucompass.domain.GetDeviceIdUseCase
 import com.ikseong.ucompass.domain.GetRoomListUseCase
 import com.ikseong.ucompass.domain.GetUserNameUseCase
 import com.ikseong.ucompass.domain.LeaveRoomUseCase
 import com.ikseong.ucompass.domain.SaveDeviceIdUseCase
+import com.ikseong.ucompass.domain.SaveUserNameUseCase
 import com.ikseong.ucompass.mapper.toRoomInfo
 import com.ikseong.ucompass.ui.util.LocationUtil.getCurrentLocation
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -33,7 +35,9 @@ class MainViewModel @Inject constructor(
     private val leaveRoomUseCase: LeaveRoomUseCase,
     private val getDeviceIdUseCase: GetDeviceIdUseCase,
     private val saveDeviceIdUseCase: SaveDeviceIdUseCase,
+    private val saveUserNameUseCase: SaveUserNameUseCase,
     private val getUserNameUseCase: GetUserNameUseCase,
+    private val editUserUseCase: EditUserUseCase,
     private val addressRepository: AddressRepository,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
@@ -133,13 +137,35 @@ class MainViewModel @Inject constructor(
     }
 
     private fun editProfileData(name: String, email: String) {
+
         _uiState.update {
             it.copy(
                 name = name,
                 email = email
             )
         }
+
         // TODO : 프로필 수정 API
+        viewModelScope.launch {
+            getDeviceIdUseCase().collect { deviceId ->
+                if (deviceId != null) {
+                    editUserUseCase(
+                        deviceId = deviceId,
+                        name = name
+                    ).fold(
+                        onSuccess = {
+                            saveUserNameUseCase(name)
+                            Log.e("EditUser", "Edit User Success")
+                        },
+                        onFailure = {
+                            Log.e("EditUser", it.message.toString())
+                        }
+                    )
+                }else{
+                    Log.e("EditUser", "deviceId is null")
+                }
+            }
+        }
         setEditProfileDialogVisible(false)
     }
 

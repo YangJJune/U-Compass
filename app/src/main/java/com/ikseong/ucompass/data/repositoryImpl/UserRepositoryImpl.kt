@@ -1,6 +1,7 @@
 package com.ikseong.ucompass.data.repositoryImpl
 
 import com.ikseong.ucompass.data.local.UserPreferences
+import com.ikseong.ucompass.data.network.request.UserEditRequest
 import com.ikseong.ucompass.data.network.request.UserRegisterRequest
 import com.ikseong.ucompass.data.network.service.UCompassService
 import com.ikseong.ucompass.data.repository.UserRepository
@@ -40,6 +41,18 @@ class UserRepositoryImpl @Inject constructor(
             userName = name
         )
         service.registerUser(requestBody)
+    }
+
+    override suspend fun editUser(
+        name: String,
+        deviceId: String
+    ): Result<Unit> = runCatching {
+        val requestBody = UserEditRequest(
+            email = "",
+            profileImage = "",
+            userName = name
+        )
+        service.editUser(deviceId, requestBody)
     }
 
 }

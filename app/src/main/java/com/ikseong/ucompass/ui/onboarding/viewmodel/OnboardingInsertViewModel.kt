@@ -68,6 +68,7 @@ class OnboardingInsertViewModel @Inject constructor(
         }
     }
 
+
     fun saveName() {
         viewModelScope.launch {
             saveUserNameUseCase(uiState.value.name)
