@@ -21,6 +21,7 @@ import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -147,23 +148,22 @@ class MainViewModel @Inject constructor(
 
         // TODO : 프로필 수정 API
         viewModelScope.launch {
-            getDeviceIdUseCase().collect { deviceId ->
-                if (deviceId != null) {
-                    editUserUseCase(
-                        deviceId = deviceId,
-                        name = name
-                    ).fold(
-                        onSuccess = {
-                            saveUserNameUseCase(name)
-                            Log.e("EditUser", "Edit User Success")
-                        },
-                        onFailure = {
-                            Log.e("EditUser", it.message.toString())
-                        }
-                    )
-                }else{
-                    Log.e("EditUser", "deviceId is null")
-                }
+            val deviceId = getDeviceIdUseCase().firstOrNull()
+            if (deviceId != null) {
+                editUserUseCase(
+                    deviceId = deviceId,
+                    name = name
+                ).fold(
+                    onSuccess = {
+                        saveUserNameUseCase(name)
+                        Log.e("EditUser", "Edit User Success")
+                    },
+                    onFailure = {
+                        Log.e("EditUser", it.message.toString())
+                    }
+                )
+            } else {
+                Log.e("EditUser", "deviceId is null")
             }
         }
         setEditProfileDialogVisible(false)
