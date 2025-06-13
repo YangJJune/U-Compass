@@ -18,10 +18,8 @@ import java.io.OutputStreamWriter
 import java.io.PrintWriter
 import java.net.Socket
 import javax.inject.Inject
-import javax.inject.Singleton
 import kotlin.math.absoluteValue
 
-@Singleton
 class SocketRepository @Inject constructor() {
     private val host: String = BuildConfig.HOST
     private val port: Int = BuildConfig.PORT

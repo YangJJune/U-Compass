@@ -237,7 +237,7 @@ object LocationUtil {
     }
 
     // 위치 업데이트 시작 - WiFi RTT와 GPS 모두 시작
-    private fun startLocationUpdates(context: Context, onLocationUpdate: (LatLng) -> Unit) {
+    internal fun startLocationUpdates(context: Context, onLocationUpdate: (LatLng) -> Unit) {
         // 마지막으로 사용된 위치 소스를 추적
         var lastUsedSource = "초기화"
 

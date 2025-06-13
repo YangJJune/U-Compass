@@ -62,8 +62,8 @@ import com.ikseong.ucompass.ui.room.viewmodel.RoomUiState
 import com.ikseong.ucompass.ui.room.viewmodel.RoomViewModel
 import com.ikseong.ucompass.ui.theme.UCompassTheme.typography
 import com.ikseong.ucompass.ui.util.DeviceOrientationUtil
-import com.ikseong.ucompass.ui.util.GpsLocationUtil.startLocationUpdates
 import com.ikseong.ucompass.ui.util.GpsLocationUtil.stopLocationUpdates
+import com.ikseong.ucompass.ui.util.LocationUtil
 import com.ikseong.ucompass.ui.util.LocationUtil.offsetLatLng
 import com.ikseong.ucompass.ui.util.viewutil.noRippleClickable
 import com.ikseong.ucompass.ui.util.viewutil.plus
@@ -116,7 +116,7 @@ fun RoomRoute(
                 Lifecycle.Event.ON_RESUME -> {
                     if (permissionsState.allPermissionsGranted) {
                         // 위치 업데이트 시작
-                        startLocationUpdates(context) { location ->
+                        LocationUtil.startLocationUpdates(context) { location ->
                             roomViewModel.onRoomUiAction(
                                 RoomUiAction.OnLocationUpdate(
                                     location,
