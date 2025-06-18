@@ -6,11 +6,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ikseong.ucompass.data.repository.AddressRepository
 import com.ikseong.ucompass.domain.DeleteRoomUseCase
+import com.ikseong.ucompass.domain.EditUserUseCase
 import com.ikseong.ucompass.domain.GetDeviceIdUseCase
 import com.ikseong.ucompass.domain.GetRoomListUseCase
 import com.ikseong.ucompass.domain.GetUserNameUseCase
 import com.ikseong.ucompass.domain.LeaveRoomUseCase
 import com.ikseong.ucompass.domain.SaveDeviceIdUseCase
+import com.ikseong.ucompass.domain.SaveUserNameUseCase
 import com.ikseong.ucompass.mapper.toRoomInfo
 import com.ikseong.ucompass.ui.util.LocationUtil.getCurrentLocation
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,6 +21,7 @@ import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -33,7 +36,9 @@ class MainViewModel @Inject constructor(
     private val leaveRoomUseCase: LeaveRoomUseCase,
     private val getDeviceIdUseCase: GetDeviceIdUseCase,
     private val saveDeviceIdUseCase: SaveDeviceIdUseCase,
+    private val saveUserNameUseCase: SaveUserNameUseCase,
     private val getUserNameUseCase: GetUserNameUseCase,
+    private val editUserUseCase: EditUserUseCase,
     private val addressRepository: AddressRepository,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
@@ -133,13 +138,34 @@ class MainViewModel @Inject constructor(
     }
 
     private fun editProfileData(name: String, email: String) {
+
         _uiState.update {
             it.copy(
                 name = name,
                 email = email
             )
         }
+
         // TODO : 프로필 수정 API
+        viewModelScope.launch {
+            val deviceId = getDeviceIdUseCase().firstOrNull()
+            if (deviceId != null) {
+                editUserUseCase(
+                    deviceId = deviceId,
+                    name = name
+                ).fold(
+                    onSuccess = {
+                        saveUserNameUseCase(name)
+                        Log.e("EditUser", "Edit User Success")
+                    },
+                    onFailure = {
+                        Log.e("EditUser", it.message.toString())
+                    }
+                )
+            } else {
+                Log.e("EditUser", "deviceId is null")
+            }
+        }
         setEditProfileDialogVisible(false)
     }
 
