@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
+    id("com.google.gms.google-services")
 }
 
 val properties = Properties().apply {
@@ -21,8 +22,8 @@ android {
         applicationId = "com.ikseong.ucompass"
         minSdk = 30
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -33,8 +34,16 @@ android {
         buildConfigField("String", "HOST", properties["HOST"].toString())
         buildConfigField("int", "PORT", properties["PORT"].toString())
 
-        buildConfigField("String", "NAVER_MAP_CLIENT_ID", properties["NAVER_MAP_CLIENT_ID"].toString())
-        buildConfigField("String", "NAVER_MAP_CLIENT_SECRET", properties["NAVER_MAP_CLIENT_SECRET"].toString())
+        buildConfigField(
+            "String",
+            "NAVER_MAP_CLIENT_ID",
+            properties["NAVER_MAP_CLIENT_ID"].toString()
+        )
+        buildConfigField(
+            "String",
+            "NAVER_MAP_CLIENT_SECRET",
+            properties["NAVER_MAP_CLIENT_SECRET"].toString()
+        )
     }
 
     buildTypes {
@@ -117,4 +126,7 @@ dependencies {
     implementation("androidx.datastore:datastore-preferences:1.0.0")
     implementation("androidx.datastore:datastore-preferences-core:1.0.0")
 
+    // Firebase
+    implementation(platform("com.google.firebase:firebase-bom:33.16.0"))
+    implementation("com.google.firebase:firebase-analytics")
 }
