@@ -122,7 +122,7 @@ object WifiRttUtil {
      */
     fun startRttUpdateTimer(
         context: Context,
-        intervalMs: Long = 10000, // 기본 10초
+        intervalMs: Long = 15000, // 15초로 변경 (배터리 효율성 향상)
         onLocationUpdate: (LatLng?) -> Unit
     ) {
         stopRttUpdateTimer() // 기존 타이머 중지

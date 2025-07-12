@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ikseong.ucompass.analytics.AnalyticsManager
 import com.ikseong.ucompass.data.repository.AddressRepository
 import com.ikseong.ucompass.domain.DeleteRoomUseCase
 import com.ikseong.ucompass.domain.EditUserUseCase
@@ -235,6 +236,10 @@ class MainViewModel @Inject constructor(
     }
 
     fun fetchRoomList() {
+        AnalyticsManager.logEvent(
+            eventName = "fetch_room_list",
+            params = mapOf("home" to "MainViewModel")
+        )
         viewModelScope.launch {
             getRoomListUseCase().fold(
                 onSuccess = { data ->

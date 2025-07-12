@@ -296,12 +296,35 @@ class RoomViewModel @Inject constructor(
                 userId = getDeviceIdUseCase().firstOrNull().toString(),
                 roomId = /*_uiState.value.roomId.toInt()*/2
             )
+            
+            var previousLocation: LatLng? = null
+            var stationaryCount = 0
+            
             while (isActive) {
+                val currentLocation = _currentLocation.value
+                
                 socketRepository.sendLocation(
-                    _currentLocation.value?.latitude ?: 0.0,
-                    _currentLocation.value?.longitude ?: 0.0
+                    currentLocation?.latitude ?: 0.0,
+                    currentLocation?.longitude ?: 0.0
                 )
-                delay(5000L)
+                
+                // 적응형 업데이트 주기 계산
+                val updateInterval = if (currentLocation != null && previousLocation != null) {
+                    val distance = calculateDistanceInMeters(previousLocation, currentLocation)
+                    if (distance < 5) { // 5m 이하 이동 시 정지 상태로 간주
+                        stationaryCount++
+                        // 정지 상태가 지속될수록 업데이트 주기를 늘림 (최대 30초)
+                        minOf(10000L + (stationaryCount * 5000L), 30000L)
+                    } else {
+                        stationaryCount = 0
+                        10000L // 기본 10초
+                    }
+                } else {
+                    10000L // 기본 10초
+                }
+                
+                previousLocation = currentLocation
+                delay(updateInterval)
             }
         }
         viewModelScope.launch {

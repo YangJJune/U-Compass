@@ -25,7 +25,7 @@ import kotlin.time.Duration.Companion.milliseconds
  */
 object LocationUtil {
     private const val TAG = "LocationUtil"
-    private const val LOCATION_UPDATE_INTERVAL = 10000L // 10초
+    private const val LOCATION_UPDATE_INTERVAL = 15000L // 15초 (배터리 효율성 향상)
     
     /**
      * 위치 측정 방식을 나타내는 열거형
