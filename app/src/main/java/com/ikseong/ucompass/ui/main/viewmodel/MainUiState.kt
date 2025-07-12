@@ -2,15 +2,27 @@ package com.ikseong.ucompass.ui.main.viewmodel
 
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class RoomInfo(
+    val roomId: Long,
+    val roomTitle: String,
+    val roomDescription: String,
+    val participantCount: Int,
+    val participantList: List<String>,
+    val isHost: Boolean,
+)
 
 data class MainUiState(
     val name: String = "",
     val email: String = "",
-    val address: String = "",
-    val profileUrl: String = "",
+    val address: String = "위치를 불러오는 중입니다.",
     val roomList: PersistentList<RoomInfo> = persistentListOf(),
     val isLocationPermissionDialogVisible: Boolean = false,
-    val isEditProfileDialogVisible: Boolean = false
+    val isEditProfileDialogVisible: Boolean = false,
+    val isLoadingRoomList: Boolean = false,
+    val isLoadingLocation: Boolean = false,
 ) {
     companion object {
         val dummyDataState = MainUiState(
@@ -53,12 +65,3 @@ data class MainUiState(
         )
     }
 }
-
-data class RoomInfo(
-    val roomId: Long = 0L,
-    val roomName: String = "",
-    val hostName: String = "",
-    val roomLink: String = "",
-    val participantList: PersistentList<String> = persistentListOf(),
-    val isHost: Boolean = false
-)

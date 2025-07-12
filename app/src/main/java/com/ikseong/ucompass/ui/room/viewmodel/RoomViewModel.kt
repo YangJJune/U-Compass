@@ -272,18 +272,23 @@ class RoomViewModel @Inject constructor(
 
     fun getRoomItem(roomId: Long) {
         viewModelScope.launch {
+            // 방 정보 로딩 시작
+            _uiState.update { it.copy(isLoadingRoomInfo = true) }
+            
             getRoomItemUseCase(roomId).fold(
                 onSuccess = { data ->
                     _uiState.update {
                         it.copy(
                             roomId = data.id.toLong(),
                             roomName = data.title,
-                            participantCount = data.participants.size
+                            participantCount = data.participants.size,
+                            isLoadingRoomInfo = false
                         )
                     }
                 },
                 onFailure = {
                     Log.e("getRoomItem", it.message.toString())
+                    _uiState.update { it.copy(isLoadingRoomInfo = false) }
                 }
             )
         }
@@ -291,11 +296,17 @@ class RoomViewModel @Inject constructor(
 
     private fun connectSocket() {
         viewModelScope.launch() {
+            // 소켓 연결 시작
+            _uiState.update { it.copy(isConnectingSocket = true) }
+            
             socketRepository.connect()
             socketRepository.login(
                 userId = getDeviceIdUseCase().firstOrNull().toString(),
                 roomId = /*_uiState.value.roomId.toInt()*/2
             )
+            
+            // 소켓 연결 완료
+            _uiState.update { it.copy(isConnectingSocket = false) }
             
             var previousLocation: LatLng? = null
             var stationaryCount = 0

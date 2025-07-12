@@ -62,6 +62,9 @@ class MainViewModel @Inject constructor(
     private fun getLocationAndAddress() {
         viewModelScope.launch {
             try {
+                // 위치 로딩 시작
+                _uiState.update { it.copy(isLoadingLocation = true) }
+                
                 val location = getCurrentLocation(context = context)
                 // 위치 정보를 가져온 후 주소 변환
                 addressRepository.getAddressFromCoordinates(
@@ -70,21 +73,30 @@ class MainViewModel @Inject constructor(
                 ).fold(
                     onSuccess = { address ->
                         _uiState.update {
-                            it.copy(address = address)
+                            it.copy(
+                                address = address,
+                                isLoadingLocation = false
+                            )
                         }
                         Log.d("MainViewModel", "현재 주소: $address")
                     },
                     onFailure = { exception ->
                         Log.e("MainViewModel", "주소 변환 실패: ${exception.message}")
                         _uiState.update {
-                            it.copy(address = "주소를 불러올 수 없습니다")
+                            it.copy(
+                                address = "주소를 불러올 수 없습니다",
+                                isLoadingLocation = false
+                            )
                         }
                     }
                 )
             } catch (e: Exception) {
                 Log.e("MainViewModel", "위치 정보 가져오기 실패: ${e.message}")
                 _uiState.update {
-                    it.copy(address = "위치를 불러올 수 없습니다")
+                    it.copy(
+                        address = "위치를 불러올 수 없습니다",
+                        isLoadingLocation = false
+                    )
                 }
             }
         }
@@ -246,16 +258,21 @@ class MainViewModel @Inject constructor(
             params = mapOf("home" to "MainViewModel")
         )
         viewModelScope.launch {
+            // 방 목록 로딩 시작
+            _uiState.update { it.copy(isLoadingRoomList = true) }
+            
             getRoomListUseCase().fold(
                 onSuccess = { data ->
                     _uiState.update {
                         it.copy(
-                            roomList = data.map { it.toRoomInfo() }.toPersistentList()
+                            roomList = data.map { it.toRoomInfo() }.toPersistentList(),
+                            isLoadingRoomList = false
                         )
                     }
                 },
                 onFailure = {
                     Log.e("fetchRoomList", it.message.toString())
+                    _uiState.update { it.copy(isLoadingRoomList = false) }
                 }
             )
         }

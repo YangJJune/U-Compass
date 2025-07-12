@@ -65,6 +65,9 @@ class CreateViewModel @Inject constructor(
 
     private fun createRoom() {
         viewModelScope.launch {
+            // 로딩 상태 시작
+            _uiState.update { it.copy(isLoading = true) }
+            
             val deviceId = getDeviceIdUseCase().first()
 
             val request = _uiState.value.toRequest(
@@ -76,7 +79,8 @@ class CreateViewModel @Inject constructor(
                     Log.d("CreateViewModel", "createRoom: $data")
                     _uiState.update {
                         it.copy(
-                            roomNumber = data.data
+                            roomNumber = data.data,
+                            isLoading = false
                         )
                     }
                     
@@ -90,6 +94,9 @@ class CreateViewModel @Inject constructor(
                 },
                 onFailure = { error ->
                     Log.e("CreateViewModel", "createRoom: $error")
+                    
+                    // 로딩 상태 종료
+                    _uiState.update { it.copy(isLoading = false) }
                     
                     // 방 생성 실패 토스트 메시지 표시
                     ToastUtil.showToast(

@@ -19,6 +19,8 @@ data class RoomUiState(
     val isRoomDeleteDialogVisible: Boolean = false,
     val contentWidthPx: Int = 0,
     val contentHeightPx: Int = 0,
+    val isLoadingRoomInfo: Boolean = false,
+    val isConnectingSocket: Boolean = false,
 )
 
 data class ParticipantState(

@@ -89,10 +89,15 @@ fun CreateRoomTitleScreen(
                 .padding(horizontal = 22.dp, vertical = 21.dp)
                 .height(62.dp)
                 .align(Alignment.BottomCenter),
-            text = "생성하기",
+            text = if (uiState.isLoading) "생성 중..." else "생성하기",
             fontSize = 20.sp,
-            color = Color(0xFF00E397)
-        ) { onAction(com.ikseong.ucompass.ui.create.viewmodel.CreateUiAction.OnCreateClick) }
+            color = if (uiState.isLoading) Color(0xFFD9D9D9) else Color(0xFF00E397),
+            enabled = !uiState.isLoading
+        ) {
+            if (!uiState.isLoading) {
+                onAction(com.ikseong.ucompass.ui.create.viewmodel.CreateUiAction.OnCreateClick)
+            }
+        }
     }
 }
 

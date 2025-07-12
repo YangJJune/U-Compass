@@ -24,13 +24,15 @@ fun UCompassButton(
     fontSize: TextUnit,
     color: Color,
     contentPadding: PaddingValues = ButtonDefaults.ContentPadding,
+    enabled: Boolean = true,
     onClick: () -> Unit,
 ) {
     Button(
         onClick = onClick,
         modifier = modifier,
         colors = ButtonDefaults.buttonColors(containerColor = color),
-        contentPadding = contentPadding
+        contentPadding = contentPadding,
+        enabled = enabled
     ) {
         Text(
             text = text,
