@@ -33,8 +33,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil3.compose.AsyncImage
 import com.ikseong.ucompass.R
+import com.ikseong.ucompass.ui.common.component.ProfileImageWithPlaceholder
+import com.ikseong.ucompass.ui.common.component.UCompassButton
 import com.ikseong.ucompass.ui.common.component.UCompassLogo
 import com.ikseong.ucompass.ui.common.component.UCompassTextField
 import com.ikseong.ucompass.ui.onboarding.viewmodel.OnboardingInsertViewModel
@@ -122,14 +123,12 @@ fun OnboardingInsertScreen(
             Box(
                 modifier = Modifier
                     .padding(bottom = 15.dp, end = 18.dp)
-                    .size(170.dp)
-                    .clip(RoundedCornerShape(25.dp))
-                    .background(color = Color(0xFF00E397))
             ) {
-                AsyncImage(
-                    modifier = Modifier.matchParentSize(),
-                    model = profileImgUrl,
-                    contentDescription = "프로필 이미지"
+                ProfileImageWithPlaceholder(
+                    imageUrl = profileImgUrl,
+                    contentDescription = "프로필 이미지",
+                    size = 170.dp,
+                    shape = RoundedCornerShape(25.dp)
                 )
             }
             Box(

@@ -22,9 +22,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil3.compose.AsyncImage
 import com.ikseong.ucompass.R
 import com.ikseong.ucompass.ui.common.component.AddressInfo
+import com.ikseong.ucompass.ui.common.component.ProfileImageWithPlaceholder
 import com.ikseong.ucompass.ui.theme.UCompassTheme.typography
 import com.ikseong.ucompass.ui.util.viewutil.noRippleClickable
 
@@ -89,14 +89,12 @@ fun MainProfile(
         Box(
             modifier = Modifier
                 .padding(start = 15.dp, top = 20.dp)
-                .size(77.dp)
-                .clip(RoundedCornerShape(25.dp))
-                .background(color = Color(0xFF00E397))
         ) {
-            AsyncImage(
-                modifier = Modifier.matchParentSize(),
-                model = imageUrl,
-                contentDescription = "프로필 이미지"
+            ProfileImageWithPlaceholder(
+                imageUrl = imageUrl,
+                contentDescription = "프로필 이미지",
+                size = 77.dp,
+                shape = RoundedCornerShape(25.dp)
             )
         }
 

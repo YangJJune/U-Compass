@@ -32,6 +32,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ikseong.ucompass.R
+import com.ikseong.ucompass.ui.common.component.ProfileImageWithPlaceholder
 import com.ikseong.ucompass.ui.model.Direction
 import com.ikseong.ucompass.ui.room.viewmodel.ParticipantState
 import com.ikseong.ucompass.ui.theme.UCompassTheme.typography
@@ -115,20 +116,15 @@ fun ParticipantItem(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(
-                modifier = Modifier
-                    .size(37.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(Color(0xFFD9D9D9))
-            ) {
-                // TODO: 나중에 프로필 이미지로 바꾸기
-                Icon(
-                    modifier = Modifier.align(Alignment.Center),
-                    painter = painterResource(R.drawable.ic_user_info_main),
-                    contentDescription = "User Info",
-                    tint = Color.Unspecified
-                )
-            }
+            ProfileImageWithPlaceholder(
+                imageUrl = participant.profileUrl,
+                contentDescription = "참여자 프로필 이미지",
+                size = 37.dp,
+                shape = RoundedCornerShape(12.dp),
+                backgroundColor = Color(0xFFD9D9D9),
+                placeholderColor = Color(0xFFD9D9D9),
+                showLoadingIndicator = false
+            )
             Text(
                 text = participant.name,
                 style = typography.medium.copy(
