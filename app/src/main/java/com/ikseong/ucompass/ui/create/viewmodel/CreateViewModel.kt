@@ -1,12 +1,15 @@
 package com.ikseong.ucompass.ui.create.viewmodel
 
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ikseong.ucompass.domain.CreateRoomUseCase
 import com.ikseong.ucompass.domain.GetDeviceIdUseCase
 import com.ikseong.ucompass.mapper.toRequest
+import com.ikseong.ucompass.ui.util.viewutil.ToastUtil
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -20,6 +23,7 @@ import javax.inject.Inject
 class CreateViewModel @Inject constructor(
     private val createRoomUseCase: CreateRoomUseCase,
     private val getDeviceIdUseCase: GetDeviceIdUseCase,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(CreateUiState())
@@ -75,10 +79,23 @@ class CreateViewModel @Inject constructor(
                             roomNumber = data.data
                         )
                     }
+                    
+                    // 방 생성 완료 토스트 메시지 표시
+                    ToastUtil.showToast(
+                        context = context,
+                        message = "방 생성이 완료되었습니다! 방 번호: ${data.data}"
+                    )
+                    
                     navigateToFinishScreen()
                 },
                 onFailure = { error ->
                     Log.e("CreateViewModel", "createRoom: $error")
+                    
+                    // 방 생성 실패 토스트 메시지 표시
+                    ToastUtil.showToast(
+                        context = context,
+                        message = "방 생성에 실패했습니다. 다시 시도해주세요."
+                    )
                 }
             )
         }

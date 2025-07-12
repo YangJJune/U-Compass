@@ -16,6 +16,7 @@ import com.ikseong.ucompass.domain.SaveDeviceIdUseCase
 import com.ikseong.ucompass.domain.SaveUserNameUseCase
 import com.ikseong.ucompass.mapper.toRoomInfo
 import com.ikseong.ucompass.ui.util.LocationUtil.getCurrentLocation
+import com.ikseong.ucompass.ui.util.viewutil.ToastUtil
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.collections.immutable.toPersistentList
@@ -185,9 +186,11 @@ class MainViewModel @Inject constructor(
                         _uiState.update {
                             it.copy(roomList = it.roomList.remove(room))
                         }
+                        ToastUtil.showToast(context, "방이 삭제되었습니다.")
                     },
                     onFailure = {
                         Log.e("performRoomAction", it.message.toString())
+                        ToastUtil.showToast(context, "방 삭제에 실패했습니다.")
                     }
                 )
             } else {
@@ -201,9 +204,11 @@ class MainViewModel @Inject constructor(
                             _uiState.update {
                                 it.copy(roomList = it.roomList.remove(room))
                             }
+                            ToastUtil.showToast(context, "방에서 나갔습니다.")
                         },
                         onFailure = {
                             Log.e("performRoomAction", it.message.toString())
+                            ToastUtil.showToast(context, "방 나가기에 실패했습니다.")
                         }
                     )
                 }
